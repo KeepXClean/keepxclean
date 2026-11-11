@@ -63,6 +63,7 @@ jobs:
         with:
           name: keepxclean-chrome-extension
           path: apps/extension/.output/*-chrome.zip
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 30
 
