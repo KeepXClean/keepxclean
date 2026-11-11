@@ -1,0 +1,13 @@
+packages:
+  - "packages/*"
+  - "apps/*"
+
+# WXT 0.19 uses Vite 6; plugin-react 6 requires Vite 8.
+overrides:
+  "@wxt-dev/module-react>@vitejs/plugin-react": "4.7.0"
+
+allowBuilds:
+  esbuild: true
+  sharp: true
+  spawn-sync: true
+  workerd: true

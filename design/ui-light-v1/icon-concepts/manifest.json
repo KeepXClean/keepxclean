@@ -1,0 +1,223 @@
+{
+  "version": 1,
+  "date": "2026-11-10",
+  "mode": "built-in image_gen for brand concepts; existing lucide-react for functional icons",
+  "status": "exploration_not_approved",
+  "concepts": [
+    {
+      "id": "a",
+      "name": "clear-k",
+      "title": "净空 K",
+      "prompt": "Use case: logo-brand.\nAsset type: standalone brand-icon concept for KeepXClean, a browser extension for filtering noisy X feeds. This is a NEW brand mark exploration, not a UI screenshot.\nStyle: exceptionally clean original flat geometric logo, scalable vector-like silhouette, careful optical balance, a single solid emerald #13865F, smooth edges. Designed for use on WHITE and very light gray UI backgrounds. A genuinely transparent background (real alpha), NOT a white rectangle, no checkerboard printed into artwork. Square composition approximately1024x1024, centered mark occupying about70% of the canvas with ample transparent margins.\nConstraints: no wordmark, no caption, no text besides the abstract letter if explicitly part of the symbol; no gradients, no lighting, no shadow, no texture, no 3D, no mockup, no app tile, no sparkle, no confetti, no tiny dots. A bold memorable silhouette, readable at small toolbar size. Do not use X/Twitter bird or X trademark shapes. Use no more than3 simple filled pieces; avoid thin outlines. This is a concept for later precise SVG construction and optical size tuning.\nPrimary request: design a proprietary geometric K monogram that subtly suggests a carefully folded filter ribbon and a clean passage through information. A strong compact vertical spine on the left, and two crisp diagonal arms on the right form an unmistakable capital K silhouette. Use a small controlled negative-space break at the center so the two arms feel like folded strips, with gently rounded outer corners. No extra symbol inside or around it. It must look intelligent, calm and distinctive rather than sporty. The white/transparent central space should feel open and intentional. Strictly emerald-filled, no shading. The icon should remain an identifiable K in monochrome.",
+      "source": "/Users/lin/.codex/generated_images/01a1c49b-73f0-7e12-9d1f-8bf02f8bef36/exec-b729e087-db6b-480b-9124-401c91cac9ed.png",
+      "filename": "a-clear-k.png",
+      "kind": "raster_concept",
+      "refinement": null
+    },
+    {
+      "id": "b",
+      "name": "feed-filter",
+      "title": "信息流滤片",
+      "prompt": "Use case: logo-brand.\nAsset type: standalone brand-icon concept for KeepXClean, a browser extension for filtering noisy X feeds. This is a NEW brand mark exploration, not a UI screenshot.\nStyle: exceptionally clean original flat geometric logo, scalable vector-like silhouette, careful optical balance, a single solid emerald #13865F, smooth edges. Designed for use on WHITE and very light gray UI backgrounds. A genuinely transparent background (real alpha), NOT a white rectangle, no checkerboard printed into artwork. Square composition approximately1024x1024, centered mark occupying about70% of the canvas with ample transparent margins.\nConstraints: no wordmark, no caption, no text besides the abstract letter if explicitly part of the symbol; no gradients, no lighting, no shadow, no texture, no 3D, no mockup, no app tile, no sparkle, no confetti, no tiny dots. A bold memorable silhouette, readable at small toolbar size. Do not use X/Twitter bird or X trademark shapes. Use no more than3 simple filled pieces; avoid thin outlines. This is a concept for later precise SVG construction and optical size tuning.\nPrimary request: design an original compact abstract information-feed filter mark made of exactly three substantial horizontal emerald bands. Their left ends are softly rounded and aligned, and their right ends are trimmed along one decisive diagonal so the overall three-band silhouette tapers cleanly from long top row to short bottom row. The negative spaces between bands are generous and uniform, evoking three feed lines being reduced to a clean selection. The taper is subtle, confident and geometric; no separate funnel stem, arrow, K, shield or extra symbol. A bold small toolbar logo for a quiet reading utility, slightly wider than tall. Perfect flat color with deliberate proportions.",
+      "source": "/Users/lin/.codex/generated_images/01a1c49b-73f0-7e12-9d1f-8bf02f8bef36/exec-22c56b40-4a3f-4818-aff9-cbce09ca18d2.png",
+      "filename": "b-feed-filter.png",
+      "kind": "raster_concept",
+      "refinement": "Use case: precise-object-edit. The input image is the edit target, an emerald three-band information-filter logo. Preserve exactly the three horizontal bands, their proportions, their rounded left ends and diagonally cut right ends. Remove ALL glow, mist, haze, shadow, gradient and texture. Each band must be a perfectly flat opaque solid #13865F. Everything outside the three band silhouettes and between the bands must be fully transparent alpha with crisp anti-aliased edges only. No semi-transparent glow around edges. Preserve composition and generous margins. Output one genuine transparent icon, no text or background."
+    },
+    {
+      "id": "c",
+      "name": "light-shield",
+      "title": "轻盾",
+      "prompt": "Use case: logo-brand.\nAsset type: standalone brand-icon concept for KeepXClean, a browser extension for filtering noisy X feeds. This is a NEW brand mark exploration, not a UI screenshot.\nStyle: exceptionally clean original flat geometric logo, scalable vector-like silhouette, careful optical balance, a single solid emerald #13865F, smooth edges. Designed for use on WHITE and very light gray UI backgrounds. A genuinely transparent background (real alpha), NOT a white rectangle, no checkerboard printed into artwork. Square composition approximately1024x1024, centered mark occupying about70% of the canvas with ample transparent margins.\nConstraints: no wordmark, no caption, no text besides the abstract letter if explicitly part of the symbol; no gradients, no lighting, no shadow, no texture, no 3D, no mockup, no app tile, no sparkle, no confetti, no tiny dots. A bold memorable silhouette, readable at small toolbar size. Do not use X/Twitter bird or X trademark shapes. Use no more than3 simple filled pieces; avoid thin outlines. This is a concept for later precise SVG construction and optical size tuning.\nPrimary request: design a minimal soft emerald shield silhouette with one broad clean check-shaped transparent cutout. The shield has a gently curved top with slightly angled shoulders and a soft pointed bottom; nearly square proportions, less tall than a typical cybersecurity shield. Inside, one check path is carved as generous negative space, its rising upper-right arm meeting a small opening on the shield right edge, giving an airy open silhouette. Only one coherent filled emerald shape, no outline strokes, no internal border, no lock, no letter. Friendly and lightweight, designed for a reading-filter product, avoiding aggressive security or police aesthetics.",
+      "source": "/Users/lin/.codex/generated_images/01a1c49b-73f0-7e12-9d1f-8bf02f8bef36/exec-e7cdd89f-76e3-4ca3-9971-6c57a80111f1.png",
+      "filename": "c-light-shield.png",
+      "kind": "raster_concept",
+      "refinement": null
+    },
+    {
+      "id": "d",
+      "name": "clear-x",
+      "title": "净空 X",
+      "prompt": "Use case: logo-brand.\nAsset type: standalone brand-icon concept for KeepXClean, a browser extension for filtering noisy X feeds. This is a NEW brand mark exploration, not a UI screenshot.\nStyle: exceptionally clean original flat geometric logo, scalable vector-like silhouette, careful optical balance, a single solid emerald #13865F, smooth edges. Designed for use on WHITE and very light gray UI backgrounds. A genuinely transparent background (real alpha), NOT a white rectangle, no checkerboard printed into artwork. Square composition approximately1024x1024, centered mark occupying about70% of the canvas with ample transparent margins.\nConstraints: no wordmark, no caption, no text besides the abstract letter if explicitly part of the symbol; no gradients, no lighting, no shadow, no texture, no 3D, no mockup, no app tile, no sparkle, no confetti, no tiny dots. A bold memorable silhouette, readable at small toolbar size. Create original lettering; do not copy the exact X platform logo geometry and do not use a bird. Use no more than3 simple filled pieces; avoid thin outlines. This is a concept for later precise SVG construction and optical size tuning.\n\nPrimary request: design an ORIGINAL custom X monogram for KeepXClean, the filter utility for X. Communicate clearing away noise through one deliberate clean negative-space cut. Two broad geometric diagonal bands form a balanced bold X with four softly rounded terminals. Both diagonals have the SAME WIDTH, unlike the X platform's unequal outlined/filled letterform. At the center, one crisp narrow transparent separation runs along one band edge so the crossing has a clear air gap, like two filtering ribbons neatly passing each other. Avoid weaving, knots, multiple slots or tiny isolated pieces. Preserve immediate X recognition at toolbar size. Slightly compact proportions, quiet and precise, flat solid emerald #13865F. No enclosing square, no checkmark, no star, no shadow and no glow. Exactly one icon, genuinely transparent background.",
+      "source": "/Users/lin/.codex/generated_images/01a1c49b-73f0-7e12-9d1f-8bf02f8bef36/exec-40de8512-e1be-4ae4-94ed-47576daac9f1.png",
+      "filename": "d-clear-x.png",
+      "kind": "raster_concept",
+      "refinement": null
+    }
+  ],
+  "functionalIcons": [
+    {
+      "component": "SlidersHorizontal",
+      "label": "过滤规则",
+      "group": "nav",
+      "filename": "functional/SlidersHorizontal.svg"
+    },
+    {
+      "component": "Search",
+      "label": "关键词",
+      "group": "nav",
+      "filename": "functional/Search.svg"
+    },
+    {
+      "component": "UsersRound",
+      "label": "黑白名单",
+      "group": "nav",
+      "filename": "functional/UsersRound.svg"
+    },
+    {
+      "component": "History",
+      "label": "拦截记录",
+      "group": "nav",
+      "filename": "functional/History.svg"
+    },
+    {
+      "component": "Settings2",
+      "label": "偏好设置",
+      "group": "nav",
+      "filename": "functional/Settings2.svg"
+    },
+    {
+      "component": "Zap",
+      "label": "高频发帖",
+      "group": "rule",
+      "filename": "functional/Zap.svg"
+    },
+    {
+      "component": "Users",
+      "label": "社区记录",
+      "group": "rule",
+      "filename": "functional/Users.svg"
+    },
+    {
+      "component": "MessageCircle",
+      "label": "蓝标回复",
+      "group": "rule",
+      "filename": "functional/MessageCircle.svg"
+    },
+    {
+      "component": "Hash",
+      "label": "标签堆砌",
+      "group": "rule",
+      "filename": "functional/Hash.svg"
+    },
+    {
+      "component": "UserRound",
+      "label": "账号质量",
+      "group": "rule",
+      "filename": "functional/UserRound.svg"
+    },
+    {
+      "component": "MegaphoneOff",
+      "label": "推广广告",
+      "group": "rule",
+      "filename": "functional/MegaphoneOff.svg"
+    },
+    {
+      "component": "EyeOff",
+      "label": "隐藏",
+      "group": "action",
+      "filename": "functional/EyeOff.svg"
+    },
+    {
+      "component": "Eye",
+      "label": "展开查看",
+      "group": "action",
+      "filename": "functional/Eye.svg"
+    },
+    {
+      "component": "Ban",
+      "label": "拉黑账号",
+      "group": "action",
+      "filename": "functional/Ban.svg"
+    },
+    {
+      "component": "UserCheck",
+      "label": "加入白名单",
+      "group": "action",
+      "filename": "functional/UserCheck.svg"
+    },
+    {
+      "component": "Undo2",
+      "label": "撤销",
+      "group": "action",
+      "filename": "functional/Undo2.svg"
+    },
+    {
+      "component": "Trash2",
+      "label": "移除",
+      "group": "action",
+      "filename": "functional/Trash2.svg"
+    },
+    {
+      "component": "Download",
+      "label": "导出配置",
+      "group": "action",
+      "filename": "functional/Download.svg"
+    },
+    {
+      "component": "Upload",
+      "label": "导入配置",
+      "group": "action",
+      "filename": "functional/Upload.svg"
+    },
+    {
+      "component": "RefreshCw",
+      "label": "重新同步",
+      "group": "action",
+      "filename": "functional/RefreshCw.svg"
+    },
+    {
+      "component": "Plus",
+      "label": "添加",
+      "group": "action",
+      "filename": "functional/Plus.svg"
+    },
+    {
+      "component": "Check",
+      "label": "成功",
+      "group": "state",
+      "filename": "functional/Check.svg"
+    },
+    {
+      "component": "Info",
+      "label": "说明",
+      "group": "state",
+      "filename": "functional/Info.svg"
+    },
+    {
+      "component": "TriangleAlert",
+      "label": "异常提醒",
+      "group": "state",
+      "filename": "functional/TriangleAlert.svg"
+    },
+    {
+      "component": "X",
+      "label": "关闭",
+      "group": "state",
+      "filename": "functional/X.svg"
+    }
+  ],
+  "spec": {
+    "grid": 24,
+    "displaySizes": [
+      16,
+      20,
+      24
+    ],
+    "strokeWidth": 1.75,
+    "linecap": "round",
+    "linejoin": "round",
+    "colors": {
+      "default": "#607168",
+      "active": "#13865F",
+      "warning": "#9B6816",
+      "destructive": "#B54747"
+    },
+    "note": "品牌 PNG 用于方向探索，正式应用需矢量重绘并分别校正 16 / 32 / 48 / 128 px；功能 SVG 为现有 Lucide 图标统一规格的设计参考。X 品牌标记放在固定品牌位置，关闭按钮使用细线小 X，避免同位置混用。"
+  },
+  "selectedImplementation": {
+    "assets": "official-x/selected-black-titanium/",
+    "status": "integrated_without_halo",
+    "note": "本文件其余品牌概念为历史探索，未采用。功能组件沿用 Lucide 统一描边。"
+  }
+}

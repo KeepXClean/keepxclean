@@ -1,0 +1,10 @@
+@import '../ui/ui.css';
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+body {
+  background: #f7f9f8;
+}

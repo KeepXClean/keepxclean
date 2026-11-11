@@ -1,0 +1,27 @@
+name = "keepxclean-api"
+main = "src/index.ts"
+compatibility_date = "2025-02-01"
+
+# Custom Domain Routes for keepxclean.com
+routes = [
+  { pattern = "api.keepxclean.com", custom_domain = true },
+  { pattern = "cdn.keepxclean.com", custom_domain = true }
+]
+
+[vars]
+SITE_DOMAIN = "keepxclean.com"
+MIN_SNAPSHOT_BLOCK_COUNT = "2"
+
+# Cron Trigger: Every 10 minutes compile D1 block counts into R2 static snapshot
+[triggers]
+crons = ["*/10 * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "keepxclean-db"
+database_id = "00000000-0000-0000-0000-000000000000" # Replace with `wrangler d1 create keepxclean-db` ID when deploying
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "SNAPSHOT_BUCKET"
+bucket_name = "keepxclean-snapshots"

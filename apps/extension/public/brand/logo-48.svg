@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <title>KeepXClean · Black Titanium</title>
+  <defs>
+    <path id="x" d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z"/>
+    <clipPath id="x-clip"><use href="#x"/></clipPath>
+    <linearGradient id="titanium" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6B7577"/>
+      <stop offset=".09" stop-color="#3D4547"/>
+      <stop offset=".22" stop-color="#242A2C"/>
+      <stop offset=".39" stop-color="#2C3234"/>
+      <stop offset=".56" stop-color="#1A1F21"/>
+      <stop offset=".76" stop-color="#111617"/>
+      <stop offset="1" stop-color="#090D0E"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#CDD6D5"/>
+      <stop offset=".16" stop-color="#849091"/>
+      <stop offset=".43" stop-color="#323B3D"/>
+      <stop offset=".55" stop-color="#788586"/>
+      <stop offset=".72" stop-color="#242D2E"/>
+      <stop offset="1" stop-color="#0A0F10"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#EAF6EF"/>
+  <g transform="translate(104 100.65979999999999) scale(0.25333333333333335)">
+    <use href="#x" fill="url(#titanium)"/>
+    <use href="#x" stroke="url(#edge)" stroke-width="7" clip-path="url(#x-clip)"/>
+  </g>
+</svg>

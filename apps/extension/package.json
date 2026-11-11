@@ -1,0 +1,36 @@
+{
+  "name": "@keepxclean/extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "postinstall": "wxt prepare",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "preview:ui": "vite --config tests/ui/vite.config.ts"
+  },
+  "dependencies": {
+    "@keepxclean/shared": "workspace:*",
+    "lucide-react": "^0.475.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.6",
+    "@types/chrome": "^0.0.304",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "@wxt-dev/module-react": "^1.1.3",
+    "jsdom": "26.1.0",
+    "tailwindcss": "^4.0.6",
+    "typescript": "^5.7.2",
+    "vite": "6.4.5",
+    "vitest": "^3.2.7",
+    "wxt": "^0.19.26"
+  }
+}

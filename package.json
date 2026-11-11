@@ -1,0 +1,25 @@
+{
+  "name": "keepxclean",
+  "version": "0.1.0",
+  "private": true,
+  "description": "KeepXClean - High signal-to-noise ratio filter extension for X (Twitter) powered by Cloudflare crowd-sourced blocklist (keepxclean.com)",
+  "homepage": "https://keepxclean.com",
+  "scripts": {
+    "build": "pnpm --filter @keepxclean/shared build && pnpm --filter @keepxclean/extension build",
+    "dev:ext": "pnpm --filter @keepxclean/extension dev",
+    "dev:server": "pnpm --filter @keepxclean/server dev",
+    "test": "pnpm --filter @keepxclean/shared test && pnpm --filter @keepxclean/extension test && pnpm --filter @keepxclean/server test",
+    "typecheck": "pnpm -r typecheck",
+    "db:migrate:local": "pnpm --filter @keepxclean/server db:migrate:local",
+    "db:migrate:remote": "pnpm --filter @keepxclean/server db:migrate:remote",
+    "deploy:server": "pnpm --filter @keepxclean/server deploy"
+  },
+  "devDependencies": {
+    "prettier": "3.6.2",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.5"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

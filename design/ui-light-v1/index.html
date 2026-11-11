@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KeepXClean · 浅色 UI 设计</title>
+<meta name="description" content="KeepXClean 全部浅色 UI 设计稿，包含插件弹窗、完整设置、X 页面内交互和异常恢复状态。">
+<link rel="stylesheet" href="tokens.css">
+<style>
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:84px}body{margin:0;background:var(--kxc-canvas);color:var(--kxc-text);font:14px/1.65 var(--kxc-font-sans)}a{color:var(--kxc-primary);text-underline-offset:3px}button{font:inherit;cursor:pointer}a:focus-visible,button:focus-visible{outline:2px solid var(--kxc-primary);outline-offset:4px}header{position:sticky;top:0;z-index:2;background:#ffffffed;backdrop-filter:blur(12px);border-bottom:1px solid var(--kxc-border)}.bar{max-width:1440px;margin:auto;padding:17px 32px;display:flex;justify-content:space-between;align-items:center;gap:16px}.brand{display:flex;gap:10px;align-items:center;font-weight:750;font-size:18px;text-decoration:none;color:var(--kxc-text)}.brand img{width:32px;height:32px;display:block}.bar-links{display:flex;gap:22px;font-size:13px}.bar-links a{text-decoration:none;color:var(--kxc-text-secondary)}main{max-width:1440px;margin:auto;padding:44px 32px 72px}.intro{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:end;margin-bottom:30px}.eyebrow{color:var(--kxc-primary);letter-spacing:.14em;font-size:12px;font-weight:650}h1{font-size:34px;letter-spacing:-.035em;line-height:1.25;margin:9px 0 14px;font-weight:700}.lede{margin:0;max-width:780px;color:var(--kxc-text-secondary);font-size:15px}.badge{border:1px solid var(--kxc-border);background:white;padding:10px 14px;border-radius:9px;color:var(--kxc-text-secondary);white-space:nowrap}.badge strong{color:var(--kxc-primary);font-size:21px;margin-right:5px}.filters{display:flex;gap:8px;flex-wrap:wrap;margin:25px 0}.filter{border:1px solid var(--kxc-border);border-radius:8px;background:white;padding:8px 15px;color:var(--kxc-text-secondary)}.filter[aria-pressed=true]{border-color:var(--kxc-primary);background:var(--kxc-selected);color:var(--kxc-primary);font-weight:600}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:25px}.screen{background:white;border:1px solid var(--kxc-border);border-radius:12px;overflow:hidden;scroll-margin-top:90px}.screen[hidden]{display:none}.screen:first-child{grid-column:1/-1}.preview{display:block;background:#f4f7f5;border-bottom:1px solid var(--kxc-border)}.preview img{display:block;width:100%;height:auto}.screen-info{padding:20px 22px}.screen-title{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.number{font:12px var(--kxc-font-mono);color:var(--kxc-primary);background:var(--kxc-selected);padding:4px 7px;border-radius:5px}.screen h2{font-size:18px;margin:0;line-height:1.4}.category{margin-left:auto;color:var(--kxc-text-secondary);font-size:11px}.screen-info p{margin:8px 0 12px;color:var(--kxc-text-secondary)}.tags{display:flex;flex-wrap:wrap;gap:6px}.tags span{font-size:11px;color:var(--kxc-text-secondary);background:#f6f8f7;border:1px solid #edf0ee;padding:3px 7px;border-radius:5px}.original{display:inline-block;margin-top:13px;font-size:12px;text-decoration:none}.handoff{margin-top:44px;background:white;border:1px solid var(--kxc-border);border-radius:12px;padding:26px}.handoff h2{font-size:20px;margin:0 0 14px}.handoff h3{font-size:15px;margin:25px 0 10px}.handoff p,.handoff li{color:var(--kxc-text-secondary)}.swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}.swatch{border:1px solid var(--kxc-border);border-radius:8px;overflow:hidden}.swatch i{display:block;height:38px;background:var(--c)}.swatch span{display:block;padding:9px 11px;font-size:12px}.swatch code{display:block;color:var(--kxc-text-secondary);font-size:11px}.spec-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}ul{padding-left:20px;margin:10px 0}li+li{margin-top:8px}.notice{border-left:3px solid var(--kxc-primary);padding:8px 14px;background:var(--kxc-selected);margin:20px 0;font-size:13px}.downloads{display:flex;flex-wrap:wrap;gap:14px;margin-top:18px}.downloads a{border:1px solid var(--kxc-border);border-radius:8px;padding:8px 12px;text-decoration:none;font-size:13px}.footer{padding-top:26px;color:var(--kxc-text-secondary);font-size:12px}#screen-count{margin-left:auto;align-self:center;font-size:12px;color:var(--kxc-text-secondary)}@media(max-width:850px){.bar{padding:15px 18px}.bar-links{gap:12px}.bar-links a:last-child{display:none}main{padding:28px 18px 45px}.intro{grid-template-columns:1fr;gap:18px}.badge{width:max-content}h1{font-size:28px}.grid{grid-template-columns:1fr}.screen:first-child{grid-column:auto}.swatches{grid-template-columns:repeat(3,1fr)}.spec-grid{grid-template-columns:1fr;gap:0}.category{font-size:10px}.handoff{padding:20px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{header{position:static}.filters{display:none}.grid{display:block}.screen{break-inside:avoid;margin-bottom:20px}.screen[hidden]{display:block}.bar-links{display:none}.handoff{break-before:page}}
+</style>
+</head>
+<body>
+<header><div class="bar"><a class="brand" href="#top"><img src="icon-concepts/official-x/selected-black-titanium/icon-32.png" alt="" width="32" height="32">KeepXClean</a><nav class="bar-links" aria-label="设计稿导航"><a href="#gallery">全部设计稿</a><a href="#handoff">设计与交互说明</a><a href="implementation-plan.md">完整实现方案</a></nav></div></header>
+<main id="top">
+<section class="intro"><div><div class="eyebrow">UI DESIGN · LIGHT / V1</div><h1>让阅读保持清爽。</h1><p class="lede">白色与浅灰承载内容，绿色表达选中和启用。覆盖完整设置、插件弹窗、X 页面内交互，以及加载、离线、校验与恢复状态。</p></div><div class="badge"><strong>11</strong> 张设计稿 · 1536 × 1024</div></section>
+<div class="notice">本页是设计稿浏览器。图片中的数据均为示例；产品 UI 已实现，实际运行截图及验证范围见<a href="verification/index.html">验收截图</a>。品牌以已选定的无保护圈黑钛 X 为准，替换早期图中的占位图标。完整实现方案已整理，点击图片可查看原图。</div>
+<nav id="gallery" class="filters" aria-label="按界面类型筛选"><button class="filter" data-filter="all" aria-pressed="true">全部设计稿</button><button class="filter" data-filter="settings" aria-pressed="false">完整设置</button><button class="filter" data-filter="extension" aria-pressed="false">插件与 X 页面</button><button class="filter" data-filter="states" aria-pressed="false">组件与状态</button><span id="screen-count" role="status">11 张设计稿</span></nav>
+<div class="grid"><article class="screen" id="screen-01" data-group="settings">
+  <a class="preview" href="01-rules-overview.png" target="_blank" rel="noopener" aria-label="查看过滤规则总览原图"><img src="01-rules-overview.png" alt="过滤规则总览高保真浅色设计稿" width="1536" height="1024" fetchpriority="high"></a>
+  <div class="screen-info"><div class="screen-title"><span class="number">01</span><h2>过滤规则总览</h2><span class="category">完整设置</span></div><p>三档预设、七类规则、呈现方式与场景豁免。</p><div class="tags"><span>三档预设</span><span>直接隐藏 / 折叠提示</span><span>七类规则开关</span><span>关注豁免</span><span>主页仅提示</span></div><a class="original" href="01-rules-overview.png" target="_blank" rel="noopener">查看原图 ↗</a></div>
+</article>
+<article class="screen" id="screen-02" data-group="states">
+  <a class="preview" href="02-rule-details.png" target="_blank" rel="noopener" aria-label="查看规则详情原图"><img src="02-rule-details.png" alt="规则详情高保真浅色设计稿" width="1536" height="1024" loading="lazy"></a>
+  <div class="screen-info"><div class="screen-title"><span class="number">02</span><h2>规则详情</h2><span class="category">组件与状态</span></div><p>展开后的阈值、数量、时间窗口与联动条件。</p><div class="tags"><span>历史日均</span><span>滑动窗口</span><span>社区门槛 / 高粉保护</span><span>蓝标回复</span><span>标签数量</span><span>账号年龄 / 头像 / 关注比</span><span>推广广告</span></div><a class="original" href="02-rule-details.png" target="_blank" rel="noopener">查看原图 ↗</a></div>
+</article>
+<article class="screen" id="screen-03" data-group="settings">
+  <a class="preview" href="03-keyword-library.png" target="_blank" rel="noopener" aria-label="查看关键词与编辑器原图"><img src="03-keyword-library.png" alt="关键词与编辑器高保真浅色设计稿" width="1536" height="1024" loading="lazy"></a>
+  <div class="screen-info"><div class="screen-title"><span class="number">03</span><h2>关键词与编辑器</h2><span class="category">完整设置</span></div><p>词库列表、匹配范围、正则校验与高粉豁免。</p><div class="tags"><span>搜索</span><span>启停 / 编辑 / 删除</span><span>关键词 / 正则</span><span>四种范围</span><span>高粉豁免</span><span>备注</span><span>表单校验</span></div><a class="original" href="03-keyword-library.png" target="_blank" rel="noopener">查看原图 ↗</a></div>
+</article>
+<article class="screen" id="screen-04" data-group="settings">
+  <a class="preview" href="04-account-lists-import.png" target="_blank" rel="noopener" aria-label="查看黑白名单与导入原图"><img src="04-account-lists-import.png" alt="黑白名单与导入高保真浅色设计稿" width="1536" height="1024" loading="lazy"></a>
+  <div class="screen-info"><div class="screen-title"><span class="number">04</span><h2>黑白名单与导入</h2><span class="category">完整设置</span></div><p>账号列表和 X 黑名单读取、预览、导入流程。</p><div class="tags"><span>本地黑名单</span><span>导入预览</span><span>新增 / 重复计数</span><span>本地保存</span><span>社区提交选择</span></div><a class="original" href="04-account-lists-import.png" target="_blank" rel="noopener">查看原图 ↗</a></div>
+</article>
+<article class="screen" id="screen-05" data-group="settings">
+  <a class="preview" href="05-interception-history.png" target="_blank" rel="noopener" aria-label="查看拦截记录与详情原图"><img src="05-interception-history.png" alt="拦截记录与详情高保真浅色设计稿" width="1536" height="1024" loading="lazy"></a>
+  <div class="screen-info"><div class="screen-title"><span class="number">05</span><h2>拦截记录与详情</h2><span class="category">完整设置</span></div><p>搜索、分类、原因证据、白名单恢复与广告规则入口。</p><div class="tags"><span>今日 / 累计</span><span>日志搜索与筛选</span><span>详情</span><span>规则阈值</span><span>加入白名单</span><span>在 X 查看</span><span>广告专属操作</span></div><a class="original" href="05-interception-history.png" target="_blank" rel="noopener">查看原图 ↗</a></div>
+</article>
+<article class="screen" id="screen-06" data-group="settings">
+  <a class="preview" href="06-preferences-backup.png" target="_blank" rel="noopener" aria-label="查看偏好设置与备份原图"><img src="06-preferences-backup.png" alt="偏好设置与备份高保真浅色设计稿" width="1536" height="1024" loading="lazy"></a>
+  <div class="screen-info"><div class="screen-title"><span class="number">06</span><h2>偏好设置与备份</h2><span class="category">完整设置</span></div><p>原生拉黑、社区共享、公共词库、离线与 JSON 备份。</p><div class="tags"><span>X 拉黑同步</span><span>社区上报开关</span><span>公共词库开关</span><span>缓存 / 同步</span><span>JSON 导入导出</span><span>服务地址</span><span>重置</span></div><a class="original" href="06-preferences-backup.png" target="_blank" rel="noopener">查看原图 ↗</a></div>
+</article>
+<article class="screen" id="screen-07" data-group="extension">
+  <a class="preview" href="07-popup-states.png" target="_blank" rel="noopener" aria-label="查看插件弹窗 · 三种状态原图"><img src="07-popup-states.png" alt="插件弹窗 · 三种状态高保真浅色设计稿" width="1536" height="1024" loading="lazy"></a>
+  <div class="screen-info"><div class="screen-title"><span class="number">07</span><h2>插件弹窗 · 三种状态</h2><span class="category">插件与 X 页面</span></div><p>开启、暂停、暂无记录；保留快捷设置和状态反馈。</p><div class="tags"><span>总开关</span><span>预设</span><span>呈现方式</span><span>快速关键词</span><span>最近记录</span><span>快捷加白</span><span>暂停</span><span>空状态</span><span>离线 / 重试</span></div><a class="original" href="07-popup-states.png" target="_blank" rel="noopener">查看原图 ↗</a></div>
+</article>
+<article class="screen" id="screen-08" data-group="extension">
+  <a class="preview" href="08-x-settings-drawer.png" target="_blank" rel="noopener" aria-label="查看X 页面内设置抽屉原图"><img src="08-x-settings-drawer.png" alt="X 页面内设置抽屉高保真浅色设计稿" width="1536" height="1024" loading="lazy"></a>
+  <div class="screen-info"><div class="screen-title"><span class="number">08</span><h2>X 页面内设置抽屉</h2><span class="category">插件与 X 页面</span></div><p>原生导航入口、快捷控制与导入入口。X 原生控件保留自身颜色。</p><div class="tags"><span>侧边导航入口</span><span>右侧抽屉</span><span>快捷参数</span><span>最近记录</span><span>导入入口</span><span>完整设置入口</span><span>保存反馈</span></div><a class="original" href="08-x-settings-drawer.png" target="_blank" rel="noopener">查看原图 ↗</a></div>
+</article>
+<article class="screen" id="screen-09" data-group="extension">
+  <a class="preview" href="09-x-interactions.png" target="_blank" rel="noopener" aria-label="查看信息流与主页交互原图"><img src="09-x-interactions.png" alt="信息流与主页交互高保真浅色设计稿" width="1536" height="1024" loading="lazy"></a>
+  <div class="screen-info"><div class="screen-title"><span class="number">09</span><h2>信息流与主页交互</h2><span class="category">插件与 X 页面</span></div><p>折叠、展开、主页提示、快捷拉黑、原因选择与撤销。</p><div class="tags"><span>折叠条</span><span>展开 / 收起</span><span>加白</span><span>快捷拉黑</span><span>历史日均标签</span><span>社区记录标签</span><span>主页豁免</span><span>原因选择</span><span>撤销</span><span>X 同步中 / 失败</span></div><a class="original" href="09-x-interactions.png" target="_blank" rel="noopener">查看原图 ↗</a></div>
+</article>
+<article class="screen" id="screen-10" data-group="states">
+  <a class="preview" href="10-feedback-recovery.png" target="_blank" rel="noopener" aria-label="查看状态、校验与恢复原图"><img src="10-feedback-recovery.png" alt="状态、校验与恢复高保真浅色设计稿" width="1536" height="1024" loading="lazy"></a>
+  <div class="screen-info"><div class="screen-title"><span class="number">10</span><h2>状态、校验与恢复</h2><span class="category">组件与状态</span></div><p>加载、离线、错误、导入、重置和控件基础状态。</p><div class="tags"><span>同步中</span><span>离线失败</span><span>正则错误</span><span>配置导入预览</span><span>导入完成</span><span>重置确认</span><span>焦点 / 禁用 / 保存中 / 成功</span></div><a class="original" href="10-feedback-recovery.png" target="_blank" rel="noopener">查看原图 ↗</a></div>
+</article>
+<article class="screen" id="screen-11" data-group="states">
+  <a class="preview" href="11-lists-library-secondary.png" target="_blank" rel="noopener" aria-label="查看名单与词库补充状态原图"><img src="11-lists-library-secondary.png" alt="名单与词库补充状态高保真浅色设计稿" width="1536" height="1024" loading="lazy"></a>
+  <div class="screen-info"><div class="screen-title"><span class="number">11</span><h2>名单与词库补充状态</h2><span class="category">组件与状态</span></div><p>白名单、社区快照、公共词库、手动添加、清空和无结果。</p><div class="tags"><span>白名单列表</span><span>社区 UID 列表</span><span>公共词库只读</span><span>手动添加账号</span><span>清空日志确认</span><span>搜索无结果</span><span>加白成功</span></div><a class="original" href="11-lists-library-secondary.png" target="_blank" rel="noopener">查看原图 ↗</a></div>
+</article></div>
+<section class="handoff" id="handoff"><h2>设计与交互说明</h2><p>浅色视觉是本项目的默认方向。图片负责视觉参考，以下约定负责落地时的行为和尺寸；不将图片直接作为交互界面的背景切图。</p>
+<div class="swatches"><div class="swatch" style="--c:#F7F9F8"><i></i><span>页面背景<code>#F7F9F8</code></span></div><div class="swatch" style="--c:#FFFFFF"><i></i><span>内容表面<code>#FFFFFF</code></span></div><div class="swatch" style="--c:#172B24"><i></i><span>主要文字<code>#172B24</code></span></div><div class="swatch" style="--c:#13865F"><i></i><span>主要操作<code>#13865F</code></span></div><div class="swatch" style="--c:#FFF6DF"><i></i><span>提醒背景<code>#FFF6DF</code></span></div><div class="swatch" style="--c:#FFF0EE"><i></i><span>错误背景<code>#FFF0EE</code></span></div></div>
+<div class="spec-grid"><div><h3>布局与控件</h3><ul><li>字体采用系统中文无衬线；正文 14 px、辅助文字 12 px、章节标题 18 px、页标题 28 px。</li><li>间距使用 4 / 8 / 12 / 16 / 24 / 32 px；控件圆角 8 px，面板圆角 12 px。</li><li>设置页侧栏建议 224 px；详情区域在窄视口改为抽屉。页面内抽屉最大宽 440 px。</li><li>插件弹窗建议宽 400 px、最大高 600 px；内容可滚动，完整设置入口保持可达。</li><li>表单具备可见焦点、错误提示、禁用和保存中状态；开关同时用位置与文案表达状态。</li><li>X 原生界面保留自身颜色，绿色仅用于 KeepXClean 新增控件。</li></ul></div>
+<div><h3>需要落实的交互约定</h3><ul><li>本地隐藏、X 拉黑与社区上报分别显示结果；没有确认响应时展示进行中或失败。</li><li>修改拉黑原因只更新同一次操作；撤销窗口内先不提交 X 与社区，撤销恢复操作前的本地状态。外部提交后不自动解除原有 X 拉黑。</li><li>广告不被白名单豁免，因此广告日志使用“调整广告规则”；加入白名单不自动取消 X 拉黑。</li><li>导入前预览新增、重复数量及共享选择。导入失败不覆盖现有配置。</li><li>重置恢复规则参数、呈现方式、场景豁免和自定义关键词总开关；保留关键词条目、总启停、名单、同步偏好、服务地址、记录和统计。</li><li>画板选中“折叠提示”便于展示交互；不代表修改当前代码默认的“直接隐藏”。</li></ul></div></div>
+<h3>完整交付内容</h3><p>11 张 PNG 原图、生成与修订提示词、资源索引、浅色设计变量、选定图标及完整实现方案。方案涵盖页面交互、代码拆分、状态与数据契约、P0–P6 实施顺序和验收矩阵；产品代码已完成改造，本地验收通过；真实 X 接口联调仍待完成。</p>
+<div class="downloads"><a href="implementation-plan.md">完整实现方案与验收矩阵</a><a href="icon-concepts/official-x/index.html">已选定 · 浅绿底黑钛 X</a><a href="icon-concepts/index.html">功能图标与此前探索</a><a href="prompts.json">生成与修订提示词</a><a href="manifest.json">界面清单与交互约定</a><a href="tokens.css">浅色设计变量</a><a href="keepxclean-ui-light-v1.zip" download>下载完整设计包</a></div>
+</section><footer class="footer">KeepXClean · 2026-11-10 · 使用内置 image_gen 生成与修订 · 示例人物与指标均为虚构</footer>
+</main>
+<script>
+const filterButtons = [...document.querySelectorAll('[data-filter]')];
+const screens = [...document.querySelectorAll('.screen')];
+filterButtons.forEach(button => button.addEventListener('click', () => {
+  const target = button.dataset.filter;
+  filterButtons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+  let count = 0;
+  screens.forEach(screen => {
+    const show = target === 'all' || screen.dataset.group === target;
+    screen.hidden = !show;
+    if (show) count++;
+  });
+  document.querySelector('#screen-count').textContent = count + ' 张设计稿';
+}));
+</script>
+</body></html>

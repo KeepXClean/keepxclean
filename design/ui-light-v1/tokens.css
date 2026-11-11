@@ -1,0 +1,38 @@
+/* KeepXClean UI design tokens — proposal, not wired into the extension. */
+:root {
+  color-scheme: light;
+  --kxc-canvas: #f7f9f8;
+  --kxc-surface: #ffffff;
+  --kxc-border: #e1e7e3;
+  --kxc-control-border: #a7b5ad;
+  --kxc-text: #172b24;
+  --kxc-text-secondary: #607168;
+  --kxc-primary: #13865f;
+  --kxc-primary-hover: #0f6e4e;
+  --kxc-selected: #eaf6ef;
+  --kxc-warning: #9b6816;
+  --kxc-warning-bg: #fff6df;
+  --kxc-danger: #b54747;
+  --kxc-danger-bg: #fff0ee;
+  --kxc-font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  --kxc-font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  --kxc-font-caption: 12px;
+  --kxc-font-body: 14px;
+  --kxc-font-section: 18px;
+  --kxc-font-title: 28px;
+  --kxc-leading-body: 1.6;
+  --kxc-space-1: 4px;
+  --kxc-space-2: 8px;
+  --kxc-space-3: 12px;
+  --kxc-space-4: 16px;
+  --kxc-space-5: 24px;
+  --kxc-space-6: 32px;
+  --kxc-radius-control: 8px;
+  --kxc-radius-panel: 12px;
+  --kxc-control-height: 36px;
+  --kxc-sidebar-width: 224px;
+  --kxc-popup-width: 400px;
+  --kxc-drawer-width: 440px;
+  --kxc-focus-ring: 0 0 0 3px #13865f33;
+}
+

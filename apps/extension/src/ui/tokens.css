@@ -1,0 +1,21 @@
+:root,
+:host,
+.kxc-root {
+  color-scheme: light;
+  --canvas: #f7f9f8;
+  --surface: #fff;
+  --border: #e1e7e3;
+  --control-border: #a7b5ad;
+  --text: #172b24;
+  --muted: #607168;
+  --green: #13865f;
+  --green-hover: #0f6e4e;
+  --selected: #eaf6ef;
+  --warning: #9b6816;
+  --warning-bg: #fff6df;
+  --danger: #b54747;
+  --danger-bg: #fff0ee;
+  --font:
+    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei',
+    sans-serif;
+}

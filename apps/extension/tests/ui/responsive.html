@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+  <meta charset="UTF-8" />
+  <title>KeepXClean 响应式验收宿主</title>
+  <style>
+    body {
+      margin: 0;
+      background: #dce5e0;
+    }
+    iframe {
+      border: 0;
+      display: block;
+      margin: auto;
+      background: white;
+    }
+  </style>
+  <iframe title="指定宽度的真实 UI"></iframe>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const frame = document.querySelector('iframe');
+    frame.width = Number(params.get('width')) || 390;
+    frame.height = Number(params.get('height')) || 844;
+    params.delete('width');
+    params.delete('height');
+    frame.src = '/?' + params + (location.hash || '#/rules');
+  </script>
+</html>

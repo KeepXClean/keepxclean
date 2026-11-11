@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "date": "2026-11-10",
+  "status": "selected_without_halo",
+  "mode": "built-in image_gen with official X logo reference",
+  "reference": {
+    "url": "https://about.x.com/en/who-we-are/brand-toolkit",
+    "archive": "x-logo-original.zip",
+    "preview": "reference-on-white.png"
+  },
+  "concepts": [
+    {
+      "id": "a-mint",
+      "title": "浅绿底 · 原版 X",
+      "prompt": "Use case: logo-brand. Asset type: KeepXClean browser extension app-icon concept. Reference image: the attached official X social platform logo is the exact shape reference. Preserve its distinctive geometry, proportions, thin rising diagonal and thicker outlined descending diagonal with its internal negative space. Do not replace with a generic letter X, do not round or redraw its strokes. Only change the framing/background or the specified accent. Design a single elegant flat vector-style square app icon, front-facing, on a pure white canvas, centered with generous whitespace. One icon only. No letters or captions, no shadows, no gradients, no texture, no bevels, no 3D. Preserve the official X silhouette exactly. Concept A: a pale mint #EAF6EF rounded-square tile occupying 72% of the canvas, corner radius 22% of tile. Center the unchanged near-black #172B24 official X logo within this tile, logo occupying 57% of tile width with comfortable optical padding. No additional mark or badge. Restrained, calm, precise.",
+      "source": "/Users/lin/.codex/generated_images/01a1c49b-73f0-7e12-9d1f-8bf02f8bef36/exec-8c881840-cc91-4b4e-94bf-ccbfd955b1ba.png",
+      "filename": "a-mint.png"
+    },
+    {
+      "id": "b-spark",
+      "title": "原版 X · 净化星",
+      "prompt": "Use case: logo-brand. Asset type: KeepXClean browser extension app-icon concept. Reference image: the attached official X social platform logo is the exact shape reference. Preserve its distinctive geometry, proportions, thin rising diagonal and thicker outlined descending diagonal with its internal negative space. Do not replace with a generic letter X, do not round or redraw its strokes. Only change the framing/background or the specified accent. Design a single elegant flat vector-style square app icon, front-facing, on a pure white canvas, centered with generous whitespace. One icon only. No letters or captions, no shadows, no gradients, no texture, no bevels, no 3D. Preserve the official X silhouette exactly. Concept B: a nearly-white #F7F9F8 rounded-square tile occupying 72% of the canvas, corner radius 22% of tile. The unchanged near-black #172B24 official X logo occupies 54% of the tile width, positioned slightly left/down from the center to balance one small emerald #13865F four-point concave sparkle in the clear space at the upper right. Sparkle occupies only 15% of tile width. Keep a clean visible gap between sparkle and X. The sparkle is a sharp clean diamond-like glint with inward-curving sides, NO extra sparkles, NO circle badge, NO checkmark. Strong recognition as the original X with a subtle cleaning cue.",
+      "source": "/Users/lin/.codex/generated_images/01a1c49b-73f0-7e12-9d1f-8bf02f8bef36/exec-a1a68880-bd58-4477-b788-906d6795e7f1.png",
+      "filename": "b-spark.png"
+    },
+    {
+      "id": "c-green",
+      "title": "绿色底 · 白色 X",
+      "prompt": "Use case: logo-brand. Asset type: KeepXClean browser extension app-icon concept. Reference image: the attached official X social platform logo is the exact shape reference. Preserve its distinctive geometry, proportions, thin rising diagonal and thicker outlined descending diagonal with its internal negative space. Do not replace with a generic letter X, do not round or redraw its strokes. Only change the framing/background or the specified accent. Design a single elegant flat vector-style square app icon, front-facing, on a pure white canvas, centered with generous whitespace. One icon only. No letters or captions, no shadows, no gradients, no texture, no bevels, no 3D. Preserve the official X silhouette exactly. Concept C: a solid emerald #13865F rounded-square tile occupying 72% of the canvas, corner radius 22% of tile. Center the exact official X logo in pure white within the tile, logo occupying 57% of tile width with comfortable optical padding. The internal negative space must be green matching the tile, preserve the logo shape from the reference exactly. No additional mark or badge.",
+      "source": "/Users/lin/.codex/generated_images/01a1c49b-73f0-7e12-9d1f-8bf02f8bef36/exec-99822034-6de4-4229-92f6-9f97bf509008.png",
+      "filename": "c-green.png"
+    }
+  ],
+  "selected_concept": "a-black-titanium",
+  "selection_date": "2026-11-10",
+  "production_assets": "selected-black-titanium/"
+}

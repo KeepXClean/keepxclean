@@ -1,0 +1,36 @@
+{
+  "date": "2026-11-10",
+  "scope": "production code; local tests; Ego fixture UI",
+  "tests": {
+    "shared": 10,
+    "extension": 29,
+    "server": 3,
+    "total": 42,
+    "result": "passed"
+  },
+  "typecheck": "passed",
+  "build": "passed",
+  "zipParity": "passed",
+  "realExtensionLoaded": false,
+  "realXIntegration": "not verified",
+  "deployed": false,
+  "package": {
+    "path": "apps/extension/.output/keepxcleanextension-0.1.0-chrome.zip",
+    "bytes": 350705,
+    "sha256": "0f1a473f2d44697210b5ed2091e021a072ce5f17a9dfb272fac469fc5359661a"
+  },
+  "latestFix": {
+    "date": "2026-11-11",
+    "scope": "popup sizing and native navigation appearance",
+    "extensionTests": 30,
+    "typecheck": "passed: extension",
+    "productionBuildAndZip": "passed",
+    "browser": "Ego fixture checks passed; actual toolbar popup not loaded automatically",
+    "report": "verification/2026-11-11/README.md",
+    "package": {
+      "path": "apps/extension/.output/keepxcleanextension-0.1.0-chrome.zip",
+      "bytes": 350705,
+      "sha256": "0f1a473f2d44697210b5ed2091e021a072ce5f17a9dfb272fac469fc5359661a"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+/* The action popup measures its document before sizing the browser surface. */
+html.kxc-popup-document,
+html.kxc-popup-document body,
+html.kxc-popup-document #root {
+  width: 400px;
+  min-width: 400px;
+}
+html.kxc-popup-document body {
+  overflow: hidden;
+}

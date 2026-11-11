@@ -1,0 +1,353 @@
+{
+  "project": "KeepXClean",
+  "title": "浅色 UI 设计方案",
+  "version": "ui-light-v1",
+  "date": "2026-11-10",
+  "status": "implemented_local_validation_passed",
+  "mode": "built-in image_gen",
+  "theme": "light",
+  "language": "zh-CN",
+  "note": "原 PNG 为设计参考；产品代码已实现，实际界面截图及验证范围见 verification/README.md。真实扩展 / X 联调尚未完成。",
+  "assets": [
+    {
+      "id": "01",
+      "title": "过滤规则总览",
+      "group": "settings",
+      "description": "三档预设、七类规则、呈现方式与场景豁免。",
+      "coverage": [
+        "三档预设",
+        "直接隐藏 / 折叠提示",
+        "七类规则开关",
+        "关注豁免",
+        "主页仅提示"
+      ],
+      "filename": "01-rules-overview.png",
+      "source": "/Users/lin/.codex/generated_images/01a1c49b-73f0-7e12-9d1f-8bf02f8bef36/exec-250f55df-97e5-4c0c-9b6b-0cdfb6976d55.png",
+      "revision": 1,
+      "width": 1536,
+      "height": 1024,
+      "bytes": 1319091,
+      "sha256": "ee4a789fa6d9192577e6a07e00c811bac71a121c3d4bf2bfa473378f21cda7e5"
+    },
+    {
+      "id": "02",
+      "title": "规则详情",
+      "group": "states",
+      "description": "展开后的阈值、数量、时间窗口与联动条件。",
+      "coverage": [
+        "历史日均",
+        "滑动窗口",
+        "社区门槛 / 高粉保护",
+        "蓝标回复",
+        "标签数量",
+        "账号年龄 / 头像 / 关注比",
+        "推广广告"
+      ],
+      "filename": "02-rule-details.png",
+      "source": "/Users/lin/.codex/generated_images/01a1c49b-73f0-7e12-9d1f-8bf02f8bef36/exec-f1540f04-eeaa-4152-938e-468ced5d9b4c.png",
+      "revision": 1,
+      "width": 1536,
+      "height": 1024,
+      "bytes": 1442152,
+      "sha256": "9905c4334cdc7ada06d6b45411ac6fc368a9bf2ac4dfb27514624a42eed17a79"
+    },
+    {
+      "id": "03",
+      "title": "关键词与编辑器",
+      "group": "settings",
+      "description": "词库列表、匹配范围、正则校验与高粉豁免。",
+      "coverage": [
+        "搜索",
+        "启停 / 编辑 / 删除",
+        "关键词 / 正则",
+        "四种范围",
+        "高粉豁免",
+        "备注",
+        "表单校验"
+      ],
+      "filename": "03-keyword-library.png",
+      "source": "/Users/lin/.codex/generated_images/01a1c49b-73f0-7e12-9d1f-8bf02f8bef36/exec-60169c82-2074-46f3-9b24-3fde7a4bc5ff.png",
+      "revision": 1,
+      "width": 1536,
+      "height": 1024,
+      "bytes": 1471913,
+      "sha256": "3c6afb3a4831f14410b48dfc1b0d8354732c359067a5e2e8aab4e388bc106c96"
+    },
+    {
+      "id": "04",
+      "title": "黑白名单与导入",
+      "group": "settings",
+      "description": "账号列表和 X 黑名单读取、预览、导入流程。",
+      "coverage": [
+        "本地黑名单",
+        "导入预览",
+        "新增 / 重复计数",
+        "本地保存",
+        "社区提交选择"
+      ],
+      "filename": "04-account-lists-import.png",
+      "source": "/Users/lin/.codex/generated_images/01a1c49b-73f0-7e12-9d1f-8bf02f8bef36/exec-7871d0db-bb90-49fa-bd7e-dff0485d0d00.png",
+      "revision": 1,
+      "width": 1536,
+      "height": 1024,
+      "bytes": 1499620,
+      "sha256": "d66c0a448ed252ba2f4e17c34aef43c86ea3441423f26bd93aacaad2be83ecf1"
+    },
+    {
+      "id": "05",
+      "title": "拦截记录与详情",
+      "group": "settings",
+      "description": "搜索、分类、原因证据、白名单恢复与广告规则入口。",
+      "coverage": [
+        "今日 / 累计",
+        "日志搜索与筛选",
+        "详情",
+        "规则阈值",
+        "加入白名单",
+        "在 X 查看",
+        "广告专属操作"
+      ],
+      "filename": "05-interception-history.png",
+      "source": "/Users/lin/.codex/generated_images/01a1c49b-73f0-7e12-9d1f-8bf02f8bef36/exec-aafd8801-c438-48ac-945a-4fdb25daf4b5.png",
+      "revision": 2,
+      "width": 1536,
+      "height": 1024,
+      "bytes": 1672222,
+      "sha256": "6d6182a98448fd4f36be98ef9509ee74edb3c4ac6bff706d91872560b43969ee"
+    },
+    {
+      "id": "06",
+      "title": "偏好设置与备份",
+      "group": "settings",
+      "description": "原生拉黑、社区共享、公共词库、离线与 JSON 备份。",
+      "coverage": [
+        "X 拉黑同步",
+        "社区上报开关",
+        "公共词库开关",
+        "缓存 / 同步",
+        "JSON 导入导出",
+        "服务地址",
+        "重置"
+      ],
+      "filename": "06-preferences-backup.png",
+      "source": "/Users/lin/.codex/generated_images/01a1c49b-73f0-7e12-9d1f-8bf02f8bef36/exec-43c207fd-ef54-4636-b914-663872f4b58f.png",
+      "revision": 1,
+      "width": 1536,
+      "height": 1024,
+      "bytes": 1430501,
+      "sha256": "3806b989ac4939fb98e6925cb87185312a4b837a5040e54aa959006c9e1f50e5"
+    },
+    {
+      "id": "07",
+      "title": "插件弹窗 · 三种状态",
+      "group": "extension",
+      "description": "开启、暂停、暂无记录；保留快捷设置和状态反馈。",
+      "coverage": [
+        "总开关",
+        "预设",
+        "呈现方式",
+        "快速关键词",
+        "最近记录",
+        "快捷加白",
+        "暂停",
+        "空状态",
+        "离线 / 重试"
+      ],
+      "filename": "07-popup-states.png",
+      "source": "/Users/lin/.codex/generated_images/01a1c49b-73f0-7e12-9d1f-8bf02f8bef36/exec-d0f44132-b2b6-443e-bc9e-7c577d4211a5.png",
+      "revision": 1,
+      "width": 1536,
+      "height": 1024,
+      "bytes": 1377008,
+      "sha256": "a5fd9f473de1cfa6134bb80526186673138932d318fdb1091d3717fbcd9912c9"
+    },
+    {
+      "id": "08",
+      "title": "X 页面内设置抽屉",
+      "group": "extension",
+      "description": "原生导航入口、快捷控制与导入入口。X 原生控件保留自身颜色。",
+      "coverage": [
+        "侧边导航入口",
+        "右侧抽屉",
+        "快捷参数",
+        "最近记录",
+        "导入入口",
+        "完整设置入口",
+        "保存反馈"
+      ],
+      "filename": "08-x-settings-drawer.png",
+      "source": "/Users/lin/.codex/generated_images/01a1c49b-73f0-7e12-9d1f-8bf02f8bef36/exec-0c1ec3e4-1af0-40bf-9128-f33f76c52c49.png",
+      "revision": 2,
+      "width": 1536,
+      "height": 1024,
+      "bytes": 1625658,
+      "sha256": "45a13f8b772a0c18308263be80cee62ecd75ca0ca9dd81ea42eba4a8ae995e97"
+    },
+    {
+      "id": "09",
+      "title": "信息流与主页交互",
+      "group": "extension",
+      "description": "折叠、展开、主页提示、快捷拉黑、原因选择与撤销。",
+      "coverage": [
+        "折叠条",
+        "展开 / 收起",
+        "加白",
+        "快捷拉黑",
+        "历史日均标签",
+        "社区记录标签",
+        "主页豁免",
+        "原因选择",
+        "撤销",
+        "X 同步中 / 失败"
+      ],
+      "filename": "09-x-interactions.png",
+      "source": "/Users/lin/.codex/generated_images/01a1c49b-73f0-7e12-9d1f-8bf02f8bef36/exec-4c146842-27d1-40f0-a470-96b24e5043d9.png",
+      "revision": 2,
+      "width": 1536,
+      "height": 1024,
+      "bytes": 1685570,
+      "sha256": "9838d63fd5efc36c90176b7e3b02c063ced9a085db03eca7e7f2d9da6e61f02d"
+    },
+    {
+      "id": "10",
+      "title": "状态、校验与恢复",
+      "group": "states",
+      "description": "加载、离线、错误、导入、重置和控件基础状态。",
+      "coverage": [
+        "同步中",
+        "离线失败",
+        "正则错误",
+        "配置导入预览",
+        "导入完成",
+        "重置确认",
+        "焦点 / 禁用 / 保存中 / 成功"
+      ],
+      "filename": "10-feedback-recovery.png",
+      "source": "/Users/lin/.codex/generated_images/01a1c49b-73f0-7e12-9d1f-8bf02f8bef36/exec-1e4261b0-23be-4dae-8abd-e7c8f8d3da01.png",
+      "revision": 1,
+      "width": 1536,
+      "height": 1024,
+      "bytes": 1506660,
+      "sha256": "4becdff026758f5556a41761b410fd5ce59cc31e02372a4e6a446d1ffccee7f4"
+    },
+    {
+      "id": "11",
+      "title": "名单与词库补充状态",
+      "group": "states",
+      "description": "白名单、社区快照、公共词库、手动添加、清空和无结果。",
+      "coverage": [
+        "白名单列表",
+        "社区 UID 列表",
+        "公共词库只读",
+        "手动添加账号",
+        "清空日志确认",
+        "搜索无结果",
+        "加白成功"
+      ],
+      "filename": "11-lists-library-secondary.png",
+      "source": "/Users/lin/.codex/generated_images/01a1c49b-73f0-7e12-9d1f-8bf02f8bef36/exec-c732d07f-e457-45be-ba25-bf0044aa47ee.png",
+      "revision": 1,
+      "width": 1536,
+      "height": 1024,
+      "bytes": 1332772,
+      "sha256": "992c44e6c103fb4fafa686fca9c4f5242674dfcee2f7aeda7109a8a94e009252"
+    }
+  ],
+  "implementationNotes": [
+    "保留现有业务功能范围，将完整设置重组为过滤规则、关键词、黑白名单、拦截记录、偏好设置五个入口。",
+    "设计稿为展示折叠交互而选中折叠提示，不代表擅自修改当前代码默认的 strip 模式。",
+    "本地写入、X 原生拉黑、社区计票分别显示状态；接口成功响应之前不展示对应操作已完成。",
+    "拉黑与撤销按单次操作顺序处理，重复点选原因仅更新原因，不重复加票。失败保留可重试入口。",
+    "配置修改后重新评估已渲染内容；关闭过滤需清理扩展添加的隐藏与折叠状态。已从响应剔除的数据若无法恢复，则提示刷新。",
+    "X 黑名单导入增加预览、去重统计、准确结果与社区共享选择；这些流程仍需实现。",
+    "关键词正则在保存前校验；配置导入校验版本、结构和字段，预览后替换，失败不覆盖原配置。",
+    "重置过滤设置恢复规则参数、默认呈现方式、场景豁免和自定义关键词总开关；保留关键词条目、总启停、黑白名单、同步与共享偏好、服务地址、记录和统计。详见 implementation-plan.md。",
+    "广告规则优先于白名单，因此推广日志行使用调整广告规则；加白不代表取消 X 原生拉黑。",
+    "公共词库只读，整体开关控制；当前快照仅提供 UID、次数、标签，社区表不凭空补充用户名或身份验证结论。",
+    "自定义服务地址只向用户明确选择的服务通信；切换服务需按实际授权和权限实现，不能静默向其他服务提交数据。",
+    "弹窗建议宽 400 CSS px、最大高 600 CSS px；内容区域可滚动，底部完整设置入口保持可达。画板上的多个状态并非同时显示。",
+    "桌面工作区建议侧栏 224 CSS px；低于 1000 px 收窄导航，详情面板改为抽屉；页面内抽屉最大宽 440 px，窄视口采用全宽。",
+    "状态图中的焦点、键盘可达、文案和颜色须用真实组件实现；PNG 不作为 UI 背景或可交互控件切图直接使用。"
+  ],
+  "icons": {
+    "gallery": "icon-concepts/index.html",
+    "manifest": "icon-concepts/manifest.json",
+    "brandConcepts": 4,
+    "functionalSvgCount": 25,
+    "status": "brand_integrated_functional_lucide",
+    "latest_exploration": {
+      "gallery": "icon-concepts/official-x/index.html",
+      "prompts": "icon-concepts/official-x/prompts.json",
+      "count": 3,
+      "status": "black_titanium_selected_halo_rejected"
+    },
+    "selected": {
+      "concept": "a-black-titanium",
+      "date": "2026-11-10",
+      "master": "icon-concepts/official-x/selected-black-titanium/logo.svg",
+      "assets": "icon-concepts/official-x/selected-black-titanium/",
+      "status": "integrated_without_halo",
+      "rendering": "vector_reconstruction",
+      "halo": false,
+      "reference": "icon-concepts/official-x/metal-a/a-black-titanium.png"
+    }
+  },
+  "implementationPlan": {
+    "path": "implementation-plan.md",
+    "version": "1.1",
+    "date": "2026-11-10",
+    "status": "implemented_live_integration_pending",
+    "scope": [
+      "五个完整设置页面",
+      "插件弹窗",
+      "X 内抽屉与信息流交互",
+      "共享状态与存储迁移",
+      "导入、同步与撤销",
+      "P0–P6 实施顺序与验收矩阵"
+    ],
+    "baselineChecks": {
+      "test": "passed: shared 9 + server 1",
+      "typecheck": "passed",
+      "build": "passed: Chrome MV3"
+    },
+    "note": "42 项自动测试、类型检查、生产构建与 Ego 本地样本验收通过；不代表真实扩展权限和 X 接口已验证。",
+    "verification": "verification/README.md",
+    "screenshots": "verification/index.html",
+    "checks": {
+      "date": "2026-11-10",
+      "scope": "production code; local tests; Ego fixture UI",
+      "tests": {
+        "shared": 10,
+        "extension": 29,
+        "server": 3,
+        "total": 42,
+        "result": "passed"
+      },
+      "typecheck": "passed",
+      "build": "passed",
+      "zipParity": "passed",
+      "realExtensionLoaded": false,
+      "realXIntegration": "not verified",
+      "deployed": false,
+      "package": {
+        "path": "apps/extension/.output/keepxcleanextension-0.1.0-chrome.zip",
+        "bytes": 349247,
+        "sha256": "93e4955ebf55d6902bab74e9d2bf63adeef8c9dd0acd8cb9b5136acef40fa98e"
+      }
+    },
+    "latestFix": {
+      "date": "2026-11-11",
+      "scope": "popup sizing and native navigation appearance",
+      "extensionTests": 30,
+      "typecheck": "passed: extension",
+      "productionBuildAndZip": "passed",
+      "browser": "Ego fixture checks passed; actual toolbar popup not loaded automatically",
+      "report": "verification/2026-11-11/README.md",
+      "package": {
+        "path": "apps/extension/.output/keepxcleanextension-0.1.0-chrome.zip",
+        "bytes": 350705,
+        "sha256": "0f1a473f2d44697210b5ed2091e021a072ce5f17a9dfb272fac469fc5359661a"
+      }
+    }
+  }
+}
