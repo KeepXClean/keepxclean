@@ -7,7 +7,7 @@ export default defineConfig({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     plugins: [tailwindcss() as any],
   }),
-  manifest: {
+  manifest: ({ mode }) => ({
     name: 'KeepXClean - X 高信噪比净空插件',
     short_name: 'KeepXClean',
     description:
@@ -36,11 +36,11 @@ export default defineConfig({
       '*://*.twitter.com/*',
       'https://*.keepxclean.com/*',
       'https://keepxclean.com/*',
-      'http://localhost:8787/*',
+      ...(mode === 'development' ? ['http://localhost:8787/*'] : []),
     ],
     action: {
       default_title: 'KeepXClean 净空控制台',
       default_icon: { 16: 'icon/icon-16.png', 32: 'icon/icon-32.png' },
     },
-  },
+  }),
 });

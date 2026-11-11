@@ -67,6 +67,46 @@ export function detectSceneFromUrl(
 const TWITTER_SNOWFLAKE_EPOCH = 1288834974657n;
 const TWITTER_FOUNDING_MS = 1142908800000; // March 2006
 const TWITTER_SNOWFLAKE_START_MS = 1288834974657; // Nov 2010
+const TWITTER_USER_SNOWFLAKE_START_MS = 1455000000000; // Feb 2016
+
+/**
+ * Derives an X account's age in days strictly from its numeric `rest_id`
+ * (supports 2006–2016 sequential IDs and 2016+ 64-bit Snowflake IDs).
+ * Returns `null` when `restId` is outside valid X user ID ranges or in the future.
+ */
+export function deriveAccountAgeDaysFromRestId(
+  restId: string | undefined,
+  nowMs = Date.now()
+): number | null {
+  if (!restId || !/^\d+$/.test(restId)) return null;
+  try {
+    const idBig = BigInt(restId);
+    if (idBig >= 100_000_000_000_000n) {
+      const snowMs = Number((idBig >> 22n) + TWITTER_SNOWFLAKE_EPOCH);
+      if (snowMs > TWITTER_SNOWFLAKE_START_MS && snowMs <= nowMs + 60_000) {
+        return Math.max(0.2, (nowMs - Math.min(snowMs, nowMs)) / 86400_000);
+      }
+      return null;
+    }
+    if (idBig > 250_000_000n && idBig <= 5_000_000_000n) {
+      const ratio = Number(idBig - 250_000_000n) / 4_750_000_000;
+      const estMs =
+        TWITTER_SNOWFLAKE_START_MS +
+        ratio * (TWITTER_USER_SNOWFLAKE_START_MS - TWITTER_SNOWFLAKE_START_MS);
+      return estMs <= nowMs ? Math.max(0.2, (nowMs - estMs) / 86400_000) : null;
+    }
+    if (idBig > 0n && idBig <= 250_000_000n) {
+      const ratio = Number(idBig) / 250_000_000;
+      const estMs =
+        TWITTER_FOUNDING_MS +
+        ratio * (TWITTER_SNOWFLAKE_START_MS - TWITTER_FOUNDING_MS);
+      return estMs <= nowMs ? Math.max(0.2, (nowMs - estMs) / 86400_000) : null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
 
 export function computeAccountAgeDays(
   createdAtStr: string | undefined,
@@ -90,28 +130,7 @@ export function computeAccountAgeDays(
     }
   }
 
-  // Fallback: derive creation timestamp from numeric X rest_id (Snowflake ID or pre-2010 sequential ID)
-  if (restId && /^\d+$/.test(restId)) {
-    try {
-      const idBig = BigInt(restId);
-      if (idBig > 250000000n) {
-        const snowMs = Number((idBig >> 22n) + TWITTER_SNOWFLAKE_EPOCH);
-        if (snowMs > TWITTER_SNOWFLAKE_START_MS && snowMs <= nowMs) {
-          return Math.max(0.2, (nowMs - snowMs) / 86400_000);
-        }
-      } else if (idBig > 0n) {
-        const ratio = Number(idBig) / 250000000;
-        const estMs =
-          TWITTER_FOUNDING_MS +
-          ratio * (TWITTER_SNOWFLAKE_START_MS - TWITTER_FOUNDING_MS);
-        return Math.max(0.2, (nowMs - estMs) / 86400_000);
-      }
-    } catch {
-      // Fallback below
-    }
-  }
-
-  return 365;
+  return deriveAccountAgeDaysFromRestId(restId, nowMs) ?? 365;
 }
 
 /**

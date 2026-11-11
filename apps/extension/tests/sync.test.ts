@@ -44,7 +44,9 @@ describe('snapshot truth and selected origin', () => {
     vi.stubGlobal('fetch', fetch);
     await expect(refreshSnapshot()).rejects.toThrow('offline');
     expect(fetch).toHaveBeenCalledTimes(1);
-    expect(fetch.mock.calls[0][0]).toContain('https://chosen.example/');
+    expect(fetch.mock.calls[0][0]).toBe(
+      'https://chosen.example/v1/snapshot.json'
+    );
     expect(mock.values[STORAGE_KEYS.CROWD_SNAPSHOT]).toEqual(snapshot);
     expect(mock.values[UI_KEYS.sync]).toMatchObject({
       status: 'error',

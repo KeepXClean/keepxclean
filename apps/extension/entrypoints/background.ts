@@ -169,13 +169,23 @@ export default defineBackground(() => {
           const data = await chrome.storage.local.get(UI_KEYS.viewers);
           const viewers = data[UI_KEYS.viewers] ?? {};
           const previous = viewers[sender.tab.id];
-          if (
-            previous?.restId === viewer.restId &&
-            previous.accountAgeDays > 0 &&
-            !viewer.accountAgeDays
-          )
-            return;
-          viewers[sender.tab.id] = viewer;
+          viewers[sender.tab.id] =
+            previous?.restId === viewer.restId
+              ? {
+                  ...viewer,
+                  screenName: viewer.screenName || previous.screenName,
+                  accountAgeDays:
+                    viewer.screenName && viewer.accountAgeDays > 0
+                      ? viewer.accountAgeDays
+                      : previous.accountAgeDays > 0
+                        ? previous.accountAgeDays
+                        : viewer.accountAgeDays,
+                  followersCount:
+                    viewer.followersCount > 0
+                      ? viewer.followersCount
+                      : previous.followersCount,
+                }
+              : viewer;
           await chrome.storage.local.set({ [UI_KEYS.viewers]: viewers });
         });
       case 'tabs.list':

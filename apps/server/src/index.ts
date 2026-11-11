@@ -1,5 +1,5 @@
 import { aggregateAccount } from './aggregation';
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import {
   DEFAULT_CLOUD_KEYWORDS,
@@ -47,6 +47,10 @@ async function ensureSchema(db: D1Database): Promise<void> {
         created_at INTEGER NOT NULL,
         PRIMARY KEY (target_uid, reporter_hash)
       )
+    `),
+    db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_block_reports_reporter
+      ON block_reports(reporter_hash, created_at)
     `),
     db.prepare(`
       CREATE TABLE IF NOT EXISTS account_reputation (
@@ -257,21 +261,36 @@ app.get('/health', (c) => {
   return c.json({ ok: true, domain: c.env.SITE_DOMAIN ?? SITE_DOMAIN });
 });
 
-async function handleGetSnapshot(c: {
-  env: Env;
-  req: { query: (k: string) => string | undefined };
-  json: (
-    data: unknown,
-    status?: number,
-    headers?: Record<string, string>
-  ) => Response;
-}) {
-  const forceFresh = c.req.query('fresh') === '1';
+function getActorIp(c: Context<{ Bindings: Env }>): string {
+  return (
+    c.req.header('CF-Connecting-IP') ??
+    c.req.header('X-Forwarded-For') ??
+    'local'
+  );
+}
 
-  if (!forceFresh && c.env.SNAPSHOT_BUCKET) {
-    const obj = await c.env.SNAPSHOT_BUCKET.get(SNAPSHOT_R2_KEY);
-    if (obj) {
-      const data = await obj.json<CrowdBlockSnapshot>();
+async function handleGetSnapshot(c: Context<{ Bindings: Env }>) {
+  const forceFresh = c.req.query('fresh') === '1';
+  const cachedObj = c.env.SNAPSHOT_BUCKET
+    ? await c.env.SNAPSHOT_BUCKET.get(SNAPSHOT_R2_KEY)
+    : null;
+
+  if (!forceFresh && cachedObj) {
+    const data = await cachedObj.json<CrowdBlockSnapshot>();
+    return c.json(data, 200, {
+      'Cache-Control': 'public, max-age=300, s-maxage=600',
+    });
+  }
+
+  if (forceFresh && cachedObj) {
+    await ensureSchema(c.env.DB);
+    const freshAllowed = await checkRateLimit(
+      c.env.DB,
+      `snapshot_fresh:${getActorIp(c)}`,
+      12
+    );
+    if (!freshAllowed) {
+      const data = await cachedObj.json<CrowdBlockSnapshot>();
       return c.json(data, 200, {
         'Cache-Control': 'public, max-age=300, s-maxage=600',
       });
@@ -314,10 +333,7 @@ app.post('/v1/blocks/report', async (c) => {
     ? (body.tag as BlockReasonTag)
     : 'other';
 
-  const ip =
-    c.req.header('CF-Connecting-IP') ??
-    c.req.header('X-Forwarded-For') ??
-    'local';
+  const ip = getActorIp(c);
   const rateAllowed = await checkRateLimit(
     c.env.DB,
     `report:${ip}:${reporterHash.slice(0, 16)}`,
@@ -415,6 +431,15 @@ app.post('/v1/blocks/unreport', async (c) => {
     return c.json({ ok: false, error: 'missing_params' }, 400);
   }
 
+  const rateAllowed = await checkRateLimit(
+    c.env.DB,
+    `unreport:${getActorIp(c)}:${reporterHash.slice(0, 16)}`,
+    150
+  );
+  if (!rateAllowed) {
+    return c.json({ ok: false, error: 'rate_limit_exceeded' }, 429);
+  }
+
   await c.env.DB.batch([
     c.env.DB.prepare(
       'DELETE FROM block_reports WHERE target_uid = ? AND reporter_hash = ?'
@@ -441,6 +466,15 @@ app.post('/v1/blocks/batch-import', async (c) => {
   const reporterAgeDays = Number(body.reporterAccountAgeDays ?? 0);
   if (reporterHash.length < 8 || !Array.isArray(body.targetUids)) {
     return c.json({ ok: false, error: 'invalid_payload' }, 400);
+  }
+
+  const rateAllowed = await checkRateLimit(
+    c.env.DB,
+    `batch:${getActorIp(c)}:${reporterHash.slice(0, 16)}`,
+    30
+  );
+  if (!rateAllowed) {
+    return c.json({ ok: false, error: 'rate_limit_exceeded' }, 429);
   }
 
   if (
@@ -485,9 +519,8 @@ app.post('/v1/blocks/batch-import', async (c) => {
       if ((results[index].meta?.changes ?? 0) > 0) newlyCounted++;
   }
 
-  // Trigger a fresh R2 snapshot rebuild after batch import
-  await buildAndSaveSnapshot(c.env);
-
+  // Snapshot compilation is handled asynchronously by the 10-minute Cron Trigger
+  // (or lazy first-boot fetch) to avoid full-table scans on every 500-UID batch.
   return c.json({
     ok: true,
     countedPublicly: true,

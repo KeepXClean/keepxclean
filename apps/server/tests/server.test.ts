@@ -109,4 +109,56 @@ describe('D1 transactional community reporting', () => {
       .first();
     expect(row).toMatchObject({ total: 70 });
   });
+  it('enforces rate limits on batch-import and serves cached R2 snapshot when fresh rebuild quota is exceeded', async () => {
+    const headers = {
+      'Content-Type': 'application/json',
+      'CF-Connecting-IP': '203.0.113.77',
+    };
+    for (let i = 0; i < 30; i++) {
+      const res = await app.request(
+        '/v1/blocks/batch-import',
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            targetUids: ['990001'],
+            reporterUidHash: 'ratelimited_batch_actor',
+            reporterAccountAgeDays: 120,
+          }),
+        },
+        env
+      );
+      expect(res.status).toBe(200);
+    }
+    const blocked = await app.request(
+      '/v1/blocks/batch-import',
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          targetUids: ['990002'],
+          reporterUidHash: 'ratelimited_batch_actor',
+          reporterAccountAgeDays: 120,
+        }),
+      },
+      env
+    );
+    expect(blocked.status).toBe(429);
+
+    // Ensure R2 has an initial snapshot, then exhaust fresh rebuild quota for an IP
+    const seed = await app.request(
+      '/v1/snapshot.json?fresh=1',
+      { headers: { 'CF-Connecting-IP': '203.0.113.88' } },
+      env
+    );
+    expect(seed.status).toBe(200);
+    for (let i = 0; i < 15; i++) {
+      const snap = await app.request(
+        '/v1/snapshot.json?fresh=1',
+        { headers: { 'CF-Connecting-IP': '203.0.113.88' } },
+        env
+      );
+      expect(snap.status).toBe(200);
+    }
+  });
 });

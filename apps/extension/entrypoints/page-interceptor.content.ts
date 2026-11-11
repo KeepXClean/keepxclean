@@ -3,6 +3,7 @@ import {
   computeAccountAgeDays,
   createDefaultConfig,
   createDefaultCrowdSnapshot,
+  deriveAccountAgeDaysFromRestId,
   processGraphqlResponsePayload,
   SlidingWindowTracker,
   type CrowdBlockSnapshot,
@@ -128,13 +129,17 @@ export default defineContentScript({
       followersCount = 0
     ) {
       if (!restId) return;
+      const resolvedAgeDays =
+        accountAgeDays > 0
+          ? accountAgeDays
+          : (deriveAccountAgeDaysFromRestId(restId) ?? 0);
       const reporterHash = await sha256Hex(`kxc_v1_${restId}`);
       window.dispatchEvent(
         new CustomEvent('KXC_VIEWER_DETECTED', {
           detail: {
             restId,
             screenName,
-            accountAgeDays,
+            accountAgeDays: resolvedAgeDays,
             followersCount,
             reporterHash,
           },

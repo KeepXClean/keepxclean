@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createDefaultConfig,
   createDefaultCrowdSnapshot,
+  deriveAccountAgeDaysFromRestId,
   evaluateTweet,
   evaluateAuthorProfile,
   processGraphqlResponsePayload,
@@ -386,5 +387,43 @@ describe('KeepXClean Rule Engine', () => {
     expect(processed.modified).toBe(true);
     expect(processed.interceptedLogs).toHaveLength(1);
     expect(processed.interceptedLogs[0].ruleId).toBe('high_frequency_daily');
+  });
+
+  it('derives accurate account age from sequential and Snowflake X user IDs while rejecting invalid ranges', () => {
+    const nowMs = Date.UTC(2026, 10, 11, 0, 0, 0);
+    const epoch = 1288834974657n;
+
+    // Pre-2010 and 2010–2016 sequential X user IDs
+    expect(deriveAccountAgeDaysFromRestId('44196397', nowMs)).toBeGreaterThan(
+      5000
+    );
+    expect(deriveAccountAgeDaysFromRestId('3000000000', nowMs)).toBeGreaterThan(
+      3650
+    );
+
+    // 5-day-old Snowflake user ID (< 30 days anti-sybil threshold)
+    const fiveDaysAgoMs = BigInt(nowMs - 5 * 86_400_000);
+    const youngSnowflake = String((fiveDaysAgoMs - epoch) << 22n);
+    const youngAge = deriveAccountAgeDaysFromRestId(youngSnowflake, nowMs);
+    expect(youngAge).not.toBeNull();
+    expect(youngAge!).toBeGreaterThan(4.9);
+    expect(youngAge!).toBeLessThan(5.1);
+
+    // 400-day-old Snowflake user ID
+    const oldSnowflake = String(
+      (BigInt(nowMs - 400 * 86_400_000) - epoch) << 22n
+    );
+    expect(deriveAccountAgeDaysFromRestId(oldSnowflake, nowMs)).toBeCloseTo(
+      400,
+      1
+    );
+
+    // Unrecognized gap / zero / future Snowflake IDs return null instead of fabricating 365 days
+    const futureSnowflake = String(
+      (BigInt(nowMs + 10 * 86_400_000) - epoch) << 22n
+    );
+    expect(deriveAccountAgeDaysFromRestId('0', nowMs)).toBeNull();
+    expect(deriveAccountAgeDaysFromRestId('99999999999', nowMs)).toBeNull();
+    expect(deriveAccountAgeDaysFromRestId(futureSnowflake, nowMs)).toBeNull();
   });
 });

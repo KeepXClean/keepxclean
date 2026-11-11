@@ -68,11 +68,8 @@ export function refreshSnapshot(): Promise<void> {
       },
     });
     const urls = config.customApiBaseUrl
-      ? [`${config.customApiBaseUrl}/v1/snapshot.json?fresh=1`]
-      : [
-          `${CDN_SNAPSHOT_URL}?fresh=1`,
-          `${API_BASE_URL}/v1/snapshot.json?fresh=1`,
-        ];
+      ? [`${config.customApiBaseUrl}/v1/snapshot.json`]
+      : [CDN_SNAPSHOT_URL, `${API_BASE_URL}/v1/snapshot.json`];
     let lastError = '同步失败';
     for (const url of urls) {
       try {
