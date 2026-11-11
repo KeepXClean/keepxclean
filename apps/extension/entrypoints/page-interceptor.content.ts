@@ -1,10 +1,15 @@
-import { validateConfig, validateSnapshot } from '../src/services/validation';
+import {
+  validateConfigSilent,
+  validateSnapshotSilent,
+} from '../src/services/schema';
 import {
   computeAccountAgeDays,
   createDefaultConfig,
   createDefaultCrowdSnapshot,
   deriveAccountAgeDaysFromRestId,
+  getBridgeMessages,
   processGraphqlResponsePayload,
+  resolveLocale,
   SlidingWindowTracker,
   type CrowdBlockSnapshot,
   type FilterConfig,
@@ -24,6 +29,10 @@ export default defineContentScript({
     let currentSnapshot: CrowdBlockSnapshot = createDefaultCrowdSnapshot();
     const windowTracker = new SlidingWindowTracker();
     let capturedBearerToken = DEFAULT_X_BEARER;
+    const knownAuthorsByHandle = new Map<
+      string,
+      { uid: string; screenName: string; name?: string; avatarUrl?: string }
+    >();
 
     // 0. Synchronously hydrate from localStorage fast-boot cache so even 0ms initial XHRs use user's exact rules
     try {
@@ -31,9 +40,9 @@ export default defineContentScript({
       if (rawCache) {
         const parsedCache = JSON.parse(rawCache);
         if (parsedCache?.config)
-          currentConfig = validateConfig(parsedCache.config);
+          currentConfig = validateConfigSilent(parsedCache.config);
         if (parsedCache?.crowdSnapshot) {
-          currentSnapshot = validateSnapshot(parsedCache.crowdSnapshot);
+          currentSnapshot = validateSnapshotSilent(parsedCache.crowdSnapshot);
         }
       }
     } catch {
@@ -43,9 +52,10 @@ export default defineContentScript({
     // Listen for config & crowd snapshot updates from ISOLATED content script
     window.addEventListener('KXC_SYNC_STATE', ((e: CustomEvent) => {
       try {
-        if (e.detail?.config) currentConfig = validateConfig(e.detail.config);
+        if (e.detail?.config)
+          currentConfig = validateConfigSilent(e.detail.config);
         if (e.detail?.crowdSnapshot)
-          currentSnapshot = validateSnapshot(e.detail.crowdSnapshot);
+          currentSnapshot = validateSnapshotSilent(e.detail.crowdSnapshot);
       } catch {
         return;
       }
@@ -218,6 +228,26 @@ export default defineContentScript({
           Object.keys(processed.decisionsByTweetId).length > 0;
         const hasAuthors =
           Object.keys(processed.authorsByScreenName).length > 0;
+
+        if (hasAuthors) {
+          for (const { author } of Object.values(
+            processed.authorsByScreenName
+          )) {
+            if (author?.restId && author?.screenName) {
+              knownAuthorsByHandle.set(author.screenName.toLowerCase(), {
+                uid: author.restId,
+                screenName: author.screenName,
+                name: author.name || undefined,
+                avatarUrl: author.avatarUrl,
+              });
+            }
+          }
+          while (knownAuthorsByHandle.size > 3000) {
+            knownAuthorsByHandle.delete(
+              knownAuthorsByHandle.keys().next().value!
+            );
+          }
+        }
 
         if (
           processed.interceptedLogs.length > 0 ||
@@ -438,31 +468,55 @@ export default defineContentScript({
 
     // Only this bridge accesses X authentication; no credentials leave MAIN world.
     window.addEventListener('KXC_MAIN_COMMAND', (async (event: CustomEvent) => {
-      const { command, targetUid, requestId, cursor, expectedViewer } =
-        event.detail ?? {};
+      const {
+        command,
+        targetUid,
+        requestId,
+        cursor,
+        expectedViewer,
+        screenName,
+      } = event.detail ?? {};
       if (
         typeof requestId !== 'string' ||
         requestId.length > 100 ||
-        !['GET_VIEWER', 'NATIVE_BLOCK_USER', 'FETCH_EXISTING_BLOCKS'].includes(
-          command
-        )
+        ![
+          'GET_VIEWER',
+          'NATIVE_BLOCK_USER',
+          'FETCH_EXISTING_BLOCKS',
+          'RESOLVE_USER_HANDLE',
+        ].includes(command)
       )
         return;
+      const bm = getBridgeMessages(resolveLocale(currentConfig.locale));
       const reply = (result: Record<string, unknown>) =>
         window.dispatchEvent(
           new CustomEvent('KXC_MAIN_RESULT', {
             detail: { requestId, ...result },
           })
         );
+      if (command === 'RESOLVE_USER_HANDLE') {
+        if (
+          typeof screenName !== 'string' ||
+          !/^[a-zA-Z0-9_]{1,15}$/.test(screenName)
+        ) {
+          reply({ ok: false, error: bm.invalidHandle });
+          return;
+        }
+        const cached = knownAuthorsByHandle.get(screenName.toLowerCase());
+        if (cached) {
+          reply({ ok: true, user: cached });
+          return;
+        }
+      }
       const viewerUid = getTwidUid();
       if (!viewerUid) {
-        reply({ ok: false, error: '请先登录 X', code: 'NO_SESSION' });
+        reply({ ok: false, error: bm.notLoggedIn, code: 'NO_SESSION' });
         return;
       }
       if (expectedViewer && expectedViewer !== viewerUid) {
         reply({
           ok: false,
-          error: 'X 账号已切换，请重新操作',
+          error: bm.accountMismatch,
           code: 'ACCOUNT_CHANGED',
         });
         return;
@@ -476,7 +530,7 @@ export default defineContentScript({
       if (!csrf) {
         reply({
           ok: false,
-          error: 'X 登录状态不完整，请刷新或重新登录',
+          error: bm.sessionIncomplete,
           code: 'NO_SESSION',
         });
         return;
@@ -485,14 +539,14 @@ export default defineContentScript({
         command === 'NATIVE_BLOCK_USER' &&
         (!/^\d{1,25}$/.test(targetUid ?? '') || !expectedViewer)
       ) {
-        reply({ ok: false, error: '目标 UID 或当前账号未确认' });
+        reply({ ok: false, error: bm.unconfirmedTarget, code: 'UNCONFIRMED' });
         return;
       }
       if (
         command === 'FETCH_EXISTING_BLOCKS' &&
         !/^-?\d+$/.test(cursor ?? '-1')
       ) {
-        reply({ ok: false, error: '分页游标无效' });
+        reply({ ok: false, error: bm.invalidCursor });
         return;
       }
       const controller = new AbortController();
@@ -505,6 +559,51 @@ export default defineContentScript({
           'x-twitter-auth-type': 'OAuth2Session',
           'content-type': 'application/x-www-form-urlencoded',
         };
+        if (command === 'RESOLVE_USER_HANDLE') {
+          const targetLower = String(screenName).toLowerCase();
+          for (const src of ['compose', 'search_box']) {
+            const resp = await origFetch.call(
+              window,
+              `${location.origin}/i/api/1.1/search/typeahead.json?q=${encodeURIComponent('@' + screenName)}&src=${src}&result_type=users`,
+              {
+                method: 'GET',
+                headers,
+                credentials: 'include',
+                signal: controller.signal,
+              }
+            );
+            if (!resp.ok) continue;
+            const body = await resp.json();
+            const match = Array.isArray(body?.users)
+              ? body.users.find(
+                  (u: Record<string, unknown>) =>
+                    String(u?.screen_name ?? '').toLowerCase() ===
+                      targetLower && /^\d{1,25}$/.test(String(u?.id_str ?? ''))
+                )
+              : undefined;
+            if (match) {
+              const user = {
+                uid: String(match.id_str),
+                screenName: String(match.screen_name),
+                name: match.name ? String(match.name) : undefined,
+                avatarUrl:
+                  typeof match.profile_image_url_https === 'string' &&
+                  match.profile_image_url_https.startsWith('https://')
+                    ? match.profile_image_url_https
+                    : undefined,
+              };
+              knownAuthorsByHandle.set(targetLower, user);
+              reply({ ok: true, viewerUid, user });
+              return;
+            }
+          }
+          reply({
+            ok: false,
+            error: bm.handleNotFound(String(screenName)),
+            code: 'NOT_FOUND',
+          });
+          return;
+        }
         const isBlock = command === 'NATIVE_BLOCK_USER';
         const path = isBlock
           ? '/i/api/1.1/blocks/create.json'
@@ -522,16 +621,27 @@ export default defineContentScript({
               : {}),
           }
         );
-        if (!response.ok) throw new Error(`X 返回 HTTP ${response.status}`);
+        if (!response.ok) throw new Error(bm.httpStatus(response.status));
         const data = await response.json();
-        if (data?.errors?.length)
-          throw new Error('X 未能完成请求，请检查登录状态后重试');
-        if (getTwidUid() !== viewerUid)
-          throw new Error('X 账号已切换，结果未确认');
+        if (data?.errors?.length) throw new Error(bm.requestFailed);
+        if (getTwidUid() !== viewerUid) {
+          reply({
+            ok: false,
+            error: bm.accountSwitched,
+            code: 'UNCONFIRMED',
+          });
+          return;
+        }
         if (isBlock) {
           const returnedUid = String(data?.id_str ?? data?.id ?? '');
-          if (returnedUid !== targetUid || data?.blocking !== true)
-            throw new Error('X 未确认目标账号已拉黑，结果未确认');
+          if (returnedUid !== targetUid || data?.blocking !== true) {
+            reply({
+              ok: false,
+              error: bm.blockUnconfirmed,
+              code: 'UNCONFIRMED',
+            });
+            return;
+          }
           reply({ ok: true, viewerUid });
         } else {
           if (
@@ -539,7 +649,7 @@ export default defineContentScript({
             typeof data?.next_cursor_str !== 'string' ||
             !/^-?\d+$/.test(data.next_cursor_str)
           )
-            throw new Error('X 黑名单分页响应无效');
+            throw new Error(bm.invalidBlockPage);
           reply({
             ok: true,
             viewerUid,
@@ -551,7 +661,7 @@ export default defineContentScript({
         reply({
           ok: false,
           error: controller.signal.aborted
-            ? 'X 请求超时，结果未确认'
+            ? bm.requestTimeout
             : (error as Error).message,
           code: controller.signal.aborted ? 'TIMEOUT' : 'NETWORK',
         });

@@ -1,0 +1,11 @@
+{
+  "extName": {
+    "message": "KeepXClean - X ノイズ除去フィルター"
+  },
+  "extDescription": {
+    "message": "X (Twitter) を快適に：インプレゾンビ・なりすまし・連投ボット・宣伝スパム・広告を自動フィルタリングします。"
+  },
+  "extActionTitle": {
+    "message": "KeepXClean コントロール"
+  }
+}

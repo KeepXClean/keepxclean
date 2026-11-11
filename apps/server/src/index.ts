@@ -4,6 +4,7 @@ import { cors } from 'hono/cors';
 import {
   DEFAULT_CLOUD_KEYWORDS,
   HIGH_FOLLOWER_PROTECT_THRESHOLD,
+  mergeCloudKeywords,
   MIN_REPORTER_ACCOUNT_AGE_DAYS,
   SITE_DOMAIN,
   type BatchBlockImportPayload,
@@ -85,7 +86,8 @@ async function ensureSchema(db: D1Database): Promise<void> {
         pattern TEXT NOT NULL,
         is_regex INTEGER NOT NULL DEFAULT 1,
         scopes TEXT NOT NULL,
-        max_followers_exempt INTEGER DEFAULT 50000,
+        only_in_replies INTEGER NOT NULL DEFAULT 0,
+        max_followers_exempt INTEGER DEFAULT NULL,
         note TEXT,
         enabled INTEGER NOT NULL DEFAULT 1,
         updated_at INTEGER NOT NULL
@@ -189,14 +191,15 @@ export async function buildAndSaveSnapshot(
     counts[row.target_uid] = entry;
   }
 
-  // Load any custom cloud keywords from D1, or fallback to DEFAULT_CLOUD_KEYWORDS
+  // Load any custom cloud keywords / emergency pauses from D1 and merge with DEFAULT_CLOUD_KEYWORDS
   const kwRows = await env.DB.prepare(
-    'SELECT id, pattern, is_regex, scopes, max_followers_exempt, note, enabled FROM cloud_keywords WHERE enabled = 1'
+    'SELECT id, pattern, is_regex, scopes, only_in_replies, max_followers_exempt, note, enabled FROM cloud_keywords'
   ).all<{
     id: string;
     pattern: string;
     is_regex: number;
     scopes: string;
+    only_in_replies: number;
     max_followers_exempt: number | null;
     note: string | null;
     enabled: number;
@@ -204,15 +207,31 @@ export async function buildAndSaveSnapshot(
 
   let cloudKeywords: KeywordRuleItem[] = DEFAULT_CLOUD_KEYWORDS;
   if (kwRows.results && kwRows.results.length > 0) {
-    cloudKeywords = kwRows.results.map((r) => ({
-      id: r.id,
-      pattern: r.pattern,
-      isRegex: Boolean(r.is_regex),
-      scopes: (JSON.parse(r.scopes) as KeywordMatchScope[]) ?? ['text', 'bio'],
-      maxFollowersExempt: r.max_followers_exempt ?? undefined,
-      note: r.note ?? undefined,
-      enabled: Boolean(r.enabled),
-    }));
+    const dbKeywords: KeywordRuleItem[] = kwRows.results.map((r) => {
+      let parsedScopes: KeywordMatchScope[] = ['text', 'bio'];
+      try {
+        const parsed = JSON.parse(r.scopes);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          parsedScopes = parsed as KeywordMatchScope[];
+        }
+      } catch {
+        // Fallback to default scopes
+      }
+      return {
+        id: r.id,
+        pattern: r.pattern,
+        isRegex: Boolean(r.is_regex),
+        scopes: parsedScopes,
+        ...(r.only_in_replies ? { onlyInReplies: true } : {}),
+        maxFollowersExempt:
+          r.max_followers_exempt && r.max_followers_exempt > 0
+            ? r.max_followers_exempt
+            : undefined,
+        note: r.note ?? undefined,
+        enabled: Boolean(r.enabled),
+      };
+    });
+    cloudKeywords = mergeCloudKeywords(dbKeywords, true);
   }
 
   const snapshot: CrowdBlockSnapshot = {

@@ -1,115 +1,159 @@
 import { useEffect, useState } from 'react';
 import { Check, RotateCcw, X } from 'lucide-react';
-import { BLOCK_REASON_LABELS, type BlockReasonTag } from '@keepxclean/shared';
-import type { Operation, Stage } from '../../services/model';
+import { getBlockReasonLabels, type BlockReasonTag } from '@keepxclean/shared';
+import { useI18n } from '../../i18n';
+import type { Operation } from '../../services/model';
 import { useApp } from '../../state/store';
 import { Button, perform, Pill } from '../../ui/components';
-const labels: Record<Stage, string> = {
-  not_requested: '未开启',
-  pending: '等待提交',
-  running: '处理中',
-  succeeded: '已完成',
-  not_counted: '未计公共票',
-  failed: '失败',
-  unknown: '结果未确认',
-  cancelled: '已取消',
-};
+
+function isToastActive(op: Operation, now: number): boolean {
+  if (op.cancelled) {
+    return now - op.createdAt < 2200;
+  }
+  if (op.local === 'succeeded' && op.undoUntil > now) {
+    return true;
+  }
+  const working =
+    ['pending', 'running'].includes(op.nativeX) ||
+    ['pending', 'running'].includes(op.community);
+  if (working) {
+    return now - op.createdAt < 28000;
+  }
+  const hasIssue =
+    ['failed', 'unknown'].includes(op.nativeX) ||
+    ['failed', 'unknown'].includes(op.community);
+  if (hasIssue) {
+    return now - op.createdAt < 30000;
+  }
+  const settleBase = Math.max(op.createdAt, op.undoUntil);
+  return now - settleBase < 2400;
+}
+
 export function OperationCard({
   operation: op,
+  now: externalNow,
   dismiss,
 }: {
   operation: Operation;
+  now?: number;
   dismiss?: () => void;
 }) {
-  const [now, setNow] = useState(Date.now());
+  const { m, locale } = useI18n();
+  const [internalNow, setInternalNow] = useState(Date.now());
+  const now = externalNow ?? internalNow;
+  const needsOwnTimer =
+    externalNow === undefined && !op.cancelled && op.undoUntil > internalNow;
+
   useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 500);
+    if (!needsOwnTimer) return;
+    const timer = setInterval(() => setInternalNow(Date.now()), 500);
     return () => clearInterval(timer);
-  }, []);
+  }, [needsOwnTimer]);
+
   const undoable =
     op.undoUntil > now && !op.cancelled && op.local === 'succeeded';
+  const accountLabel = op.entry.screenName
+    ? `@${op.entry.screenName}`
+    : `UID ${op.entry.uid}`;
+  const stages = m.operations.stages;
+  const reasonLabels = getBlockReasonLabels(locale);
+
   return (
     <div className="operation">
-      <div className="row between">
-        <div className="row">
-          <Check size={16} />
-          <strong className="small">
-            {op.cancelled ? '已撤销本次本地操作' : '已加入本地黑名单'}
+      <div className="row between" style={{ gap: 8 }}>
+        <div className="row" style={{ gap: 6, minWidth: 0 }}>
+          <Check size={15} style={{ color: 'var(--green)' }} />
+          <strong className="small ellipsis">
+            {op.cancelled
+              ? m.operations.undoneTitle(accountLabel)
+              : m.operations.cleanedTitle(accountLabel)}
           </strong>
         </div>
-        {dismiss && (
-          <Button variant="ghost icon" aria-label="关闭提示" onClick={dismiss}>
-            <X size={15} />
-          </Button>
+        <div className="row" style={{ gap: 4 }}>
+          {undoable && (
+            <Button
+              variant="sm"
+              onClick={() => perform({ type: 'block.undo', id: op.id })}
+            >
+              <RotateCcw size={12} />
+              {m.operations.undoBtn(
+                Math.max(1, Math.ceil((op.undoUntil - now) / 1000))
+              )}
+            </Button>
+          )}
+          {dismiss && (
+            <Button
+              variant="ghost icon sm"
+              aria-label={m.common.dismiss}
+              onClick={dismiss}
+            >
+              <X size={14} />
+            </Button>
+          )}
+        </div>
+      </div>
+      <div className="row wrap" style={{ gap: 5, marginTop: 7 }}>
+        <Pill kind="neutral">{m.operations.localPill(stages[op.local])}</Pill>
+        {op.nativeX !== 'not_requested' && (
+          <Pill
+            kind={
+              ['failed', 'unknown'].includes(op.nativeX) ? 'warning' : 'neutral'
+            }
+          >
+            {m.operations.nativeXPill(stages[op.nativeX])}
+          </Pill>
+        )}
+        {op.community !== 'not_requested' && (
+          <Pill
+            kind={
+              ['failed', 'unknown'].includes(op.community)
+                ? 'warning'
+                : 'neutral'
+            }
+          >
+            {m.operations.communityPill(stages[op.community])}
+          </Pill>
         )}
       </div>
-      <p className="small muted break">
-        {op.entry.screenName
-          ? `@${op.entry.screenName}`
-          : `UID ${op.entry.uid}`}
-      </p>
-      <div className="row wrap" style={{ gap: 6, marginTop: 8 }}>
-        <Pill kind="neutral">本地 · {labels[op.local]}</Pill>
-        <Pill
-          kind={
-            ['failed', 'unknown'].includes(op.nativeX) ? 'warning' : 'neutral'
-          }
-        >
-          X · {labels[op.nativeX]}
-        </Pill>
-        <Pill
-          kind={
-            ['failed', 'unknown'].includes(op.community) ? 'warning' : 'neutral'
-          }
-        >
-          社区 · {labels[op.community]}
-        </Pill>
-      </div>
       {undoable && (
-        <>
-          <div className="reason-options" aria-label="选择净空原因">
-            {Object.entries(BLOCK_REASON_LABELS).map(([tag, label]) => (
-              <button
-                key={tag}
-                aria-pressed={(op.entry.tag ?? 'other') === tag}
-                onClick={() =>
-                  perform({
-                    type: 'block.reason',
-                    id: op.id,
-                    tag: tag as BlockReasonTag,
-                  })
-                }
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <Button
-            variant="ghost"
-            onClick={() => perform({ type: 'block.undo', id: op.id })}
-          >
-            <RotateCcw size={13} />
-            撤销 · {Math.ceil((op.undoUntil - now) / 1000)} 秒
-          </Button>
-        </>
+        <div className="reason-options" aria-label={m.operations.selectReasonAria}>
+          {Object.entries(reasonLabels).map(([tag, label]) => (
+            <button
+              key={tag}
+              type="button"
+              aria-pressed={(op.entry.tag ?? 'other') === tag}
+              onClick={() =>
+                perform({
+                  type: 'block.reason',
+                  id: op.id,
+                  tag: tag as BlockReasonTag,
+                })
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       )}
       {(['nativeX', 'community'] as const).map(
         (stage) =>
           op.errors[stage] && (
             <div
               key={stage}
-              className="small"
-              style={{ marginTop: 8, color: 'var(--warning)' }}
+              className="row between wrap small"
+              style={{ marginTop: 7, color: 'var(--warning)', gap: 6 }}
             >
-              {op.errors[stage]}
+              <span>{op.errors[stage]}</span>
               {op[stage] === 'failed' && (
                 <Button
-                  variant="ghost"
+                  variant="sm"
                   onClick={() =>
                     perform({ type: 'block.retry', id: op.id, stage })
                   }
                 >
-                  重试{stage === 'nativeX' ? ' X 同步' : '社区提交'}
+                  {stage === 'nativeX'
+                    ? m.operations.retryNativeX
+                    : m.operations.retryCommunity}
                 </Button>
               )}
             </div>
@@ -118,29 +162,45 @@ export function OperationCard({
     </div>
   );
 }
+
 export function OperationToasts() {
   const { data } = useApp();
+  const { m } = useI18n();
   const [dismissed, setDismissed] = useState<string[]>([]);
+  const [now, setNow] = useState(Date.now());
+
+  const candidates =
+    data?.operations.filter(
+      (op) => !dismissed.includes(op.id) && isToastActive(op, now)
+    ) ?? [];
+
+  useEffect(() => {
+    if (!candidates.length) return;
+    const timer = setInterval(() => setNow(Date.now()), 400);
+    return () => clearInterval(timer);
+  }, [candidates.length]);
+
+  useEffect(() => {
+    setNow(Date.now());
+  }, [data?.operations]);
+
+  if (!candidates.length) return null;
+
   return (
     <div
       className="toast-region"
       role="region"
-      aria-label="净空操作结果"
+      aria-label={m.operations.toastRegionAria}
       aria-live="polite"
     >
-      {data?.operations
-        .filter(
-          (op) =>
-            op.createdAt > Date.now() - 60000 && !dismissed.includes(op.id)
-        )
-        .slice(0, 3)
-        .map((op) => (
-          <OperationCard
-            key={op.id}
-            operation={op}
-            dismiss={() => setDismissed([...dismissed, op.id])}
-          />
-        ))}
+      {candidates.slice(0, 3).map((op) => (
+        <OperationCard
+          key={op.id}
+          operation={op}
+          now={now}
+          dismiss={() => setDismissed((prev) => [...prev, op.id])}
+        />
+      ))}
     </div>
   );
 }

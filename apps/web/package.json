@@ -1,0 +1,9 @@
+{
+  "name": "@keepxclean/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @keepxclean/server exec wrangler dev --config ../web/wrangler.toml --port 8788",
+    "deploy": "pnpm --filter @keepxclean/server exec wrangler deploy --config ../web/wrangler.toml"
+  }
+}

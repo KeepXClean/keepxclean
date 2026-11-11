@@ -3,16 +3,27 @@ import {
   type AccountListEntry,
   type ViewerProfile,
 } from '@keepxclean/shared';
+import { getActiveErrors, getErrors } from '../i18n/errors';
 import {
   digest,
   errorText,
+  isNotFoundError,
+  isUnconfirmedError,
+  notFoundError,
   UI_KEYS,
+  unconfirmedError,
   type ImportJob,
   type NativeResult,
   type Operation,
+  type ResolvedAccount,
 } from '../services/model';
-import { assert, UID, validateAccount } from '../services/validation';
-import { enqueue, readConfig } from './repository';
+import {
+  assert,
+  parseAccountQuery,
+  UID,
+  validateAccount,
+} from '../services/validation';
+import { enqueue, readConfig, readState } from './repository';
 import { post } from './remote';
 
 export async function native(
@@ -20,7 +31,8 @@ export async function native(
   action: string,
   params: Record<string, unknown> = {}
 ): Promise<NativeResult> {
-  assert(tabId !== undefined, '找不到原 X 标签页，请在 X 中重新操作');
+  const e = getActiveErrors();
+  assert(tabId !== undefined, e.missingXTab);
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
@@ -31,13 +43,14 @@ export async function native(
       }) as Promise<NativeResult>,
       new Promise<NativeResult>((_, reject) => {
         timer = setTimeout(
-          () => reject(new Error('X 请求超时，结果未确认')),
+          () => reject(unconfirmedError(e.xRequestTimeout)),
           25000
         );
       }),
     ]);
   } catch (error) {
-    throw new Error(`X 连接失败：${errorText(error)}`);
+    const msg = e.xConnectionFailed(errorText(error));
+    throw isUnconfirmedError(error) ? unconfirmedError(msg) : new Error(msg);
   } finally {
     clearTimeout(timer);
   }
@@ -46,19 +59,20 @@ async function viewerFor(
   tabId: number | undefined,
   expected?: string
 ): Promise<ViewerProfile> {
+  const e = getActiveErrors();
   const result = await native(tabId, 'GET_VIEWER');
   assert(
     result.ok &&
       result.viewerUid &&
       (!expected || expected === result.viewerUid),
-    'X 账号已切换或未登录，请重新操作'
+    e.xAccountSwitchedOrLoggedOut
   );
   const data = await chrome.storage.local.get(UI_KEYS.viewers);
   const viewer: ViewerProfile | undefined =
     data[UI_KEYS.viewers]?.[String(tabId)];
   assert(
     viewer && viewer.restId === result.viewerUid && viewer.accountAgeDays > 0,
-    '尚未读取到当前 X 账号资料，暂未提交社区；请打开自己的 X 主页后重试'
+    e.viewerProfileMissing
   );
   return viewer;
 }
@@ -77,7 +91,7 @@ async function updateOperation(id: string, update: (op: Operation) => void) {
   return enqueue(async () => {
     const list = await getOperations();
     const op = list.find((x) => x.id === id);
-    assert(op, '找不到这次操作');
+    assert(op, getActiveErrors().operationNotFound);
     update(op);
     await chrome.storage.local.set({ [UI_KEYS.operations]: list });
     return op;
@@ -87,7 +101,7 @@ async function updateImport(id: string, update: (job: ImportJob) => void) {
   return enqueue(async () => {
     const list = await getImports();
     const job = list.find((x) => x.id === id);
-    assert(job, '找不到导入任务');
+    assert(job, getActiveErrors().importJobNotFound);
     update(job);
     await chrome.storage.local.set({ [UI_KEYS.imports]: list });
     return job;
@@ -188,6 +202,7 @@ export async function runOperation(id: string, only?: 'nativeX' | 'community') {
       });
       try {
         const config = await readConfig();
+        const e = getErrors(config.locale);
         if (
           !(stage === 'nativeX'
             ? config.syncNativeXBlock
@@ -199,12 +214,19 @@ export async function runOperation(id: string, only?: 'nativeX' | 'community') {
           continue;
         }
         if (stage === 'nativeX') {
-          assert(op.viewerUid, '未确认当前 X 账号，请重新打开页面后重试');
+          if (!op.viewerUid) throw unconfirmedError(e.viewerUnconfirmed);
           const result = await native(op.tabId, 'NATIVE_BLOCK_USER', {
             targetUid: op.entry.uid,
             expectedViewer: op.viewerUid,
           });
-          assert(result?.ok, result?.error || 'X 未确认拉黑结果');
+          if (!result?.ok) {
+            const msg = result?.error || e.xBlockUnconfirmed;
+            throw result?.code === 'TIMEOUT' ||
+              result?.code === 'UNCONFIRMED' ||
+              !result?.error
+              ? unconfirmedError(msg)
+              : new Error(msg);
+          }
           await updateOperation(id, (x) => {
             x.nativeX = 'succeeded';
           });
@@ -220,20 +242,23 @@ export async function runOperation(id: string, only?: 'nativeX' | 'community') {
             reporterAccountAgeDays: viewer.accountAgeDays,
             reporterFollowersCount: viewer.followersCount,
           });
-          assert(
-            result.ok === true && typeof result.countedPublicly === 'boolean',
-            '社区响应无效，结果未确认'
-          );
+          if (
+            result.ok !== true ||
+            typeof result.countedPublicly !== 'boolean'
+          ) {
+            throw unconfirmedError(e.communityResponseInvalid);
+          }
           await updateOperation(id, (x) => {
             x.community = result.countedPublicly ? 'succeeded' : 'not_counted';
             if (!result.countedPublicly)
-              x.errors.community = '提交已处理，未计入公共统计';
+              x.errors.community = e.communityNotCountedNote;
           });
         }
       } catch (error) {
         const message = errorText(error);
+        const unconfirmed = isUnconfirmedError(error);
         await updateOperation(id, (x) => {
-          x[stage] = /未确认|超时/.test(message) ? 'unknown' : 'failed';
+          x[stage] = unconfirmed ? 'unknown' : 'failed';
           x.errors[stage] = message;
         });
       }
@@ -245,21 +270,22 @@ export async function runOperation(id: string, only?: 'nativeX' | 'community') {
 }
 export async function undoBlock(id: string) {
   await enqueue(async () => {
+    const config = await readConfig();
+    const e = getErrors(config.locale);
     const list = await getOperations(),
       op = list.find((x) => x.id === id);
-    assert(op, '找不到操作');
+    assert(op, e.operationNotFound);
     assert(
       !op.cancelled &&
         op.undoUntil > Date.now() &&
         op.nativeX !== 'running' &&
         op.community !== 'running',
-      '撤销窗口已结束，外部操作可能已开始'
+      e.undoWindowExpired
     );
-    const config = await readConfig();
     assert(
       digest(config.localBlocklistUids[op.entry.uid]) ===
         digest(op.savedEntry) && !config.whitelistUids[op.entry.uid],
-      '该账号已在其他入口修改，不能覆盖后续操作'
+      e.accountModifiedExternally
     );
     delete config.localBlocklistUids[op.entry.uid];
     if (op.previousBlack)
@@ -278,16 +304,17 @@ export async function undoBlock(id: string) {
 }
 export async function changeReason(id: string, tag: AccountListEntry['tag']) {
   await enqueue(async () => {
+    const config = await readConfig();
+    const e = getErrors(config.locale);
     const list = await getOperations(),
       op = list.find((x) => x.id === id);
     assert(
       op && !op.cancelled && op.undoUntil > Date.now(),
-      '原因选择窗口已结束'
+      e.reasonWindowExpired
     );
-    const config = await readConfig();
     assert(
       digest(config.localBlocklistUids[op.entry.uid]) === digest(op.savedEntry),
-      '账号已被修改'
+      e.accountModifiedExternally
     );
     op.entry = validateAccount({ ...op.entry, tag });
     op.savedEntry = op.entry;
@@ -299,17 +326,18 @@ export async function changeReason(id: string, tag: AccountListEntry['tag']) {
   });
 }
 export async function retryBlock(id: string, stage: 'nativeX' | 'community') {
+  await readConfig();
+  const e = getActiveErrors();
   await updateOperation(id, (op) => {
-    assert(
-      op[stage] === 'failed',
-      '只能重试明确失败的阶段；未确认结果请先在 X 或社区核实'
-    );
+    assert(op[stage] === 'failed', e.retryFailedOnly);
     op[stage] = 'pending';
   });
   void runOperation(id, stage);
 }
 export async function startImport(tabId: number) {
-  assert(Number.isInteger(tabId), '请选择 X 标签页');
+  const config = await readConfig();
+  const e = getErrors(config.locale);
+  assert(Number.isInteger(tabId), e.selectXTab);
   const job: ImportJob = {
     id: crypto.randomUUID(),
     tabId,
@@ -333,7 +361,7 @@ export async function startImport(tabId: number) {
           x.tabId === tabId &&
           ['reading', 'saving', 'sharing'].includes(x.status)
       ),
-      '该标签页已有导入任务'
+      e.tabImportAlreadyRunning
     );
     await chrome.storage.local.set({
       [UI_KEYS.imports]: [job, ...list.slice(0, 9)],
@@ -348,9 +376,10 @@ async function readImport(id: string) {
     const cursors = new Set<string>();
     const unique = new Set<string>();
     while (cursor !== '0') {
+      const e = getActiveErrors();
       const job = (await getImports()).find((x) => x.id === id)!;
       if (job.cancelRequested) return;
-      assert(!cursors.has(cursor), 'X 返回重复游标，读取已停止');
+      assert(!cursors.has(cursor), e.duplicateCursor);
       cursors.add(cursor);
       const result = await native(job.tabId, 'FETCH_EXISTING_BLOCKS', {
         cursor,
@@ -361,7 +390,7 @@ async function readImport(id: string) {
           Array.isArray(result.ids) &&
           typeof result.nextCursor === 'string' &&
           result.viewerUid,
-        result.error || 'X 黑名单响应不完整，无法确认是否读取完成'
+        result.error || e.incompleteBlocklistResponse
       );
       let invalid = 0;
       for (const uid of result.ids) {
@@ -395,24 +424,27 @@ export async function applyImport(
   share: boolean,
   moveConflicts: boolean
 ) {
+  await readConfig();
+  const e0 = getActiveErrors();
   const preview = (await getImports()).find((x) => x.id === id);
-  assert(preview?.status === 'preview', '请重新读取并预览黑名单');
+  assert(preview?.status === 'preview', e0.rereadPreviewRequired);
   const identity = await native(preview.tabId, 'GET_VIEWER', {
     expectedViewer: preview.viewerUid,
   });
   assert(
     identity.ok && identity.viewerUid === preview.viewerUid,
-    'X 账号已变化，请重新读取黑名单'
+    e0.xAccountChangedReread
   );
   const job = await enqueue(async () => {
+    const config = await readConfig();
+    const e = getErrors(config.locale);
     const list = await getImports(),
       job = list.find((x) => x.id === id);
     assert(
       job && job.status === 'preview' && !job.cancelRequested,
-      '请重新读取并预览黑名单'
+      e.rereadPreviewRequired
     );
-    const config = await readConfig();
-    assert(!share || config.enableCrowdReport, '请先在偏好设置开启社区共享');
+    assert(!share || config.enableCrowdReport, e.enableCrowdReportFirst);
     const selected: string[] = [];
     for (const uid of job.ids) {
       if (
@@ -426,7 +458,7 @@ export async function applyImport(
       config.localBlocklistUids[uid] = {
         uid,
         screenName: '',
-        reason: '从 X 黑名单导入',
+        reason: e.importedFromXReason,
         addedAt: Date.now(),
       };
       job.localAdded++;
@@ -461,7 +493,8 @@ async function shareImport(id: string, retry = false) {
     if (job.cancelRequested) break;
     try {
       const config = await readConfig();
-      assert(config.enableCrowdReport, '社区共享已关闭，后续批次未提交');
+      const e = getErrors(config.locale);
+      assert(config.enableCrowdReport, e.crowdReportDisabledRemaining);
       const viewer = await viewerFor(job.tabId, job.viewerUid);
       const response = await post(config, '/v1/blocks/batch-import', {
         targetUids: batches[i],
@@ -474,7 +507,7 @@ async function shareImport(id: string, retry = false) {
           Number.isInteger(response.importedCount) &&
           Number(response.importedCount) >= 0 &&
           Number(response.importedCount) <= batches[i].length,
-        '社区批量响应无效，结果未确认'
+        e.batchResponseInvalid
       );
       await updateImport(id, (x) => {
         x.communityAdded += Number(response.importedCount);
@@ -502,15 +535,102 @@ export async function cancelImport(id: string) {
   });
 }
 export async function retryImport(id: string) {
+  await readConfig();
+  const e = getActiveErrors();
   const job = (await getImports()).find((x) => x.id === id);
-  assert(job?.status === 'done' && job.failedBatches.length, '没有可重试批次');
+  assert(job?.status === 'done' && job.failedBatches.length, e.noRetryableBatches);
   // A manual retry is explicit; server deduplicates each target/reporter pair.
   await updateImport(id, (x) => {
     x.status = 'sharing';
   });
   void shareImport(id, true);
 }
+export async function resolveAccount(
+  rawQuery: string,
+  preferredTabId?: number
+): Promise<ResolvedAccount> {
+  const { config, logs } = await readState();
+  const e = getErrors(config.locale);
+  const parsed = parseAccountQuery(rawQuery);
+
+  const knownEntries: ResolvedAccount[] = [
+    ...Object.values(config.whitelistUids).map((x) => ({
+      uid: x.uid,
+      screenName: x.screenName,
+      name: x.name,
+      avatarUrl: x.avatarUrl,
+    })),
+    ...Object.values(config.localBlocklistUids).map((x) => ({
+      uid: x.uid,
+      screenName: x.screenName,
+      name: x.name,
+      avatarUrl: x.avatarUrl,
+    })),
+    ...logs.map((x) => ({
+      uid: x.authorUid,
+      screenName: x.authorScreenName,
+      name: x.authorName,
+      avatarUrl: x.authorAvatar,
+    })),
+  ];
+
+  if (parsed.kind === 'uid') {
+    const existing = knownEntries.find(
+      (x) => x.uid === parsed.uid && (x.screenName || x.name)
+    );
+    return existing ?? { uid: parsed.uid, screenName: '' };
+  }
+
+  const targetLower = parsed.handle.toLowerCase();
+  const localMatch = knownEntries.find(
+    (x) => UID.test(x.uid) && x.screenName.toLowerCase() === targetLower
+  );
+  if (localMatch) {
+    return localMatch;
+  }
+
+  const tabs = (
+    await chrome.tabs.query({
+      url: ['*://*.x.com/*', '*://*.twitter.com/*'],
+    })
+  )
+    .filter((t) => t.id !== undefined)
+    .sort((a, b) => {
+      if (a.id === preferredTabId) return -1;
+      if (b.id === preferredTabId) return 1;
+      return Number(Boolean(b.active)) - Number(Boolean(a.active));
+    });
+
+  assert(tabs.length > 0, e.openXTabToResolveHandle(parsed.handle));
+
+  let lastError = e.cannotResolveHandle(parsed.handle);
+  for (const tab of tabs) {
+    try {
+      const res = await native(tab.id, 'RESOLVE_USER_HANDLE', {
+        screenName: parsed.handle,
+      });
+      if (res.ok && res.user && UID.test(res.user.uid)) {
+        return {
+          uid: res.user.uid,
+          screenName: res.user.screenName || parsed.handle,
+          name: res.user.name,
+          avatarUrl: res.user.avatarUrl,
+        };
+      }
+      if (res.code === 'NOT_FOUND' && res.error) {
+        throw notFoundError(res.error);
+      }
+      if (res.error) lastError = res.error;
+    } catch (error) {
+      if (isNotFoundError(error)) throw error;
+      lastError = errorText(error);
+    }
+  }
+  throw new Error(lastError);
+}
+
 export async function resumeJobs() {
+  const e = getActiveErrors();
   const list = await getOperations();
   for (const op of list) {
     if (op.nativeX === 'running' || op.community === 'running')
@@ -518,7 +638,7 @@ export async function resumeJobs() {
         for (const stage of ['nativeX', 'community'] as const)
           if (x[stage] === 'running') {
             x[stage] = 'unknown';
-            x.errors[stage] = '扩展重启，结果未确认';
+            x.errors[stage] = e.restartedSyncInterrupted;
           }
       });
     if (
@@ -531,8 +651,7 @@ export async function resumeJobs() {
     if (['reading', 'saving', 'sharing'].includes(job.status))
       await updateImport(job.id, (x) => {
         x.status = 'error';
-        x.error =
-          '扩展重启，导入已中断；已保存的本地结果保留，请重新读取预览。';
+        x.error = e.restartedSyncInterrupted;
         x.ids = [];
       });
 }

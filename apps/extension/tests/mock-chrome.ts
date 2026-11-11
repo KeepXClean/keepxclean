@@ -58,6 +58,8 @@ export function mockChrome(initial: Record<string, unknown> = {}) {
       onMessage: { addListener: vi.fn(), removeListener: vi.fn() },
     },
     tabs: {
+      query: vi.fn(async () => [{ id: 7, active: true, url: 'https://x.com/home' }]),
+      reload: vi.fn(async () => {}),
       sendMessage: vi.fn(async (_tab: unknown, _message: unknown) => ({
         ok: true,
         viewerUid: '123',

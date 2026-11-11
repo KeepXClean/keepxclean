@@ -4,6 +4,8 @@ import {
   type FilterConfig,
   type ViewerProfile,
 } from '@keepxclean/shared';
+import { getErrors } from '../i18n/errors';
+import { setActiveLocaleSetting } from '../i18n/state';
 import { digest, type Command } from '../services/model';
 import {
   assert,
@@ -16,11 +18,14 @@ export function applyConfigCommand(
   current: FilterConfig,
   command: Command
 ): FilterConfig {
+  setActiveLocaleSetting(current.locale);
+  const e = getErrors(current.locale);
   let next = structuredClone(current);
   switch (command.type) {
     case 'config.patch': {
       const { rules, ...fields } = command.patch;
       const allowed = [
+        'locale',
         'enabled',
         'interceptionMode',
         'exemptFollowing',
@@ -28,25 +33,30 @@ export function applyConfigCommand(
         'syncNativeXBlock',
         'enableCrowdReport',
         'enableCloudKeywords',
+        'disabledCloudKeywordIds',
         'customApiBaseUrl',
       ];
       assert(
         Object.keys(fields).every((k) => allowed.includes(k)),
-        '未知配置字段'
+        e.unknownConfigField
       );
       Object.assign(next, fields);
       if (rules) {
         for (const key of Object.keys(rules) as (keyof typeof rules)[]) {
-          assert(key in next.rules, '未知规则');
+          assert(key in next.rules, e.unknownRule);
           const patch = rules[key]!;
           assert(
             !('items' in patch) &&
               Object.keys(patch).every((k) => k in next.rules[key]),
-            '未知规则参数'
+            e.unknownRuleParam
           );
           Object.assign(next.rules[key], patch);
         }
-        if (Object.keys(rules).some((k) => k !== 'keywords'))
+        if (
+          Object.keys(rules).some(
+            (k) => k !== 'keywords' && k !== 'languageFilter'
+          )
+        )
           next.preset = 'custom';
       }
       break;
@@ -54,21 +64,21 @@ export function applyConfigCommand(
     case 'config.preset':
       assert(
         ['light', 'standard', 'strict'].includes(command.preset),
-        '预设无效'
+        e.invalidPreset
       );
       next = applyPresetToConfig(next, command.preset);
       break;
     case 'config.replace':
       assert(
         digest(current) === command.expected,
-        '配置已在其他窗口修改，请重新预览'
+        e.configChangedReloadPreview
       );
       next = validateConfig(command.config);
       break;
     case 'config.reset': {
       assert(
         digest(current) === command.expected,
-        '配置已变化，请重新确认重置'
+        e.configChangedReconfirmReset
       );
       const defaults = createDefaultConfig();
       next = applyPresetToConfig(next, 'standard');
@@ -76,6 +86,9 @@ export function applyConfigCommand(
       next.exemptFollowing = defaults.exemptFollowing;
       next.profileSceneBadgeOnly = defaults.profileSceneBadgeOnly;
       next.rules.keywords.enabled = defaults.rules.keywords.enabled;
+      next.rules.languageFilter = structuredClone(
+        defaults.rules.languageFilter
+      );
       break;
     }
     case 'keyword.save': {
@@ -86,7 +99,7 @@ export function applyConfigCommand(
           ? index < 0
           : index >= 0 &&
               digest(next.rules.keywords.items[index]) === command.expected,
-        '这条关键词已被修改，请重新打开编辑器'
+        e.keywordModifiedReopen
       );
       if (index < 0) next.rules.keywords.items.push(item);
       else next.rules.keywords.items[index] = item;
@@ -94,10 +107,41 @@ export function applyConfigCommand(
     }
     case 'keyword.delete': {
       const item = next.rules.keywords.items.find((x) => x.id === command.id);
-      assert(digest(item) === command.expected, '关键词已变化，请刷新后重试');
+      assert(digest(item) === command.expected, e.keywordChangedRefresh);
       next.rules.keywords.items = next.rules.keywords.items.filter(
         (x) => x.id !== command.id
       );
+      break;
+    }
+    case 'cloudKeyword.toggle': {
+      assert(
+        typeof command.id === 'string' && command.id.trim().length > 0,
+        e.invalidCloudKeywordId
+      );
+      assert(typeof command.enabled === 'boolean', e.expectBoolean('enabled'));
+      const id = command.id.trim();
+      next.disabledCloudKeywordIds = command.enabled
+        ? next.disabledCloudKeywordIds.filter((x) => x !== id)
+        : [...new Set([...next.disabledCloudKeywordIds, id])];
+      break;
+    }
+    case 'cloudKeyword.customize': {
+      assert(
+        typeof command.sourceId === 'string' &&
+          command.sourceId.trim().length > 0,
+        e.invalidCloudKeywordId
+      );
+      const item = validateKeyword(command.item);
+      assert(
+        !next.rules.keywords.items.some((x) => x.id === item.id),
+        e.duplicateCustomKeywordId
+      );
+      next.rules.keywords.items.push(item);
+      next.rules.keywords.enabled = true;
+      const sourceId = command.sourceId.trim();
+      next.disabledCloudKeywordIds = [
+        ...new Set([...next.disabledCloudKeywordIds, sourceId]),
+      ];
       break;
     }
     case 'account.save': {
@@ -115,9 +159,11 @@ export function applyConfigCommand(
       ][command.uid];
       break;
     default:
-      throw new Error('不是配置命令');
+      throw new Error(e.unknownConfigField);
   }
-  return validateConfig(next);
+  const validated = validateConfig(next);
+  setActiveLocaleSetting(validated.locale);
+  return validated;
 }
 export function mergeViewerProfile(
   previous: ViewerProfile | undefined,

@@ -2,6 +2,7 @@ import {
   evaluateAuthorProfile,
   evaluateTweet,
   mergeAuthors,
+  RESERVED_X_PATHS,
   SlidingWindowTracker,
   type CrowdBlockSnapshot,
   type ExtractedAuthor,
@@ -9,25 +10,6 @@ import {
   type FilterConfig,
   type InterceptionDecision,
 } from '@keepxclean/shared';
-
-const RESERVED_PATHS = new Set([
-  'home',
-  'explore',
-  'notifications',
-  'messages',
-  'bookmarks',
-  'settings',
-  'search',
-  'i',
-  'compose',
-  'intent',
-  'tos',
-  'privacy',
-  'jobs',
-  'lists',
-  'communities',
-  'grok',
-]);
 
 export interface InlineItem {
   id: string;
@@ -38,7 +20,47 @@ export interface InlineItem {
   decision?: InterceptionDecision;
   expanded?: boolean;
   badges?: string[];
+  hasCrowdBadge?: boolean;
+  isSelf?: boolean;
+  hasGrokGap?: boolean;
   toggle?: () => void;
+}
+
+function resolveQuickAnchor(article: HTMLElement):
+  | {
+      parent: HTMLElement;
+      before: HTMLElement;
+      hasGrokGap: boolean;
+    }
+  | undefined {
+  const caret = article.querySelector<HTMLElement>('[data-testid="caret"]');
+  if (!caret?.parentElement) return undefined;
+
+  let caretBranch: HTMLElement = caret;
+  let cur: HTMLElement | null = caret.parentElement;
+  for (let depth = 0; depth < 6 && cur && cur !== article; depth++) {
+    if (
+      cur.querySelector('[data-testid="User-Name"]') ||
+      cur.querySelector('time')
+    ) {
+      break;
+    }
+    const grokBtn = cur.querySelector<HTMLElement>(
+      'button[aria-label*="grok" i], [role="button"][aria-label*="grok" i], [data-testid*="grok" i]'
+    );
+    if (grokBtn && grokBtn !== caret && !caretBranch.contains(grokBtn)) {
+      let grokBranch: HTMLElement = grokBtn;
+      while (grokBranch.parentElement && grokBranch.parentElement !== cur) {
+        grokBranch = grokBranch.parentElement;
+      }
+      if (grokBranch.parentElement === cur) {
+        return { parent: cur, before: grokBranch, hasGrokGap: true };
+      }
+    }
+    caretBranch = cur;
+    cur = cur.parentElement;
+  }
+  return { parent: caret.parentElement, before: caret, hasGrokGap: false };
 }
 interface ArticleRecord {
   tweetId: string;
@@ -60,15 +82,34 @@ export class DomController {
   private dirty = new Set<HTMLElement>();
   private config?: FilterConfig;
   private snapshot?: CrowdBlockSnapshot;
+  private viewerUid?: string;
   private nav?: InlineItem;
   private navResize?: ResizeObserver;
   private navAppearanceObserver?: MutationObserver;
   private profile?: InlineItem;
   private path = location.pathname;
   private style = document.createElement('style');
-  constructor(private css: string) {
-    this.style.textContent = '[data-kxc-hidden="true"]{display:none!important}';
+  constructor(
+    private css: string,
+    private isAlive?: () => boolean
+  ) {
+    this.style.textContent = [
+      '[data-kxc-hidden="true"]{display:none!important}',
+      'article[data-testid="tweet"] kxc-inline[data-kxc-kind="quick"]{opacity:0;pointer-events:none;transition:opacity .14s ease}',
+      'article[data-testid="tweet"]:hover kxc-inline[data-kxc-kind="quick"],article[data-testid="tweet"]:focus-within kxc-inline[data-kxc-kind="quick"]{opacity:1;pointer-events:auto}',
+      '@media (hover:none){article[data-testid="tweet"] kxc-inline[data-kxc-kind="quick"]{opacity:.85;pointer-events:auto}}',
+      'article[data-testid="tweet"][data-kxc-expanded="true"]{background-color:#f4f7f5!important;box-shadow:inset 3px 0 0 #b8cbc0!important;transition:background-color .15s ease}',
+      'article[data-testid="tweet"][data-kxc-expanded="true"]:hover{background-color:#eef3f0!important}',
+      'html[style*="color-scheme: dark"] article[data-testid="tweet"][data-kxc-expanded="true"]{background-color:rgba(184,203,192,.08)!important;box-shadow:inset 3px 0 0 #4f6b5c!important}',
+      'html[style*="color-scheme: dark"] article[data-testid="tweet"][data-kxc-expanded="true"]:hover{background-color:rgba(184,203,192,.12)!important}',
+    ].join('\n');
     document.documentElement.append(this.style);
+  }
+  setViewer(uid?: string) {
+    if (uid && uid !== this.viewerUid) {
+      this.viewerUid = uid;
+      this.scan();
+    }
   }
   subscribe = (fn: () => void) => {
     this.listeners.add(fn);
@@ -90,6 +131,7 @@ export class DomController {
   ): InlineItem {
     const host = document.createElement('kxc-inline');
     host.dataset.kxcUi = 'true';
+    host.dataset.kxcKind = kind;
     host.style.display = kind === 'quick' ? 'inline-flex' : 'block';
     const shadow = host.attachShadow({ mode: 'open' });
     const style = document.createElement('style');
@@ -107,6 +149,7 @@ export class DomController {
   private restore(record: ArticleRecord) {
     record.cell.removeAttribute('data-kxc-hidden');
     record.article.removeAttribute('data-kxc-hidden');
+    record.article.removeAttribute('data-kxc-expanded');
     this.remove(record.collapse);
     record.collapse = undefined;
   }
@@ -123,7 +166,10 @@ export class DomController {
         typeof tweet.text !== 'string'
       )
         continue;
-      if (!this.tweets.has(id))
+      if (
+        !this.tweets.has(id) &&
+        (tweet.scene === 'timeline' || tweet.scene === 'search')
+      )
         this.tracker.recordAndCount(
           tweet.author.restId,
           id,
@@ -227,17 +273,54 @@ export class DomController {
           }
         },
       };
-      if (record.expanded) article.removeAttribute('data-kxc-hidden');
-      else article.dataset.kxcHidden = 'true';
+      if (record.expanded) {
+        article.removeAttribute('data-kxc-hidden');
+        article.dataset.kxcExpanded = 'true';
+      } else {
+        article.dataset.kxcHidden = 'true';
+        article.removeAttribute('data-kxc-expanded');
+      }
     }
-    const caret = article.querySelector<HTMLElement>('[data-testid="caret"]');
-    if (
-      caret?.parentElement &&
-      (!record.quick ||
-        !(record.quick.container.getRootNode() as ShadowRoot).host.isConnected)
-    )
-      record.quick = this.create('quick', caret.parentElement, caret);
-    if (record.quick) record.quick = { ...record.quick, author, tweet };
+    const quickAnchor = resolveQuickAnchor(article);
+    const canQuickBlock = Boolean(
+      this.config.enabled &&
+        !decision?.blocked &&
+        quickAnchor &&
+        author &&
+        /^\d{1,25}$/.test(author.restId) &&
+        author.restId !== this.viewerUid &&
+        !this.config.whitelistUids[author.restId] &&
+        !this.config.localBlocklistUids[author.restId]
+    );
+    if (!canQuickBlock || !quickAnchor) {
+      if (record.quick) {
+        this.remove(record.quick);
+        record.quick = undefined;
+      }
+    } else {
+      const existingHost = record.quick
+        ? ((record.quick.container.getRootNode() as ShadowRoot)
+            .host as HTMLElement)
+        : undefined;
+      if (!record.quick || !existingHost?.isConnected) {
+        record.quick = this.create(
+          'quick',
+          quickAnchor.parent,
+          quickAnchor.before
+        );
+      } else if (
+        existingHost.parentElement !== quickAnchor.parent ||
+        existingHost.nextElementSibling !== quickAnchor.before
+      ) {
+        quickAnchor.parent.insertBefore(existingHost, quickAnchor.before);
+      }
+      record.quick = {
+        ...record.quick,
+        author,
+        tweet,
+        hasGrokGap: quickAnchor.hasGrokGap,
+      };
+    }
   }
   private globals() {
     const nav = document.querySelector<HTMLElement>(
@@ -283,33 +366,78 @@ export class DomController {
       )?.[1]
       ?.toLowerCase();
     const handle =
-      rawHandle && !RESERVED_PATHS.has(rawHandle) ? rawHandle : undefined;
+      rawHandle && !RESERVED_X_PATHS.has(rawHandle) ? rawHandle : undefined;
     const author = handle ? this.authors.get(handle) : undefined;
-    const header = [
-      ...document.querySelectorAll<HTMLElement>(
-        '[data-testid="primaryColumn"] [data-testid="UserName"]'
-      ),
-    ].find((el) => !el.closest('article'));
-    if (!header || !author || !this.config?.enabled) {
+    const findHeaderEl = (testId: string) =>
+      [
+        ...document.querySelectorAll<HTMLElement>(
+          `[data-testid="primaryColumn"] [data-testid="${testId}"]`
+        ),
+      ].find((el) => !el.closest('article'));
+    const rawAfter =
+      findHeaderEl('UserProfileHeader_Items') ??
+      findHeaderEl('UserDescription');
+    const nameHeader = findHeaderEl('UserName');
+    let targetParent: HTMLElement | undefined;
+    let beforeNode: HTMLElement | undefined;
+    if (
+      nameHeader?.parentElement &&
+      nameHeader.parentElement.tagName !== 'MAIN'
+    ) {
+      targetParent = nameHeader.parentElement;
+      let anchorChild: HTMLElement = rawAfter ?? nameHeader;
+      while (
+        anchorChild.parentElement &&
+        anchorChild.parentElement !== targetParent
+      ) {
+        anchorChild = anchorChild.parentElement;
+      }
+      if (anchorChild.parentElement === targetParent) {
+        const next = anchorChild.nextElementSibling as HTMLElement | null;
+        beforeNode =
+          next && next.tagName.toLowerCase() !== 'kxc-inline'
+            ? next
+            : (next?.nextElementSibling as HTMLElement | null) ?? undefined;
+      }
+    } else if (rawAfter?.parentElement) {
+      targetParent = rawAfter.parentElement;
+      beforeNode =
+        (rawAfter.nextElementSibling as HTMLElement | null) ?? undefined;
+    } else {
+      targetParent = nameHeader;
+    }
+
+    const profileEval =
+      author && this.config?.enabled
+        ? evaluateAuthorProfile(author, this.config, this.snapshot)
+        : undefined;
+    const badges = profileEval?.riskBadges ?? [];
+    const hasCrowdBadge = profileEval?.hasCrowdBadge ?? false;
+    const shouldShowProfile = Boolean(
+      targetParent && author && this.config?.enabled
+    );
+
+    if (!shouldShowProfile || !targetParent || !author) {
       this.remove(this.profile);
       this.profile = undefined;
     } else {
-      if (
-        !this.profile ||
-        (this.profile.container.getRootNode() as ShadowRoot).host
-          .parentElement !== header
-      ) {
+      const currentHost = this.profile
+        ? ((this.profile.container.getRootNode() as ShadowRoot)
+            .host as HTMLElement)
+        : undefined;
+      if (!this.profile || currentHost?.parentElement !== targetParent) {
         this.remove(this.profile);
-        this.profile = this.create('profile', header);
+        this.profile = this.create('profile', targetParent, beforeNode);
+      } else if (currentHost.nextElementSibling !== (beforeNode ?? null)) {
+        targetParent.insertBefore(currentHost, beforeNode ?? null);
       }
-      const badges = evaluateAuthorProfile(
+      this.profile = {
+        ...this.profile,
         author,
-        this.config,
-        this.snapshot
-      ).riskBadges.map((x) =>
-        x.replace(/全网 (\d+) 人(?:拉黑|标记)/g, '社区快照记录 $1 次')
-      );
-      this.profile = { ...this.profile, author, badges };
+        badges,
+        hasCrowdBadge,
+        isSelf: Boolean(this.viewerUid && author.restId === this.viewerUid),
+      };
     }
   }
   private syncNavAppearance = () => {
@@ -359,6 +487,7 @@ export class DomController {
       container.style.setProperty(key, value);
   };
   scan = () => {
+    if (this.isAlive && !this.isAlive()) return;
     for (const [article, record] of this.articles)
       if (!article.isConnected) {
         this.restore(record);
@@ -375,6 +504,7 @@ export class DomController {
     this.scan();
     window.addEventListener('resize', this.syncNavAppearance);
     this.observer = new MutationObserver((records) => {
+      if (this.isAlive && !this.isAlive()) return;
       for (const mutation of records) {
         const root =
           mutation.target instanceof HTMLElement
@@ -397,6 +527,7 @@ export class DomController {
       if (!this.frame)
         this.frame = requestAnimationFrame(() => {
           this.frame = 0;
+          if (this.isAlive && !this.isAlive()) return;
           if (location.pathname !== this.path) {
             this.path = location.pathname;
             this.scan();

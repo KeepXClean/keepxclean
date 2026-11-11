@@ -1,45 +1,30 @@
 import { useState } from 'react';
 import {
   ArrowUpRight,
+  Ban,
   ChevronRight,
   Trash2,
   UserRoundCheck,
 } from 'lucide-react';
 import type { InterceptionLogEntry } from '@keepxclean/shared';
+import { formatCount, formatDateTime, useI18n } from '../../i18n';
 import { mutate, useApp } from '../../state/store';
 import {
   Banner,
   Button,
   Confirm,
   Empty,
-  formatTime,
   Modal,
   Page,
   Panel,
-  perform,
   Pill,
+  ReloadXButton,
   SearchBox,
   usePagination,
 } from '../../ui/components';
+import { accountProfileUrl } from '../accounts/AccountsPage';
 import { OperationCard } from './Operations';
-export const ruleLabels: Record<string, string> = {
-  local_blocklist: '本地黑名单',
-  crowd_block: '社区记录',
-  high_frequency_daily: '历史高频',
-  high_frequency_window: '短期刷屏',
-  keyword: '自定义关键词',
-  cloud_keyword: '公共词库',
-  blue_reply_spam: '蓝标回复',
-  tag_spam: '标签刷屏',
-  account_quality: '账号质量',
-  promoted_ad: '推广广告',
-};
-export const sceneLabels: Record<string, string> = {
-  timeline: '信息流',
-  reply: '回复区',
-  search: '搜索',
-  profile: '个人主页',
-};
+
 export function whitelistLog(log: InterceptionLogEntry) {
   return mutate({
     type: 'account.save',
@@ -48,19 +33,42 @@ export function whitelistLog(log: InterceptionLogEntry) {
       uid: log.authorUid,
       screenName: log.authorScreenName,
       name: log.authorName,
+      avatarUrl: log.authorAvatar,
       addedAt: Date.now(),
     },
   });
 }
+
+function blocklistLog(log: InterceptionLogEntry, reason: string) {
+  return mutate({
+    type: 'account.save',
+    list: 'black',
+    entry: {
+      uid: log.authorUid,
+      screenName: log.authorScreenName,
+      name: log.authorName,
+      avatarUrl: log.authorAvatar,
+      tag: 'spam',
+      reason,
+      addedAt: Date.now(),
+    },
+  });
+}
+
 export function HistoryPage() {
   const { data } = useApp();
-  const { logs, stats, operations } = data!;
+  const { m, locale } = useI18n();
+  const { config, logs, stats, operations } = data!;
   const [query, setQuery] = useState(''),
     [rule, setRule] = useState('all'),
     [scene, setScene] = useState('all'),
     [detail, setDetail] = useState<InterceptionLogEntry | null>(null),
     [clear, setClear] = useState(false),
     [success, setSuccess] = useState('');
+
+  const ruleLabels = m.history.ruleLabels;
+  const sceneLabels = m.history.sceneLabels;
+
   const filtered = logs.filter(
     (x) =>
       (rule === 'all' || x.ruleId === rule) &&
@@ -70,20 +78,38 @@ export function HistoryPage() {
         .includes(query.toLowerCase())
   );
   const page = usePagination(filtered, query + rule + scene);
+
   const addWhite = async (log: InterceptionLogEntry) => {
     try {
       await whitelistLog(log);
       setSuccess(
-        '已加入本地白名单。已从响应剔除的内容需要刷新 X 重新加载；X 原生拉黑不受影响。'
+        m.history.addedWhiteNotice(log.authorScreenName || log.authorUid)
       );
     } catch {
       /* SaveError owns the failure message. */
     }
   };
+  const addBlack = async (log: InterceptionLogEntry) => {
+    try {
+      await blocklistLog(
+        log,
+        m.history.blockedFromLogReason(ruleLabels[log.ruleId] ?? log.ruleId)
+      );
+      setSuccess(
+        m.history.addedBlackNotice(log.authorScreenName || log.authorUid)
+      );
+    } catch {
+      /* SaveError owns the failure message. */
+    }
+  };
+
+  const todayAds = stats.todayAdsHidden ?? 0;
+  const totalAds = stats.totalAdsHidden ?? stats.byRule?.promoted_ad ?? 0;
+
   return (
     <Page
-      title="拦截记录"
-      description="了解过滤发生的原因，随时调整你的选择。"
+      title={m.history.pageTitle}
+      description={m.history.pageDesc}
       action={
         <Button
           variant="danger"
@@ -91,7 +117,7 @@ export function HistoryPage() {
           onClick={() => setClear(true)}
         >
           <Trash2 size={15} />
-          清空记录
+          {m.history.clearBtn}
         </Button>
       }
     >
@@ -99,50 +125,66 @@ export function HistoryPage() {
         <div className="stat">
           <span className="small muted">
             {stats.partialDay === stats.todayDate
-              ? '今日（升级后）'
-              : '今日拦截'}
+              ? m.history.statTodayPartial
+              : m.history.statToday}
           </span>
-          <strong>{stats.todayBlocked.toLocaleString()}</strong>
-          <span className="small muted">按设备本地日期统计</span>
+          <strong>{formatCount(stats.todayBlocked, locale)}</strong>
+          <span className="small muted">
+            {m.history.statTodayAds(formatCount(todayAds, locale))}
+          </span>
         </div>
         <div className="stat">
-          <span className="small muted">累计拦截</span>
-          <strong>{stats.totalBlocked.toLocaleString()}</strong>
-          <span className="small muted">保留历史累计</span>
+          <span className="small muted">{m.history.statTotal}</span>
+          <strong>{formatCount(stats.totalBlocked, locale)}</strong>
+          <span className="small muted">
+            {m.history.statTotalAds(formatCount(totalAds, locale))}
+          </span>
         </div>
         <div className="stat">
-          <span className="small muted">当前记录</span>
+          <span className="small muted">{m.history.statRetained}</span>
           <strong>{logs.length}</strong>
-          <span className="small muted">最多保留最近 200 条</span>
+          <span className="small muted">{m.history.statRetainedHint}</span>
         </div>
       </div>
-      {success && <Banner>{success}</Banner>}
+
+      {success && (
+        <Banner
+          kind="success"
+          action={<ReloadXButton />}
+          onDismiss={() => setSuccess('')}
+        >
+          {success}
+        </Banner>
+      )}
+
       <div className="row wrap">
         <SearchBox
           value={query}
           onChange={setQuery}
-          placeholder="搜索账号、内容或命中原因"
+          placeholder={m.history.searchPlaceholder}
         />
         <select
           style={{ width: 'auto' }}
-          aria-label="按规则筛选"
+          aria-label={m.history.filterRuleAria}
           value={rule}
           onChange={(e) => setRule(e.target.value)}
         >
-          <option value="all">全部规则</option>
-          {Object.entries(ruleLabels).map(([key, label]) => (
-            <option key={key} value={key}>
-              {label}
-            </option>
-          ))}
+          <option value="all">{m.history.allRules}</option>
+          {Object.entries(ruleLabels)
+            .filter(([key]) => key !== 'promoted_ad')
+            .map(([key, label]) => (
+              <option key={key} value={key}>
+                {label}
+              </option>
+            ))}
         </select>
         <select
           style={{ width: 'auto' }}
-          aria-label="按场景筛选"
+          aria-label={m.history.filterSceneAria}
           value={scene}
           onChange={(e) => setScene(e.target.value)}
         >
-          <option value="all">全部场景</option>
+          <option value="all">{m.history.allScenes}</option>
           {Object.entries(sceneLabels).map(([key, label]) => (
             <option key={key} value={key}>
               {label}
@@ -150,6 +192,7 @@ export function HistoryPage() {
           ))}
         </select>
       </div>
+
       <Panel className="table-panel">
         {filtered.length ? (
           <>
@@ -157,73 +200,138 @@ export function HistoryPage() {
               <table>
                 <thead>
                   <tr>
-                    <th>账号与内容</th>
-                    <th>命中原因</th>
-                    <th>时间 / 场景</th>
-                    <th>操作</th>
+                    <th>{m.history.colContent}</th>
+                    <th>{m.history.colReason}</th>
+                    <th>{m.history.colTimeScene}</th>
+                    <th style={{ textAlign: 'right' }}>
+                      {m.history.colActions}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {page.items.map((log) => (
-                    <tr key={log.id}>
-                      <td>
-                        <div className="cell-main">
-                          <strong>
-                            {log.authorName ||
-                              `@${log.authorScreenName}` ||
-                              log.authorUid}
-                          </strong>
+                  {page.items.map((log) => {
+                    const isWhite = Boolean(config.whitelistUids[log.authorUid]);
+                    const isBlack = Boolean(
+                      config.localBlocklistUids[log.authorUid]
+                    );
+                    const targetLabel = log.authorScreenName || log.authorUid;
+                    return (
+                      <tr key={log.id}>
+                        <td>
+                          <div className="cell-main">
+                            <div className="row" style={{ gap: 6 }}>
+                              <a
+                                className="account-link"
+                                href={accountProfileUrl(
+                                  log.authorUid,
+                                  log.authorScreenName
+                                )}
+                                target="_blank"
+                                rel="noreferrer"
+                                title={m.history.openOnXTooltip}
+                              >
+                                <span className="ellipsis">
+                                  {log.authorName ||
+                                    (log.authorScreenName
+                                      ? `@${log.authorScreenName}`
+                                      : log.authorUid)}
+                                </span>
+                                <ArrowUpRight size={12} />
+                              </a>
+                              {log.authorScreenName && log.authorName && (
+                                <span className="small muted">
+                                  @{log.authorScreenName}
+                                </span>
+                              )}
+                            </div>
+                            <p
+                              className="small muted ellipsis"
+                              title={log.tweetSnippet}
+                            >
+                              {log.tweetSnippet || m.history.noSnippet}
+                            </p>
+                          </div>
+                        </td>
+                        <td>
+                          <Pill kind="neutral">
+                            {ruleLabels[log.ruleId] || log.ruleId}
+                          </Pill>
                           <p
-                            className="small muted ellipsis"
-                            title={log.tweetSnippet}
+                            className="small muted break"
+                            style={{ maxWidth: 260, marginTop: 4 }}
                           >
-                            {log.tweetSnippet || '未记录正文'}
+                            {log.reasonText}
                           </p>
-                        </div>
-                      </td>
-                      <td>
-                        <Pill kind="neutral">{ruleLabels[log.ruleId]}</Pill>
-                        <p
-                          className="small muted break"
-                          style={{ maxWidth: 260, marginTop: 5 }}
-                        >
-                          {log.reasonText}
-                        </p>
-                      </td>
-                      <td className="small muted">
-                        {formatTime(log.timestamp)}
-                        <br />
-                        {sceneLabels[log.scene]}
-                      </td>
-                      <td>
-                        <div className="table-actions">
-                          {log.ruleId === 'promoted_ad' ? (
-                            <a
-                              href="#/rules?rule=hidePromotedAds"
-                              className="small"
-                            >
-                              调整广告规则
-                            </a>
-                          ) : (
-                            <Button
-                              variant="ghost icon"
-                              aria-label={`加白 ${log.authorScreenName || log.authorUid}`}
-                              onClick={() => void addWhite(log)}
-                            >
-                              <UserRoundCheck size={16} />
-                            </Button>
+                        </td>
+                        <td className="small muted">
+                          {formatDateTime(
+                            log.timestamp,
+                            locale,
+                            m.common.neverSynced
                           )}
-                          <Button
-                            variant="ghost icon"
-                            aria-label={`查看记录 ${log.tweetId}`}
-                            onClick={() => setDetail(log)}
-                          >
-                            <ChevronRight size={16} />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                          <br />
+                          {sceneLabels[log.scene]}
+                        </td>
+                        <td>
+                          <div className="table-actions">
+                            {log.ruleId === 'promoted_ad' ? (
+                              <a
+                                href="#/rules?rule=hidePromotedAds"
+                                className="small"
+                              >
+                                {m.history.adRuleLink}
+                              </a>
+                            ) : (
+                              <>
+                                {isWhite ? (
+                                  <Pill>{m.history.whitelistedPill}</Pill>
+                                ) : (
+                                  <Button
+                                    variant="ghost sm"
+                                    aria-label={m.quick.whitelistAria(
+                                      targetLabel
+                                    )}
+                                    title={m.history.whitelistTooltip}
+                                    onClick={() => void addWhite(log)}
+                                  >
+                                    <UserRoundCheck size={14} />
+                                    {m.history.whitelistBtn}
+                                  </Button>
+                                )}
+                                {isBlack ? (
+                                  <Pill kind="neutral">
+                                    {m.history.blacklistedPill}
+                                  </Pill>
+                                ) : (
+                                  !isWhite &&
+                                  /^\d{1,25}$/.test(log.authorUid) && (
+                                    <Button
+                                      variant="ghost icon sm"
+                                      aria-label={m.history.blacklistAria(
+                                        targetLabel
+                                      )}
+                                      title={m.history.blacklistTooltip}
+                                      onClick={() => void addBlack(log)}
+                                    >
+                                      <Ban size={14} />
+                                    </Button>
+                                  )
+                                )}
+                              </>
+                            )}
+                            <Button
+                              variant="ghost icon sm"
+                              aria-label={m.history.viewDetailAria(log.tweetId)}
+                              title={m.history.viewDetailTooltip}
+                              onClick={() => setDetail(log)}
+                            >
+                              <ChevronRight size={15} />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -232,58 +340,94 @@ export function HistoryPage() {
         ) : (
           <Empty
             title={
-              logs.length ? '没有符合条件的记录' : '阅读很清爽，还没有拦截记录'
+              logs.length
+                ? m.history.emptyFilterTitle
+                : m.history.emptyCleanTitle
             }
             description={
-              logs.length
-                ? '尝试调整筛选条件或搜索内容。'
-                : '过滤发生后，这里会展示主要命中原因。'
+              logs.length ? m.history.emptyFilterDesc : m.history.emptyCleanDesc
             }
           />
         )}
       </Panel>
+
       {operations.length > 0 && (
         <Panel
-          title="净空操作结果"
-          description="本地、X 与社区分别记录；这里保留最近操作的实际结果。"
+          title={m.history.operationsTitle}
+          description={m.history.operationsDesc}
         >
           {operations.slice(0, 10).map((op) => (
             <OperationCard key={op.id} operation={op} />
           ))}
         </Panel>
       )}
+
       {detail && (
         <Modal
-          title="拦截详情"
+          title={m.history.detailTitle}
           onClose={() => setDetail(null)}
           footer={
             <>
-              <Button onClick={() => setDetail(null)}>关闭</Button>
+              <Button onClick={() => setDetail(null)}>{m.common.close}</Button>
               {detail.ruleId === 'promoted_ad' ? (
                 <a
                   className="btn primary"
                   href="#/rules?rule=hidePromotedAds"
                   onClick={() => setDetail(null)}
                 >
-                  调整广告规则
+                  {m.history.adjustAdRuleBtn}
                 </a>
               ) : (
-                <Button variant="primary" onClick={() => void addWhite(detail)}>
-                  加入白名单
-                </Button>
+                <>
+                  {!config.localBlocklistUids[detail.authorUid] &&
+                    /^\d{1,25}$/.test(detail.authorUid) && (
+                      <Button
+                        variant="danger"
+                        onClick={() => {
+                          void addBlack(detail);
+                          setDetail(null);
+                        }}
+                      >
+                        <Ban size={14} />
+                        {m.history.addToBlackBtn}
+                      </Button>
+                    )}
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      void addWhite(detail);
+                      setDetail(null);
+                    }}
+                  >
+                    <UserRoundCheck size={14} />
+                    {m.history.addToWhiteBtn}
+                  </Button>
+                </>
               )}
             </>
           }
         >
           <div className="stack">
             <div>
-              <h3>{detail.authorName || detail.authorScreenName}</h3>
+              <h3>
+                {detail.authorName || `@${detail.authorScreenName}`}
+                {detail.authorScreenName && detail.authorName
+                  ? ` (@${detail.authorScreenName})`
+                  : ''}
+              </h3>
               <p className="small muted">
-                UID {detail.authorUid} · {formatTime(detail.timestamp)} ·{' '}
-                {sceneLabels[detail.scene]}
+                UID {detail.authorUid} ·{' '}
+                {formatDateTime(
+                  detail.timestamp,
+                  locale,
+                  m.common.neverSynced
+                )}{' '}
+                · {sceneLabels[detail.scene]}
               </p>
             </div>
-            <p className="break">{detail.tweetSnippet || '未保存正文摘要'}</p>
+            <p className="break">
+              {detail.tweetSnippet || m.history.noSavedSnippet}
+            </p>
             <Banner>{detail.reasonText}</Banner>
             {detail.evidence && (
               <div className="stack-sm">
@@ -296,32 +440,46 @@ export function HistoryPage() {
               </div>
             )}
             {!detail.evidence && (
-              <p className="small muted">
-                这条旧记录未保存结构化证据，以上是命中当时保存的原因。
-              </p>
+              <p className="small muted">{m.history.noStructuredEvidence}</p>
             )}
-            {/^\d+$/.test(detail.tweetId) && (
+            <div className="row wrap" style={{ gap: 16 }}>
+              {/^\d+$/.test(detail.tweetId) && (
+                <a
+                  href={`https://x.com/i/status/${detail.tweetId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="row"
+                  style={{ gap: 4 }}
+                >
+                  {m.history.viewOriginalTweet} <ArrowUpRight size={14} />
+                </a>
+              )}
               <a
-                href={`https://x.com/i/status/${detail.tweetId}`}
+                href={accountProfileUrl(
+                  detail.authorUid,
+                  detail.authorScreenName
+                )}
                 target="_blank"
                 rel="noreferrer"
                 className="row"
+                style={{ gap: 4 }}
               >
-                在 X 查看 <ArrowUpRight size={15} />
+                {m.history.viewAuthorProfile} <ArrowUpRight size={14} />
               </a>
-            )}
+            </div>
           </div>
         </Modal>
       )}
+
       {clear && (
         <Confirm
-          title="清空最近拦截记录？"
-          actionLabel="清空记录"
+          title={m.history.clearConfirmTitle}
+          actionLabel={m.history.clearConfirmBtn}
           danger
           onClose={() => setClear(false)}
           onConfirm={() => mutate({ type: 'logs.clear' })}
         >
-          <p>清空当前 {logs.length} 条记录，保留今日与累计统计、规则和名单。</p>
+          <p>{m.history.clearConfirmBody(logs.length)}</p>
         </Confirm>
       )}
     </Page>

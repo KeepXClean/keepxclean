@@ -12,7 +12,8 @@
     "typecheck": "pnpm -r typecheck",
     "db:migrate:local": "pnpm --filter @keepxclean/server db:migrate:local",
     "db:migrate:remote": "pnpm --filter @keepxclean/server db:migrate:remote",
-    "deploy:server": "pnpm --filter @keepxclean/server run deploy"
+    "deploy:server": "pnpm --filter @keepxclean/server run deploy",
+    "deploy:web": "pnpm --filter @keepxclean/web run deploy"
   },
   "devDependencies": {
     "prettier": "3.6.2",
@@ -21,5 +22,6 @@
   },
   "engines": {
     "node": ">=20.0.0"
-  }
+  },
+  "packageManager": "pnpm@12.15.0"
 }

@@ -1,0 +1,13 @@
+name = "keepxclean-web"
+account_id = "fac906e305f0f4df576524f107365e35"
+compatibility_date = "2025-02-01"
+
+routes = [
+  { pattern = "keepxclean.com/*", zone_name = "keepxclean.com" },
+  { pattern = "www.keepxclean.com/*", zone_name = "keepxclean.com" }
+]
+
+[assets]
+directory = "./public"
+html_handling = "auto-trailing-slash"
+not_found_handling = "404-page"

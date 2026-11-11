@@ -1,0 +1,11 @@
+{
+  "extName": {
+    "message": "KeepXClean - High-Signal Filter for X"
+  },
+  "extDescription": {
+    "message": "Keep X (Twitter) clean: filter reply spam, impersonators, bots, engagement bait, ads, and crowd-blocked accounts."
+  },
+  "extActionTitle": {
+    "message": "KeepXClean Controls"
+  }
+}

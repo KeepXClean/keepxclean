@@ -22,8 +22,16 @@ export interface Stats {
   todayDate: string;
   todayBlocked: number;
   totalBlocked: number;
+  todayAdsHidden?: number;
+  totalAdsHidden?: number;
   byRule: Record<string, number>;
   partialDay?: string;
+}
+export interface ResolvedAccount {
+  uid: string;
+  screenName: string;
+  name?: string;
+  avatarUrl?: string;
 }
 export interface SyncMeta {
   status: 'idle' | 'syncing' | 'success' | 'error';
@@ -96,6 +104,7 @@ export interface AppState {
 export type ConfigPatch = Partial<
   Pick<
     FilterConfig,
+    | 'locale'
     | 'enabled'
     | 'interceptionMode'
     | 'exemptFollowing'
@@ -103,6 +112,7 @@ export type ConfigPatch = Partial<
     | 'syncNativeXBlock'
     | 'enableCrowdReport'
     | 'enableCloudKeywords'
+    | 'disabledCloudKeywordIds'
     | 'customApiBaseUrl'
   >
 > & {
@@ -121,13 +131,21 @@ export type Command =
   | { type: 'config.recover'; expected: string }
   | { type: 'keyword.save'; item: KeywordRuleItem; expected?: string }
   | { type: 'keyword.delete'; id: string; expected: string }
+  | { type: 'cloudKeyword.toggle'; id: string; enabled: boolean }
+  | {
+      type: 'cloudKeyword.customize';
+      sourceId: string;
+      item: KeywordRuleItem;
+    }
   | { type: 'account.save'; list: 'black' | 'white'; entry: AccountListEntry }
   | { type: 'account.delete'; list: 'black' | 'white'; uid: string }
+  | { type: 'account.resolve'; query: string }
   | { type: 'logs.clear' }
   | { type: 'logs.append'; entries: InterceptionLogEntry[] }
   | { type: 'snapshot.refresh' }
   | { type: 'viewer.set'; viewer: ViewerProfile }
   | { type: 'tabs.list' }
+  | { type: 'tabs.reloadX' }
   | { type: 'options.open'; page?: string }
   | {
       type: 'block.start';
@@ -152,6 +170,7 @@ export interface NativeResult {
   ids?: string[];
   nextCursor?: string;
   viewerUid?: string;
+  user?: ResolvedAccount;
 }
 export function localDate(now = new Date()) {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -161,6 +180,8 @@ export function defaultStats(): Stats {
     todayDate: localDate(),
     todayBlocked: 0,
     totalBlocked: 0,
+    todayAdsHidden: 0,
+    totalAdsHidden: 0,
     byRule: {},
   };
 }
@@ -169,4 +190,26 @@ export function digest(value: unknown): string {
 }
 export function errorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+export function unconfirmedError(
+  message: string
+): Error & { unconfirmed: true } {
+  return Object.assign(new Error(message), { unconfirmed: true as const });
+}
+export function isUnconfirmedError(error: unknown): boolean {
+  return Boolean(
+    error &&
+      typeof error === 'object' &&
+      (error as { unconfirmed?: boolean }).unconfirmed === true
+  );
+}
+export function notFoundError(message: string): Error & { notFound: true } {
+  return Object.assign(new Error(message), { notFound: true as const });
+}
+export function isNotFoundError(error: unknown): boolean {
+  return Boolean(
+    error &&
+      typeof error === 'object' &&
+      (error as { notFound?: boolean }).notFound === true
+  );
 }

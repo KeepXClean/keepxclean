@@ -1,0 +1,11 @@
+{
+  "extName": {
+    "message": "KeepXClean - Фильтр шума для X"
+  },
+  "extDescription": {
+    "message": "Чистая лента X (Twitter): фильтрация спама в ответах, клонов, ботов, байта на комментарии и рекламных постов."
+  },
+  "extActionTitle": {
+    "message": "Панель KeepXClean"
+  }
+}

@@ -7,11 +7,33 @@ export default defineConfig({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     plugins: [tailwindcss() as any],
   }),
+  hooks: {
+    'vite:build:extendConfig': (entrypoints, viteConfig) => {
+      viteConfig.build ??= {};
+      viteConfig.build.chunkSizeWarningLimit = 900;
+      const isHtmlBundle = entrypoints.some(
+        (e) => e.type === 'options' || e.type === 'popup'
+      );
+      if (isHtmlBundle) {
+        viteConfig.build.rollupOptions ??= {};
+        const output = viteConfig.build.rollupOptions.output;
+        if (!Array.isArray(output)) {
+          viteConfig.build.rollupOptions.output = {
+            ...output,
+            manualChunks(id) {
+              if (id.includes('node_modules')) return 'vendor';
+              if (id.includes('/src/i18n/locales/')) return 'locales';
+            },
+          };
+        }
+      }
+    },
+  },
   manifest: ({ mode }) => ({
-    name: 'KeepXClean - X 高信噪比净空插件',
+    default_locale: 'en',
+    name: '__MSG_extName__',
     short_name: 'KeepXClean',
-    description:
-      '让 X (Twitter) 保持高质量：无感拦截高频刷屏号、众包被拉黑超过 N 人账号、评论区蓝标水军及多维关键词内容 (keepxclean.com)',
+    description: '__MSG_extDescription__',
     homepage_url: 'https://keepxclean.com',
     permissions: ['storage', 'alarms'],
     optional_host_permissions: [
@@ -39,7 +61,7 @@ export default defineConfig({
       ...(mode === 'development' ? ['http://localhost:8787/*'] : []),
     ],
     action: {
-      default_title: 'KeepXClean 净空控制台',
+      default_title: '__MSG_extActionTitle__',
       default_icon: { 16: 'icon/icon-16.png', 32: 'icon/icon-32.png' },
     },
   }),

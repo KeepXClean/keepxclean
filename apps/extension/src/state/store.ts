@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { STORAGE_KEYS } from '@keepxclean/shared';
-import { command } from '../services/client';
+import { setActiveLocaleSetting } from '../i18n/state';
+import { command, isExtensionContextValid } from '../services/client';
 import { UI_KEYS, localDate, type AppState } from '../services/model';
 import { validateConfig, validateSnapshot } from '../services/validation';
 
@@ -10,6 +11,7 @@ interface Store {
   error?: string;
   pending: number;
   saveError?: string;
+  lastSavedAt?: number;
 }
 let current: Store = { loading: true, pending: 0 };
 const listeners = new Set<() => void>();
@@ -18,6 +20,9 @@ let bufferedChanges: Record<string, chrome.storage.StorageChange> = {};
 let readSequence = 0;
 function emit(patch: Partial<Store>) {
   current = { ...current, ...patch };
+  if (current.data?.config?.locale) {
+    setActiveLocaleSetting(current.data.config.locale);
+  }
   listeners.forEach((fn) => fn());
 }
 export async function reload() {
@@ -77,9 +82,19 @@ export function subscribe(fn: () => void) {
   listeners.add(fn);
   if (!mounted) {
     mounted = true;
-    chrome.storage.onChanged.addListener(onStorage);
+    try {
+      if (isExtensionContextValid()) {
+        chrome.storage.onChanged.addListener(onStorage);
+      }
+    } catch {
+      // Ignore when extension context is invalidated
+    }
     void reload();
     dayTimer = setInterval(() => {
+      if (!isExtensionContextValid()) {
+        clearInterval(dayTimer);
+        return;
+      }
       if (current.data && current.data.stats.todayDate !== localDate())
         emit({
           data: {
@@ -88,6 +103,7 @@ export function subscribe(fn: () => void) {
               ...current.data.stats,
               todayDate: localDate(),
               todayBlocked: 0,
+              todayAdsHidden: 0,
               partialDay: undefined,
             },
           },
@@ -98,7 +114,13 @@ export function subscribe(fn: () => void) {
     listeners.delete(fn);
     if (!listeners.size) {
       mounted = false;
-      chrome.storage.onChanged.removeListener(onStorage);
+      try {
+        if (isExtensionContextValid()) {
+          chrome.storage.onChanged.removeListener(onStorage);
+        }
+      } catch {
+        // Ignore removeListener throw after extension context invalidation
+      }
       clearInterval(dayTimer);
     }
   };
@@ -110,12 +132,17 @@ export function getState() {
 export function useApp() {
   return useSyncExternalStore(subscribe, getState);
 }
+export function clearSaveError() {
+  emit({ saveError: undefined });
+}
 export async function mutate<T = void>(
   action: Parameters<typeof command>[0]
 ): Promise<T> {
   emit({ pending: current.pending + 1, saveError: undefined });
   try {
-    return await command<T>(action);
+    const result = await command<T>(action);
+    emit({ lastSavedAt: Date.now() });
+    return result;
   } catch (error) {
     emit({ saveError: (error as Error).message });
     throw error;

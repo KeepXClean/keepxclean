@@ -1,0 +1,232 @@
+name: CI & Auto Deploy
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deploy both apps/server and apps/web even if unchanged'
+        required: false
+        default: true
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CLOUDFLARE_ACCOUNT_ID: fac906e305f0f4df576524f107365e35
+
+jobs:
+  verify:
+    name: Typecheck, Test & Build Extension
+    runs-on: ubuntu-latest
+    outputs:
+      deploy_server: ${{ steps.changes.outputs.deploy_server }}
+      deploy_web: ${{ steps.changes.outputs.deploy_web }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run typecheck
+        run: pnpm typecheck
+
+      - name: Run unit & integration tests
+        run: pnpm test
+
+      - name: Build & package Chrome extension (.zip)
+        run: pnpm --filter @keepxclean/extension zip
+
+      - name: Upload Chrome extension artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: keepxclean-chrome-extension
+          path: apps/extension/.output/*-chrome.zip
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Detect changed deploy targets
+        id: changes
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force_deploy }}" = "true" ]; then
+            echo "deploy_server=true" >> "$GITHUB_OUTPUT"
+            echo "deploy_web=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "deploy_server=true" >> "$GITHUB_OUTPUT"
+            echo "deploy_web=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          BEFORE="${{ github.event.before }}"
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            echo "deploy_server=true" >> "$GITHUB_OUTPUT"
+            echo "deploy_web=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          CHANGED=$(git diff --name-only "$BEFORE" "${{ github.sha }}")
+          echo "Changed files:"
+          echo "$CHANGED"
+
+          if echo "$CHANGED" | grep -qE '^(apps/server/|packages/shared/|package\.json$|pnpm-lock\.yaml$|\.github/workflows/deploy\.yml$)'; then
+            echo "deploy_server=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy_server=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if echo "$CHANGED" | grep -qE '^(apps/web/|package\.json$|pnpm-lock\.yaml$|\.github/workflows/deploy\.yml$)'; then
+            echo "deploy_web=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy_web=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy-server:
+    name: Deploy API & D1 (apps/server)
+    needs: verify
+    if: >-
+      github.event_name != 'pull_request' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) &&
+      needs.verify.outputs.deploy_server == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply remote D1 migrations (keepxclean-db)
+        env:
+          CI: '1'
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: pnpm db:migrate:remote
+
+      - name: Deploy keepxclean-api Worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: pnpm deploy:server
+
+      - name: Warm snapshot & verify live API/CDN health
+        run: |
+          curl -fsS --retry 3 --retry-delay 2 "https://api.keepxclean.com/v1/snapshot.json?fresh=1" > /dev/null
+          curl -fsS --retry 3 --retry-delay 2 "https://cdn.keepxclean.com/v1/stats"
+          echo ""
+
+  deploy-web:
+    name: Deploy Official Website (apps/web)
+    needs: verify
+    if: >-
+      github.event_name != 'pull_request' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) &&
+      needs.verify.outputs.deploy_web == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Deploy keepxclean-web Worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: pnpm deploy:web
+
+      - name: Verify live website & privacy policy
+        run: |
+          curl -fsSI --retry 3 --retry-delay 2 "https://keepxclean.com/" | head -n 5
+          curl -fsSI --retry 3 --retry-delay 2 "https://keepxclean.com/privacy/" | head -n 5
+
+  release-extension:
+    name: Publish Extension Release (Tag v*)
+    needs: verify
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Chrome extension artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: keepxclean-chrome-extension
+          path: dist-ext
+
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist-ext/*-chrome.zip --clobber
+          else
+            gh release create "$TAG" dist-ext/*-chrome.zip \
+              --title "KeepXClean $TAG" \
+              --generate-notes
+          fi
+
+      - name: Auto-upload to Chrome Web Store (when CWS API credentials are configured)
+        env:
+          EXTENSION_ID: plngcinmibjmkjjpfjemhfabjfjjkhhd
+          CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+        run: |
+          if [ -z "$CLIENT_ID" ] || [ -z "$CLIENT_SECRET" ] || [ -z "$REFRESH_TOKEN" ]; then
+            echo "Optional CWS_* secrets not set; skipping automatic Chrome Web Store upload."
+            exit 0
+          fi
+          ZIP_FILE=$(ls dist-ext/*-chrome.zip | head -n 1)
+          npx --yes chrome-webstore-upload-cli@3 upload \
+            --source "$ZIP_FILE" \
+            --extension-id "$EXTENSION_ID" \
+            --client-id "$CLIENT_ID" \
+            --client-secret "$CLIENT_SECRET" \
+            --refresh-token "$REFRESH_TOKEN" \
+            --auto-publish

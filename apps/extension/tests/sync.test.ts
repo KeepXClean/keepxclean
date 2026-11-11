@@ -21,7 +21,7 @@ describe('snapshot truth and selected origin', () => {
     mock.api.permissions.contains.mockResolvedValue(false);
     const fetch = vi.fn();
     vi.stubGlobal('fetch', fetch);
-    await expect(refreshSnapshot()).rejects.toThrow('授权');
+    await expect(refreshSnapshot()).rejects.toThrow('permission');
     expect(fetch).not.toHaveBeenCalled();
     expect(mock.values[UI_KEYS.sync]).toMatchObject({
       status: 'error',
@@ -61,7 +61,7 @@ describe('snapshot truth and selected origin', () => {
       'fetch',
       vi.fn(async () => ({ ok: true, json: async () => ({ counts: {} }) }))
     );
-    await expect(refreshSnapshot()).rejects.toThrow('版本');
+    await expect(refreshSnapshot()).rejects.toThrow('version');
     expect(mock.values[STORAGE_KEYS.CROWD_SNAPSHOT]).toBeUndefined();
   });
 });

@@ -3,16 +3,18 @@ import { createPortal } from 'react-dom';
 import {
   ArrowUpRight,
   Ban,
-  ChevronDown,
-  ChevronUp,
   Download,
   UserRoundCheck,
 } from 'lucide-react';
-import type { ExtractedAuthor } from '@keepxclean/shared';
+import type {
+  ExtractedAuthor,
+  FilterConfig,
+  InterceptionDecision,
+} from '@keepxclean/shared';
+import { formatCount, useI18n, type ExtensionMessages } from '../i18n';
 import { openOptions } from '../services/client';
 import { useApp } from '../state/store';
 import {
-  Banner,
   BrandIcon,
   Button,
   Loading,
@@ -22,7 +24,6 @@ import {
   Pill,
   SaveError,
   SaveStatus,
-  Setting,
   Switch,
 } from '../ui/components';
 import { QuickControls } from '../features/quick-controls/QuickControls';
@@ -53,123 +54,335 @@ function whitelist(author: ExtractedAuthor) {
       uid: author.restId,
       screenName: author.screenName,
       name: author.name,
+      avatarUrl: author.avatarUrl,
       addedAt: Date.now(),
     },
   });
 }
+function unblock(author: ExtractedAuthor) {
+  perform({
+    type: 'account.delete',
+    list: 'black',
+    uid: author.restId,
+  });
+}
+function resolveActionTarget(
+  item: InlineItem,
+  config?: FilterConfig
+): { target?: ExtractedAuthor; secondaryRelation?: 'retweet' | 'quote' } {
+  const ruleId = item.decision?.ruleId;
+  const hitUid = item.decision?.evidence?.find(
+    (ev) => ev.key === 'hit_uid'
+  )?.value;
+  const candidates: Array<{
+    author?: ExtractedAuthor;
+    relation: 'retweet' | 'quote';
+  }> = [
+    { author: item.tweet?.retweetedAuthor, relation: 'retweet' },
+    { author: item.tweet?.quotedAuthor, relation: 'quote' },
+  ];
+  for (const { author: sec, relation } of candidates) {
+    if (!sec?.restId || sec.restId === item.author?.restId) continue;
+    if (
+      ruleId === 'local_blocklist' &&
+      config &&
+      !config.localBlocklistUids[item.author?.restId || ''] &&
+      config.localBlocklistUids[sec.restId]
+    ) {
+      return { target: sec, secondaryRelation: relation };
+    }
+    if (hitUid !== undefined && String(hitUid) === sec.restId) {
+      return { target: sec, secondaryRelation: relation };
+    }
+  }
+  return { target: item.author };
+}
+function compactReason(
+  decision: InterceptionDecision | undefined,
+  fallback: string
+): string {
+  const raw = decision?.reasonText || fallback;
+  const cleaned = raw.replace(/\s*\(>\d+(?:\.\d+)?\)$/, '');
+  const maxLen = /[\u3000-\u9fff\uac00-\ud7af]/.test(cleaned) ? 28 : 52;
+  return cleaned.length > maxLen
+    ? `${cleaned.slice(0, maxLen - 1)}…`
+    : cleaned;
+}
+function formatAccountAge(
+  days: number,
+  contentMsg: ExtensionMessages['content']
+): string {
+  if (!Number.isFinite(days) || days <= 0) return contentMsg.ageUnknown;
+  if (days < 30) return contentMsg.ageDays(Math.max(1, Math.floor(days)));
+  if (days < 365)
+    return contentMsg.ageMonths(Math.max(1, Math.floor(days / 30)));
+  const years = (days / 365).toFixed(1).replace(/\.0$/, '');
+  return contentMsg.ageYears(years);
+}
+function formatDailyRate(
+  rate: number,
+  contentMsg: ExtensionMessages['content']
+): string {
+  if (!Number.isFinite(rate) || rate < 0) return contentMsg.dailyRateZero;
+  const formatted =
+    rate >= 10 ? String(Math.round(rate)) : rate.toFixed(1).replace(/\.0$/, '');
+  return contentMsg.dailyRate(formatted);
+}
+
 function Inline({ item, open }: { item: InlineItem; open: () => void }) {
   const { data } = useApp();
+  const { m, locale } = useI18n();
   if (item.kind === 'nav')
     return (
       <button
         type="button"
         className="inline-nav"
-        aria-label="净空设置"
+        aria-label={m.content.navButton}
         aria-haspopup="dialog"
-        title="净空设置"
+        title={m.content.navButton}
         onClick={open}
       >
         <BrandIcon size={26} />
-        <span>净空设置</span>
+        <span>{m.content.navButton}</span>
       </button>
     );
-  if (item.kind === 'quick')
+  if (item.kind === 'quick') {
+    if (!item.author || !UID.test(item.author.restId)) return null;
     return (
       <Button
         variant="ghost icon"
         className="inline-quick"
-        aria-label={
-          item.author ? `净空 @${item.author.screenName}` : '等待账号 UID'
-        }
-        title={
-          item.author
-            ? `加入本地黑名单：@${item.author.screenName}`
-            : '尚未读取到此账号的真实 UID'
-        }
-        disabled={!item.author || !UID.test(item.author.restId)}
+        data-grok-gap={item.hasGrokGap ? 'true' : undefined}
+        aria-label={m.content.quickBlockAria(item.author.screenName)}
+        title={m.content.quickBlockTitle(item.author.screenName)}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          if (item.author) block(item.author);
+          block(item.author!);
         }}
       >
-        <Ban size={16} />
+        <Ban size={13} />
       </Button>
     );
-  if (item.kind === 'collapse')
-    return (
-      <div className="collapse-bar">
-        <div className="row">
-          <BrandIcon size={20} />
-          <div className="grow">
-            <strong className="small">
-              已折叠 · @{item.author?.screenName}
-            </strong>
-            <p className="small muted">{item.decision?.reasonText}</p>
+  }
+  if (item.kind === 'collapse') {
+    const { target, secondaryRelation } = resolveActionTarget(
+      item,
+      data?.config
+    );
+    const isSecondaryTarget = Boolean(secondaryRelation);
+    const relationLabel =
+      secondaryRelation === 'retweet'
+        ? m.content.relationRetweet
+        : secondaryRelation === 'quote'
+          ? m.content.relationQuote
+          : undefined;
+    const canManageTarget = Boolean(target && UID.test(target.restId));
+    const isTargetBlocked = Boolean(
+      canManageTarget && data?.config.localBlocklistUids[target!.restId]
+    );
+    const handle = item.author?.screenName || item.tweet?.author.screenName;
+    const displayLabel =
+      relationLabel && handle && target?.screenName
+        ? `@${handle} ${relationLabel} @${target.screenName}`
+        : handle
+          ? `@${handle}`
+          : m.content.collapsedFallback;
+    const ruleId = item.decision?.ruleId;
+
+    if (!item.expanded) {
+      return (
+        <button
+          type="button"
+          className="collapse-bar collapse-trigger"
+          aria-expanded={false}
+          title={item.decision?.reasonText}
+          onClick={item.toggle}
+        >
+          <div className="collapse-main">
+            <span className="collapse-icon">
+              <BrandIcon size={14} />
+            </span>
+            <span className="collapse-text ellipsis">
+              {displayLabel}
+              <span className="collapse-sep">·</span>
+              {compactReason(item.decision, m.content.matchedRuleFallback)}
+            </span>
+            <span className="grow" />
+            <span className="collapse-hint">{m.content.expandHint}</span>
           </div>
-          <Button variant="ghost" onClick={item.toggle}>
-            {item.expanded ? (
-              <ChevronUp size={14} />
-            ) : (
-              <ChevronDown size={14} />
-            )}
-            {item.expanded ? '收起' : '展开'}
-          </Button>
-        </div>
-        <div className="row" style={{ marginTop: 5 }}>
-          {item.decision?.ruleId === 'promoted_ad' ? (
-            <Button variant="ghost" onClick={() => void openOptions('rules')}>
-              调整广告规则
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              onClick={() => item.author && whitelist(item.author!)}
+        </button>
+      );
+    }
+
+    return (
+      <div className="collapse-bar" data-expanded="true">
+        <div className="collapse-main">
+          <button
+            type="button"
+            className="collapse-summary"
+            aria-expanded={true}
+            title={m.content.collapseTooltip}
+            onClick={item.toggle}
+          >
+            <span className="collapse-icon">
+              <BrandIcon size={14} />
+            </span>
+            <span className="collapse-text ellipsis">
+              {displayLabel}
+              <span className="collapse-sep">·</span>
+              {item.decision?.reasonText || m.content.matchedRuleFallback}
+            </span>
+          </button>
+          <div className="collapse-actions">
+            <button
+              type="button"
+              className="collapse-btn"
+              onClick={item.toggle}
             >
-              <UserRoundCheck size={14} />
-              加入白名单
-            </Button>
-          )}
+              {m.content.collapseHint}
+            </button>
+            {ruleId !== 'promoted_ad' &&
+              canManageTarget &&
+              (ruleId === 'local_blocklist' || isTargetBlocked ? (
+                <button
+                  type="button"
+                  className="collapse-btn"
+                  title={m.content.unblockTargetTitle(target!.screenName)}
+                  onClick={() => unblock(target!)}
+                >
+                  {isSecondaryTarget
+                    ? m.content.unblockTargetSecondary(target!.screenName)
+                    : m.content.unblockBtn}
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="collapse-btn"
+                    title={m.content.whitelistTargetTitle(target!.screenName)}
+                    onClick={() => whitelist(target!)}
+                  >
+                    {isSecondaryTarget
+                      ? m.content.whitelistTargetSecondary(target!.screenName)
+                      : m.content.whitelistBtn}
+                  </button>
+                  <button
+                    type="button"
+                    className="collapse-btn danger"
+                    aria-label={m.content.blockTargetAria(target!.screenName)}
+                    title={m.content.blockTargetTitle(target!.screenName)}
+                    onClick={() => block(target!)}
+                  >
+                    {isSecondaryTarget
+                      ? m.content.blockTargetSecondary(target!.screenName)
+                      : m.content.blockBtn}
+                  </button>
+                </>
+              ))}
+          </div>
         </div>
       </div>
     );
+  }
   if (item.kind === 'profile' && item.author) {
-    const hasMetrics = Boolean(
-      item.author.createdAt || item.author.statusesCount > 0
+    const author = item.author;
+    const whitelisted = Boolean(data?.config.whitelistUids[author.restId]);
+    const localBlocked = Boolean(
+      data?.config.localBlocklistUids[author.restId]
     );
-    const rate = hasMetrics
-      ? Math.round(item.author.dailyTweetRate * 10) / 10
-      : null;
-    const hasRateBadge = item.badges?.some((b) => b.includes('历史日均'));
+    const crowdCount = data?.snapshot.counts[author.restId]?.c ?? 0;
+    const badges = item.badges ?? [];
+    const hasCrowdBadge = Boolean(item.hasCrowdBadge);
+    const createdHint = author.createdAt
+      ? m.content.createdHint(
+          new Date(author.createdAt).toLocaleDateString(locale),
+          author.restId
+        )
+      : `UID ${author.restId}`;
+
     return (
       <div className="profile-badges">
-        <BrandIcon size={20} />
-        {rate !== null && !hasRateBadge && (
-          <Pill kind="neutral">历史日均 {rate} 条</Pill>
-        )}
-        {item.badges?.length ? (
-          item.badges.map((badge) => (
-            <Pill kind="warning" key={badge}>
-              {badge}
-            </Pill>
-          ))
-        ) : (
-          <Pill kind="neutral">未命中当前规则</Pill>
-        )}
-        {data?.config.whitelistUids[item.author.restId] ? (
-          <Pill>已在白名单</Pill>
-        ) : (
-          <Button variant="ghost" onClick={() => whitelist(item.author!)}>
-            加入白名单
-          </Button>
-        )}
-        <Button
-          variant="ghost icon"
-          aria-label="净空此账号"
-          onClick={() => block(item.author!)}
+        <BrandIcon size={16} />
+        <span className="profile-stat" title={createdHint}>
+          {formatAccountAge(author.accountAgeDays, m.content)}
+        </span>
+        <span className="profile-dot">·</span>
+        <span
+          className="profile-stat"
+          title={m.content.totalPostsHint(
+            formatCount(author.statusesCount, locale)
+          )}
         >
-          <Ban size={15} />
-        </Button>
+          {formatDailyRate(author.dailyTweetRate, m.content)}
+        </span>
+        {crowdCount > 0 && !hasCrowdBadge && (
+          <>
+            <span className="profile-dot">·</span>
+            <span className="profile-stat">
+              {m.content.communityCountStat(crowdCount)}
+            </span>
+          </>
+        )}
+        {badges.map((badge) => (
+          <Pill kind="warning" key={badge}>
+            {badge}
+          </Pill>
+        ))}
+        {whitelisted && <Pill>{m.content.inWhitelistPill}</Pill>}
+        {!whitelisted && !localBlocked && badges.length === 0 && (
+          <Pill kind="neutral">{m.content.noAnomalyPill}</Pill>
+        )}
+        <span className="grow" />
+        {item.isSelf ? (
+          <Pill kind="neutral">{m.content.currentAccountPill}</Pill>
+        ) : (
+          <div className="profile-actions">
+            {whitelisted ? (
+              <Button
+                variant="ghost sm"
+                onClick={() =>
+                  perform({
+                    type: 'account.delete',
+                    list: 'white',
+                    uid: author.restId,
+                  })
+                }
+              >
+                {m.content.removeFromWhiteBtn}
+              </Button>
+            ) : (
+              <Button variant="ghost sm" onClick={() => whitelist(author)}>
+                <UserRoundCheck size={13} />
+                {m.content.whitelistBtn}
+              </Button>
+            )}
+            {localBlocked ? (
+              <Button
+                variant="ghost sm"
+                onClick={() =>
+                  perform({
+                    type: 'account.delete',
+                    list: 'black',
+                    uid: author.restId,
+                  })
+                }
+              >
+                {m.content.unblockBtn}
+              </Button>
+            ) : (
+              <Button
+                variant="ghost sm"
+                className="profile-block-btn"
+                aria-label={m.content.cleanThisAccountAria}
+                onClick={() => block(author)}
+              >
+                <Ban size={13} />
+                {m.content.blockBtn}
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     );
   }
@@ -177,6 +390,7 @@ function Inline({ item, open }: { item: InlineItem; open: () => void }) {
 }
 export function ContentApp({ controller }: { controller: DomController }) {
   const state = useApp();
+  const { m } = useI18n();
   const items = useSyncExternalStore(
     controller.subscribe,
     controller.getSnapshot
@@ -194,25 +408,25 @@ export function ContentApp({ controller }: { controller: DomController }) {
           )
         )}
         <OperationToasts />
-        {state.saveError && (
+        {state.saveError && !drawer && (
           <div className="toast-region">
             <SaveError />
           </div>
         )}
         {drawer && (
           <Modal
-            title="净空设置"
-            description="调整偏好，继续留在当前阅读现场。"
+            title={m.content.drawerTitle}
+            description={m.content.drawerDesc}
             drawer
             onClose={() => setDrawer(false)}
             footer={
               <>
                 <Button onClick={() => setImporting(true)}>
                   <Download size={14} />
-                  导入 X 黑名单
+                  {m.content.importXBlocklistBtn}
                 </Button>
                 <Button variant="primary" onClick={() => void openOptions()}>
-                  完整设置 <ArrowUpRight size={14} />
+                  {m.nav.fullSettings} <ArrowUpRight size={14} />
                 </Button>
               </>
             }
@@ -222,21 +436,28 @@ export function ContentApp({ controller }: { controller: DomController }) {
             ) : !state.data ? (
               <Loading />
             ) : (
-              <div className="stack">
-                <div>
-                  <Setting
-                    title="启用净空"
-                    description="修改会同步到插件弹窗与完整设置。"
-                  >
+              <div className="stack" style={{ gap: 14 }}>
+                <div
+                  className="row between"
+                  style={{
+                    paddingBottom: 10,
+                    borderBottom: '1px solid var(--border)',
+                  }}
+                >
+                  <div>
+                    <h3>{m.content.enableCleanTitle}</h3>
+                    <p className="small muted">{m.content.enableCleanDesc}</p>
+                  </div>
+                  <div className="row" style={{ gap: 8 }}>
+                    <SaveStatus />
                     <Switch
-                      label="启用净空"
+                      label={m.content.enableCleanTitle}
                       checked={state.data.config.enabled}
                       onChange={(enabled) =>
                         perform({ type: 'config.patch', patch: { enabled } })
                       }
                     />
-                  </Setting>
-                  <SaveStatus />
+                  </div>
                 </div>
                 <SaveError />
                 <QuickControls drawer />

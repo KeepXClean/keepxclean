@@ -6,106 +6,194 @@ import {
   ChevronRight,
   Feather,
   Hash,
-  ListFilter,
+  Languages,
+  Magnet,
   MegaphoneOff,
   MessageCircle,
+  Play,
+  RotateCcw,
   SlidersHorizontal,
   Sparkles,
   Type,
   Users,
   UserRoundCheck,
 } from 'lucide-react';
-import type { FilterConfig, FilterRulesConfig } from '@keepxclean/shared';
+import {
+  TWEET_LANGUAGE_CODES,
+  getTweetLanguageLabel,
+  type FilterConfig,
+  type FilterRulesConfig,
+  type KeywordRuleItem,
+} from '@keepxclean/shared';
+import { formatCount, getI18n, useI18n } from '../../i18n';
 import { mutate, useApp } from '../../state/store';
 import {
   Banner,
+  Button,
   NumberField,
   Page,
   Panel,
   perform,
   Pill,
+  ReloadXButton,
   Segmented,
   Setting,
   Switch,
 } from '../../ui/components';
 
 export const ruleDefinitions = [
-  {
-    key: 'highFrequency',
-    title: '高频发帖过滤',
-    description: '减少高频发布与短时间重复刷屏',
-    icon: Activity,
-  },
-  {
-    key: 'crowdBlock',
-    title: '社区记录过滤',
-    description: '参考社区快照，过滤达到门槛的账号',
-    icon: Users,
-  },
-  {
-    key: 'keywords',
-    title: '自定义关键词',
-    description: '按正文、简介、昵称与链接匹配',
-    icon: Type,
-  },
-  {
-    key: 'blueReplySpam',
-    title: '蓝标回复过滤',
-    description: '减少低粉蓝标与低质量短回复',
-    icon: MessageCircle,
-  },
-  {
-    key: 'tagSpam',
-    title: '标签刷屏过滤',
-    description: '限制过量的 Hashtag 与 Cashtag',
-    icon: Hash,
-  },
-  {
-    key: 'accountQuality',
-    title: '账号质量过滤',
-    description: '按注册时间、默认头像与关注比例筛选',
-    icon: UserRoundCheck,
-  },
-  {
-    key: 'hidePromotedAds',
-    title: '隐藏推广广告',
-    description: '隐藏 X 信息流中的原生推广内容',
-    icon: MegaphoneOff,
-  },
+  { key: 'replySpam', icon: MessageCircle },
+  { key: 'engagementBait', icon: Magnet },
+  { key: 'highFrequency', icon: Activity },
+  { key: 'crowdBlock', icon: Users },
+  { key: 'keywords', icon: Type },
+  { key: 'tagSpam', icon: Hash },
+  { key: 'accountQuality', icon: UserRoundCheck },
+  { key: 'languageFilter', icon: Languages },
+  { key: 'hidePromotedAds', icon: MegaphoneOff },
 ] as const;
+
+export function summarizeRule(
+  key: keyof FilterRulesConfig,
+  config: FilterConfig,
+  cloudKeywords: KeywordRuleItem[] = []
+): string {
+  const { m, locale } = getI18n(config.locale);
+  const rules = config.rules;
+  if (!rules[key].enabled && key !== 'keywords') {
+    return m.rules.summary.disabled;
+  }
+  switch (key) {
+    case 'replySpam': {
+      const r = rules.replySpam;
+      const parts: string[] = [];
+      if (r.detectImpersonation) parts.push(m.rules.summary.impersonation);
+      if (r.blockShortOrEmoji)
+        parts.push(
+          m.rules.summary.shortReply(
+            r.minWeightedLength,
+            Math.ceil(r.minWeightedLength / 2)
+          )
+        );
+      if (r.blockBioLinkSpam)
+        parts.push(
+          m.rules.summary.bioLink(formatCount(r.bioLinkMaxFollowers, locale))
+        );
+      if (r.blockPureMediaReplies) parts.push(m.rules.summary.pureMedia);
+      return parts.length
+        ? parts.join(' · ')
+        : m.rules.summary.enabledSelectItems;
+    }
+    case 'engagementBait': {
+      const r = rules.engagementBait;
+      const parts: string[] = [];
+      if (r.blockCommentGiveaway) parts.push(m.rules.summary.giveaway);
+      if (r.blockFollowBack) parts.push(m.rules.summary.followBack);
+      return parts.length
+        ? m.rules.summary.engagementPrefix(parts.join(' · '))
+        : m.rules.summary.enabledSelectItems;
+    }
+    case 'highFrequency': {
+      const r = rules.highFrequency;
+      return m.rules.summary.highFreq(
+        r.maxDailyTweets,
+        r.slidingWindowEnabled,
+        r.slidingWindowHours,
+        r.slidingWindowMaxTweets
+      );
+    }
+    case 'crowdBlock':
+      return m.rules.summary.crowdBlock(rules.crowdBlock.minBlockCount);
+    case 'keywords': {
+      const activeLocal = rules.keywords.items.filter((k) => k.enabled).length;
+      const localPart = rules.keywords.enabled
+        ? m.rules.summary.keywordsLocalOn(activeLocal)
+        : m.rules.summary.keywordsLocalOff;
+      const disabledCloudSet = new Set(config.disabledCloudKeywordIds);
+      const totalCloud = cloudKeywords.filter((k) => k.enabled).length;
+      const activeCloud = cloudKeywords.filter(
+        (k) => k.enabled && !disabledCloudSet.has(k.id)
+      ).length;
+      const cloudPart = config.enableCloudKeywords
+        ? activeCloud === totalCloud
+          ? m.rules.summary.keywordsCloudAll(activeCloud)
+          : m.rules.summary.keywordsCloudPartial(activeCloud, totalCloud)
+        : m.rules.summary.keywordsCloudOff;
+      return `${localPart} · ${cloudPart}`;
+    }
+    case 'tagSpam':
+      return m.rules.summary.tagSpam(
+        rules.tagSpam.maxHashtags,
+        rules.tagSpam.maxCashtags
+      );
+    case 'accountQuality': {
+      const r = rules.accountQuality;
+      const parts: string[] = [];
+      if (r.minAccountAgeDays > 0)
+        parts.push(m.rules.summary.minAge(r.minAccountAgeDays));
+      if (r.blockDefaultAvatarInReplies)
+        parts.push(m.rules.summary.defaultAvatar);
+      parts.push(m.rules.summary.followRatio(r.maxFollowRatio));
+      return parts.join(' · ');
+    }
+    case 'languageFilter': {
+      const r = rules.languageFilter;
+      if (!r.languages.length) {
+        return m.rules.summary.langEmpty;
+      }
+      const labels = r.languages
+        .map((code) => getTweetLanguageLabel(code, locale))
+        .slice(0, 5);
+      const sep = locale.startsWith('zh') || locale === 'ja' ? '、' : ', ';
+      return m.rules.summary.langSummary(
+        r.mode,
+        labels.join(sep),
+        r.languages.length,
+        r.languages.length > 5
+      );
+    }
+    case 'hidePromotedAds':
+      return m.rules.summary.hideAds;
+  }
+}
+
 export function Presets({ config }: { config: FilterConfig }) {
+  const { m } = useI18n();
   const presets = [
     {
       id: 'light',
-      title: '轻度降噪',
+      title: m.presets.lightTitle,
       icon: Feather,
-      desc: '保留更多内容，只过滤明显干扰。',
+      desc: m.presets.lightDesc,
     },
     {
       id: 'standard',
-      title: '标准净空',
+      title: m.presets.standardTitle,
+      badge: m.presets.standardBadge,
       icon: SlidersHorizontal,
-      desc: '兼顾信息密度与阅读体验。',
+      desc: m.presets.standardDesc,
     },
     {
       id: 'strict',
-      title: '极致净空',
+      title: m.presets.strictTitle,
       icon: Sparkles,
-      desc: '更严格的门槛，更专注的信息流。',
+      desc: m.presets.strictDesc,
     },
   ] as const;
   return (
     <div className="presets">
       {presets.map((p) => (
         <button
+          type="button"
           className="preset"
           key={p.id}
           aria-pressed={config.preset === p.id}
           onClick={() => perform({ type: 'config.preset', preset: p.id })}
         >
           <span className="row">
-            <p.icon size={17} />
+            <p.icon size={16} />
             <strong>{p.title}</strong>
+            {'badge' in p && p.badge && <Pill>{p.badge}</Pill>}
             {config.preset === p.id && (
               <Check className="preset-mark" size={15} />
             )}
@@ -116,273 +204,477 @@ export function Presets({ config }: { config: FilterConfig }) {
     </div>
   );
 }
-export function Presentation({ config }: { config: FilterConfig }) {
+
+export function Presentation({
+  config,
+  onChanged,
+}: {
+  config: FilterConfig;
+  onChanged?: () => void;
+}) {
+  const { m } = useI18n();
   return (
     <Segmented
-      label="过滤后呈现方式"
+      label={m.presets.presentationLabel}
       value={config.interceptionMode}
       options={[
-        { value: 'strip', label: '直接隐藏' },
-        { value: 'collapse', label: '折叠提示' },
+        { value: 'strip', label: m.presets.modeStrip },
+        { value: 'collapse', label: m.presets.modeCollapse },
       ]}
-      onChange={(interceptionMode) =>
-        perform({ type: 'config.patch', patch: { interceptionMode } })
-      }
+      onChange={(interceptionMode) => {
+        if (interceptionMode !== config.interceptionMode) {
+          perform({ type: 'config.patch', patch: { interceptionMode } });
+          onChanged?.();
+        }
+      }}
     />
   );
 }
+
 export function rulePatch(
   key: keyof FilterRulesConfig,
   field: string,
-  value: number | boolean
+  value: number | boolean | string | string[]
 ) {
   return mutate({
     type: 'config.patch',
     patch: { rules: { [key]: { [field]: value } } },
   });
 }
-const numericFields: Partial<
-  Record<
-    keyof FilterRulesConfig,
-    {
-      field: string;
-      title: string;
-      unit?: string;
-      min?: number;
-      step?: number;
-      max?: number;
-    }[]
-  >
-> = {
-  highFrequency: [
-    {
-      field: 'maxDailyTweets',
-      title: '历史日均上限',
-      unit: '条 / 天',
-      max: 150,
-      step: 0.1,
-    },
-    {
-      field: 'slidingWindowHours',
-      title: '观察时间窗口',
-      unit: '小时',
-      min: 0.1,
-      step: 0.1,
-    },
-    {
-      field: 'slidingWindowMaxTweets',
-      title: '窗口内推文上限',
-      unit: '条',
-      max: 25,
-    },
-  ],
-  crowdBlock: [
-    {
-      field: 'minBlockCount',
-      title: '社区记录门槛',
-      unit: '次',
-      min: 1,
-      max: 20,
-    },
-  ],
-  blueReplySpam: [
-    { field: 'maxFollowers', title: '低粉账号门槛', unit: '粉丝', max: 3000 },
-    { field: 'minReplyLength', title: '最短回复长度', unit: '字符' },
-  ],
-  tagSpam: [
-    { field: 'maxHashtags', title: 'Hashtag 上限', unit: '个', max: 20 },
-    { field: 'maxCashtags', title: 'Cashtag 上限', unit: '个', max: 20 },
-  ],
-  accountQuality: [
-    { field: 'minAccountAgeDays', title: '最低注册时间', unit: '天', max: 90 },
-    {
-      field: 'maxFollowRatio',
-      title: '关注 / 粉丝比例上限',
-      unit: '倍',
-      step: 0.1,
-    },
-    {
-      field: 'minFollowingForRatioCheck',
-      title: '开始检测的关注数量',
-      unit: '人',
-    },
-  ],
-};
-const booleanFields: Partial<
-  Record<keyof FilterRulesConfig, { field: string; title: string }[]>
-> = {
-  highFrequency: [{ field: 'slidingWindowEnabled', title: '同时检测短期刷屏' }],
-  blueReplySpam: [
-    { field: 'onlyInReplies', title: '仅在回复区检测' },
-    { field: 'blockPureEmojiOrShort', title: '检测纯表情与极短回复' },
-  ],
-  accountQuality: [
-    { field: 'blockDefaultAvatarInReplies', title: '检测回复区默认头像账号' },
-  ],
-};
-const notes: Record<keyof FilterRulesConfig, string> = {
-  highFrequency:
-    '历史日均以账号总推文数 / 注册天数计算，并要求至少发布过 30 条。窗口统计本浏览器观察到的不同推文，不代表平台实时发布总量。',
-  crowdBlock:
-    '粉丝数达到 5 万或被快照标记为高粉的账号，门槛自动乘以 5。社区记录仅供过滤参考，不代表已经核实的账号风险。',
-  keywords: '这里控制自定义词条。公共词库独立启停，可在关键词页面管理。',
-  blueReplySpam:
-    '低粉门槛以下的蓝标按场景过滤；纯表情 / 短回复检测限于回复场景，且粉丝数低于此门槛的 4 倍。长度计算会先移除提及和 URL。',
-  tagSpam: '正文的 #Hashtag 与 $Cashtag 分别计数，超过任一上限时触发。',
-  accountQuality:
-    '注册时间检测限粉丝少于 500 的账号；默认头像检测限回复场景且粉丝少于 200 的账号。关注比例仅在达到最低关注数后检测。',
-  hidePromotedAds:
-    '广告规则优先于白名单与关注豁免。需要恢复广告时关闭此项；给广告作者加白不会恢复推广内容。',
-};
+
 export function RulesPage() {
   const { data } = useApp();
-  const config = data!.config;
+  const { m, locale } = useI18n();
+  const { config, snapshot } = data!;
   const [expanded, setExpanded] = useState<string | null>(
     new URLSearchParams(location.hash.split('?')[1]).get('rule')
   );
+  const [modeChanged, setModeChanged] = useState(false);
+
+  const numericFields: Partial<
+    Record<
+      keyof FilterRulesConfig,
+      {
+        field: string;
+        title: string;
+        unit?: string;
+        min?: number;
+        step?: number;
+        max?: number;
+      }[]
+    >
+  > = {
+    replySpam: [
+      {
+        field: 'minWeightedLength',
+        title: m.rules.fields.minWeightedLength.title,
+        unit: m.rules.fields.minWeightedLength.unit,
+        min: 1,
+        max: 24,
+      },
+      {
+        field: 'bioLinkMaxFollowers',
+        title: m.rules.fields.bioLinkMaxFollowers.title,
+        unit: m.rules.fields.bioLinkMaxFollowers.unit,
+        min: 0,
+        step: 50,
+        max: 5000,
+      },
+    ],
+    highFrequency: [
+      {
+        field: 'maxDailyTweets',
+        title: m.rules.fields.maxDailyTweets.title,
+        unit: m.rules.fields.maxDailyTweets.unit,
+        max: 150,
+        step: 0.1,
+      },
+      {
+        field: 'slidingWindowHours',
+        title: m.rules.fields.slidingWindowHours.title,
+        unit: m.rules.fields.slidingWindowHours.unit,
+        min: 0.1,
+        step: 0.1,
+      },
+      {
+        field: 'slidingWindowMaxTweets',
+        title: m.rules.fields.slidingWindowMaxTweets.title,
+        unit: m.rules.fields.slidingWindowMaxTweets.unit,
+        max: 25,
+      },
+    ],
+    crowdBlock: [
+      {
+        field: 'minBlockCount',
+        title: m.rules.fields.minBlockCount.title,
+        unit: m.rules.fields.minBlockCount.unit,
+        min: 1,
+        max: 20,
+      },
+    ],
+    tagSpam: [
+      {
+        field: 'maxHashtags',
+        title: m.rules.fields.maxHashtags.title,
+        unit: m.rules.fields.maxHashtags.unit,
+        max: 20,
+      },
+      {
+        field: 'maxCashtags',
+        title: m.rules.fields.maxCashtags.title,
+        unit: m.rules.fields.maxCashtags.unit,
+        max: 20,
+      },
+    ],
+    accountQuality: [
+      {
+        field: 'minAccountAgeDays',
+        title: m.rules.fields.minAccountAgeDays.title,
+        unit: m.rules.fields.minAccountAgeDays.unit,
+        max: 90,
+      },
+      {
+        field: 'maxFollowRatio',
+        title: m.rules.fields.maxFollowRatio.title,
+        unit: m.rules.fields.maxFollowRatio.unit,
+        step: 0.1,
+      },
+      {
+        field: 'minFollowingForRatioCheck',
+        title: m.rules.fields.minFollowingForRatioCheck.title,
+        unit: m.rules.fields.minFollowingForRatioCheck.unit,
+      },
+    ],
+  };
+
+  const booleanFields: Partial<
+    Record<keyof FilterRulesConfig, { field: string; title: string }[]>
+  > = {
+    replySpam: [
+      {
+        field: 'detectImpersonation',
+        title: m.rules.fields.detectImpersonation,
+      },
+      { field: 'blockShortOrEmoji', title: m.rules.fields.blockShortOrEmoji },
+      { field: 'blockBioLinkSpam', title: m.rules.fields.blockBioLinkSpam },
+      {
+        field: 'blockPureMediaReplies',
+        title: m.rules.fields.blockPureMediaReplies,
+      },
+    ],
+    engagementBait: [
+      {
+        field: 'blockCommentGiveaway',
+        title: m.rules.fields.blockCommentGiveaway,
+      },
+      { field: 'blockFollowBack', title: m.rules.fields.blockFollowBack },
+    ],
+    highFrequency: [
+      {
+        field: 'slidingWindowEnabled',
+        title: m.rules.fields.slidingWindowEnabled,
+      },
+    ],
+    accountQuality: [
+      {
+        field: 'blockDefaultAvatarInReplies',
+        title: m.rules.fields.blockDefaultAvatarInReplies,
+      },
+    ],
+  };
+
   return (
     <Page
-      title="过滤规则"
-      description="把注意力留给值得阅读的内容。"
+      title={m.rules.pageTitle}
+      description={m.rules.pageDesc}
       action={
-        <Pill>{config.preset === 'custom' ? '自定义配置' : '即时生效'}</Pill>
+        <div className="row" style={{ gap: 8 }}>
+          {config.preset === 'custom' ? (
+            <>
+              <Pill kind="neutral">{m.presets.customBadge}</Pill>
+              <Button
+                variant="sm"
+                onClick={() =>
+                  perform({ type: 'config.preset', preset: 'standard' })
+                }
+              >
+                <RotateCcw size={13} />
+                {m.presets.restoreStandard}
+              </Button>
+            </>
+          ) : (
+            <Pill>{m.presets.liveBadge}</Pill>
+          )}
+        </div>
       }
     >
       {!config.enabled && (
-        <Banner kind="warning">
-          过滤已暂停。仍可调整设置，恢复后将按当前配置过滤；已剔除的内容需要刷新
-          X 重新加载。
+        <Banner
+          kind="warning"
+          action={
+            <div className="row" style={{ gap: 8 }}>
+              <ReloadXButton />
+              <Button
+                variant="primary sm"
+                onClick={() =>
+                  perform({ type: 'config.patch', patch: { enabled: true } })
+                }
+              >
+                <Play size={13} />
+                {m.rules.resumeCleaning}
+              </Button>
+            </div>
+          }
+        >
+          {m.rules.pausedBanner}
         </Banner>
       )}
-      <Panel
-        title="选择净空强度"
-        description="从预设开始，再按你的阅读习惯微调。"
-      >
-        <Presets config={config} />
-        <Setting
-          title="过滤后呈现方式"
-          description="直接隐藏不留占位；折叠提示保留原因，并可临时展开。"
-        >
-          <Presentation config={config} />
-        </Setting>
-      </Panel>
-      <div className="row between">
-        <h2>过滤维度</h2>
-        <span className="small muted">
-          已启用{' '}
-          {ruleDefinitions.filter((r) => config.rules[r.key].enabled).length} /
-          7 项
-        </span>
-      </div>
-      <div className="rule-list">
-        {ruleDefinitions.map((rule) => {
-          const open = expanded === rule.key;
-          const values = config.rules[rule.key] as unknown as Record<
-            string,
-            number | boolean
-          >;
-          return (
-            <section className="rule-item" key={rule.key}>
-              <div className="rule-summary">
-                <button
-                  className="rule-open"
-                  aria-expanded={open}
-                  aria-controls={`rule-${rule.key}`}
-                  onClick={() => setExpanded(open ? null : rule.key)}
-                >
-                  <span className="rule-icon">
-                    <rule.icon size={19} />
-                  </span>
-                  <span className="grow">
-                    <h3>{rule.title}</h3>
-                    <span className="small muted">{rule.description}</span>
-                  </span>
-                  {open ? (
-                    <ChevronDown size={16} />
-                  ) : (
-                    <ChevronRight size={16} />
-                  )}
-                </button>
-                <Switch
-                  label={`启用${rule.title}`}
-                  checked={config.rules[rule.key].enabled}
-                  onChange={(value) =>
-                    void rulePatch(rule.key, 'enabled', value).catch(
-                      () => undefined
-                    )
-                  }
-                />
-              </div>
-              {open && (
-                <div id={`rule-${rule.key}`} className="rule-detail stack">
-                  <div className="detail-grid">
-                    {numericFields[rule.key]?.map((field) => (
-                      <NumberField
-                        key={field.field}
-                        label={field.title}
-                        value={Number(values[field.field])}
-                        min={field.min}
-                        step={field.step}
-                        sliderMax={field.max}
-                        unit={field.unit}
-                        onCommit={(value) =>
-                          rulePatch(rule.key, field.field, value)
-                        }
-                      />
-                    ))}
-                  </div>
-                  {booleanFields[rule.key]?.map((field) => (
-                    <Setting key={field.field} title={field.title}>
-                      <Switch
-                        label={field.title}
-                        checked={Boolean(values[field.field])}
-                        onChange={(value) =>
-                          void rulePatch(rule.key, field.field, value).catch(
-                            () => undefined
-                          )
-                        }
-                      />
-                    </Setting>
-                  ))}
-                  <Banner>{notes[rule.key]}</Banner>
-                  {rule.key === 'keywords' && (
-                    <a href="#/keywords">管理自定义关键词与公共词库 →</a>
-                  )}
+
+      <div className={!config.enabled ? 'stack paused-dim' : 'stack'}>
+        <Panel title={m.rules.strengthTitle} description={m.rules.strengthDesc}>
+          <Presets config={config} />
+          <Setting
+            title={m.rules.presentationTitle}
+            description={m.rules.presentationDesc}
+          >
+            <div className="row" style={{ gap: 8 }}>
+              {modeChanged && <ReloadXButton label={m.common.reloadXApply} />}
+              <Presentation
+                config={config}
+                onChanged={() => setModeChanged(true)}
+              />
+            </div>
+          </Setting>
+        </Panel>
+
+        <div className="row between">
+          <h2>{m.rules.dimensionsHeading}</h2>
+          <span className="small muted">
+            {m.rules.enabledCount(
+              ruleDefinitions.filter((r) => config.rules[r.key].enabled).length,
+              ruleDefinitions.length
+            )}
+          </span>
+        </div>
+
+        <div className="rule-list">
+          {ruleDefinitions.map((rule) => {
+            const def = m.rules.defs[rule.key];
+            const open = expanded === rule.key;
+            const ruleEnabled = config.rules[rule.key].enabled;
+            const values = config.rules[rule.key] as unknown as Record<
+              string,
+              number | boolean
+            >;
+            return (
+              <section
+                className="rule-item"
+                key={rule.key}
+                data-disabled={String(!ruleEnabled)}
+              >
+                <div className="rule-summary">
+                  <button
+                    type="button"
+                    className="rule-open"
+                    aria-expanded={open}
+                    aria-controls={`rule-${rule.key}`}
+                    onClick={() => setExpanded(open ? null : rule.key)}
+                  >
+                    <span className="rule-icon">
+                      <rule.icon size={19} />
+                    </span>
+                    <span className="grow">
+                      <h3>{def.title}</h3>
+                      <span className="small muted">
+                        {summarizeRule(
+                          rule.key,
+                          config,
+                          snapshot.cloudKeywords
+                        )}
+                      </span>
+                    </span>
+                  </button>
+                  <Switch
+                    label={m.rules.enableRule(def.title)}
+                    checked={ruleEnabled}
+                    onChange={(value) =>
+                      void rulePatch(rule.key, 'enabled', value).catch(
+                        () => undefined
+                      )
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="rule-chevron"
+                    aria-label={m.rules.expandParams(open, def.title)}
+                    aria-expanded={open}
+                    onClick={() => setExpanded(open ? null : rule.key)}
+                  >
+                    {open ? (
+                      <ChevronDown size={16} />
+                    ) : (
+                      <ChevronRight size={16} />
+                    )}
+                  </button>
                 </div>
-              )}
-            </section>
-          );
-        })}
+                {open && (
+                  <div id={`rule-${rule.key}`} className="rule-detail stack">
+                    {numericFields[rule.key] && (
+                      <div className="detail-grid">
+                        {numericFields[rule.key]!.map((field) => (
+                          <NumberField
+                            key={field.field}
+                            label={field.title}
+                            value={Number(values[field.field])}
+                            min={field.min}
+                            step={field.step}
+                            sliderMax={field.max}
+                            unit={field.unit}
+                            onCommit={(value) =>
+                              rulePatch(rule.key, field.field, value)
+                            }
+                          />
+                        ))}
+                      </div>
+                    )}
+                    {booleanFields[rule.key]?.map((field) => (
+                      <Setting key={field.field} title={field.title}>
+                        <Switch
+                          label={field.title}
+                          checked={Boolean(values[field.field])}
+                          onChange={(value) =>
+                            void rulePatch(rule.key, field.field, value).catch(
+                              () => undefined
+                            )
+                          }
+                        />
+                      </Setting>
+                    ))}
+                    {rule.key === 'languageFilter' && (
+                      <div className="stack-sm">
+                        <Setting
+                          title={m.rules.langModeTitle}
+                          description={m.rules.langModeDesc}
+                        >
+                          <Segmented
+                            label={m.rules.langModeTitle}
+                            value={config.rules.languageFilter.mode}
+                            options={[
+                              { value: 'allow', label: m.rules.langModeAllow },
+                              { value: 'block', label: m.rules.langModeBlock },
+                            ]}
+                            onChange={(mode) => {
+                              if (mode !== config.rules.languageFilter.mode) {
+                                void rulePatch(
+                                  'languageFilter',
+                                  'mode',
+                                  mode
+                                ).catch(() => undefined);
+                              }
+                            }}
+                          />
+                        </Setting>
+                        <div className="stack-sm" style={{ gap: 8 }}>
+                          <div className="row between wrap" style={{ gap: 8 }}>
+                            <span
+                              className="field-label"
+                              style={{ marginBottom: 0 }}
+                            >
+                              {config.rules.languageFilter.mode === 'allow'
+                                ? m.rules.langAllowHeading
+                                : m.rules.langBlockHeading}
+                            </span>
+                            <span className="small muted">
+                              {m.rules.langSelectedCount(
+                                config.rules.languageFilter.languages.length
+                              )}
+                            </span>
+                          </div>
+                          <div
+                            className="lang-grid"
+                            role="group"
+                            aria-label={m.rules.langGridAria}
+                          >
+                            {TWEET_LANGUAGE_CODES.map((code) => {
+                              const active =
+                                config.rules.languageFilter.languages.includes(
+                                  code
+                                );
+                              return (
+                                <button
+                                  type="button"
+                                  key={code}
+                                  className="lang-chip"
+                                  aria-pressed={active}
+                                  onClick={() => {
+                                    const current =
+                                      config.rules.languageFilter.languages;
+                                    const next = active
+                                      ? current.filter((c) => c !== code)
+                                      : [...current, code];
+                                    void rulePatch(
+                                      'languageFilter',
+                                      'languages',
+                                      next
+                                    ).catch(() => undefined);
+                                  }}
+                                >
+                                  <span>
+                                    {getTweetLanguageLabel(code, locale)}
+                                  </span>
+                                  <span className="lang-code">{code}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <Banner>{def.note}</Banner>
+                    {rule.key === 'keywords' && (
+                      <div>
+                        <a className="btn sm" href="#/keywords">
+                          {m.rules.manageKeywordsLink}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </section>
+            );
+          })}
+        </div>
+
+        <Panel title={m.rules.exemptionsTitle} description={m.rules.exemptionsDesc}>
+          <Setting
+            title={m.rules.exemptFollowingTitle}
+            description={m.rules.exemptFollowingDesc}
+          >
+            <Switch
+              label={m.rules.exemptFollowingTitle}
+              checked={config.exemptFollowing}
+              onChange={(exemptFollowing) =>
+                perform({ type: 'config.patch', patch: { exemptFollowing } })
+              }
+            />
+          </Setting>
+          <Setting
+            title={m.rules.profileBadgeOnlyTitle}
+            description={m.rules.profileBadgeOnlyDesc}
+          >
+            <Switch
+              label={m.rules.profileBadgeOnlyTitle}
+              checked={config.profileSceneBadgeOnly}
+              onChange={(profileSceneBadgeOnly) =>
+                perform({
+                  type: 'config.patch',
+                  patch: { profileSceneBadgeOnly },
+                })
+              }
+            />
+          </Setting>
+        </Panel>
       </div>
-      <Panel title="场景豁免" description="让过滤符合你的主动选择。">
-        <Setting
-          title="豁免已关注的账号"
-          description="跳过一般规则；本地黑名单和推广广告仍按各自规则处理。"
-        >
-          <Switch
-            label="豁免已关注的账号"
-            checked={config.exemptFollowing}
-            onChange={(exemptFollowing) =>
-              perform({ type: 'config.patch', patch: { exemptFollowing } })
-            }
-          />
-        </Setting>
-        <Setting
-          title="个人主页仅显示提示"
-          description="主动访问主页时保留普通推文，显示命中规则；推广广告仍可隐藏。"
-        >
-          <Switch
-            label="个人主页仅显示提示"
-            checked={config.profileSceneBadgeOnly}
-            onChange={(profileSceneBadgeOnly) =>
-              perform({
-                type: 'config.patch',
-                patch: { profileSceneBadgeOnly },
-              })
-            }
-          />
-        </Setting>
-      </Panel>
     </Page>
   );
 }

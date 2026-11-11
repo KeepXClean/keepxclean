@@ -4,7 +4,8 @@ import {
   STORAGE_KEYS,
   type FilterConfig,
 } from '@keepxclean/shared';
-import { UI_KEYS, errorText } from '../services/model';
+import { getActiveErrors, getErrors } from '../i18n/errors';
+import { UI_KEYS, errorText, unconfirmedError } from '../services/model';
 import {
   assert,
   normalizeServiceUrl,
@@ -15,17 +16,19 @@ import { enqueue, readConfig } from './repository';
 
 export async function checkServicePermission(config: FilterConfig) {
   if (!config.customApiBaseUrl) return;
+  const e = getErrors(config.locale);
   const origin =
     new URL(normalizeServiceUrl(config.customApiBaseUrl)).origin + '/*';
   assert(
     await chrome.permissions.contains({ origins: [origin] }),
-    '请先授权此服务地址的访问权限'
+    e.serviceAuthRequired
   );
 }
 export async function fetchJson(
   url: string,
   body?: unknown
 ): Promise<Record<string, unknown>> {
+  const e = getActiveErrors();
   const controller = new AbortController(),
     timer = setTimeout(() => controller.abort(), 12000);
   try {
@@ -39,10 +42,11 @@ export async function fetchJson(
       signal: controller.signal,
       credentials: 'omit',
     });
-    if (!response.ok) throw new Error(`服务返回 HTTP ${response.status}`);
-    return record(await response.json(), '服务响应');
+    if (!response.ok) throw new Error(e.serviceHttpStatus(response.status));
+    return record(await response.json(), 'response');
   } catch (error) {
-    if (controller.signal.aborted) throw new Error('请求超时，结果未确认');
+    if (controller.signal.aborted)
+      throw unconfirmedError(e.requestTimeoutUnconfirmed);
     throw error;
   } finally {
     clearTimeout(timer);
@@ -57,6 +61,7 @@ export function refreshSnapshot(): Promise<void> {
   if (syncing) return syncing;
   syncing = (async () => {
     const config = await readConfig();
+    const e = getErrors(config.locale);
     const data = await chrome.storage.local.get(UI_KEYS.sync),
       previous = data[UI_KEYS.sync] ?? { source: 'builtin' };
     await chrome.storage.local.set({
@@ -70,7 +75,7 @@ export function refreshSnapshot(): Promise<void> {
     const urls = config.customApiBaseUrl
       ? [`${config.customApiBaseUrl}/v1/snapshot.json`]
       : [CDN_SNAPSHOT_URL, `${API_BASE_URL}/v1/snapshot.json`];
-    let lastError = '同步失败';
+    let lastError = e.syncFailed;
     for (const url of urls) {
       try {
         await checkServicePermission(config);
@@ -79,7 +84,7 @@ export function refreshSnapshot(): Promise<void> {
           const latest = await readConfig();
           assert(
             latest.customApiBaseUrl === config.customApiBaseUrl,
-            '服务地址已变化，请重新同步'
+            getErrors(latest.locale).serviceUrlChanged
           );
           await chrome.storage.local.set({
             [STORAGE_KEYS.CROWD_SNAPSHOT]: snapshot,

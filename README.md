@@ -1,88 +1,116 @@
 # KeepXClean
 
-KeepXClean 是面向 X（Twitter）的信息流与评论区过滤扩展，使用 WXT、React 和共享规则引擎，社区服务使用 Cloudflare Workers、D1 与 R2。
+KeepXClean 是面向 X（Twitter）的信息流与评论区高信噪比过滤扩展，采用 WXT（Manifest V3）、React 与共享确定性规则引擎构建；官方网站与社区快照服务基于 Cloudflare Workers、D1 与 R2 部署。
 
-## 浅色 UI
+- **官方网站**：https://keepxclean.com
+- **隐私政策**：https://keepxclean.com/privacy/
+- **公共快照接口**：`https://api.keepxclean.com/v1/snapshot.json` · `https://cdn.keepxclean.com/v1/snapshot.json`
+- **Chrome Web Store 提审指南与素材**：[SUBMISSION_GUIDE.md](release/chrome-web-store/SUBMISSION_GUIDE.md)
 
-新 UI 代码已完成：五个设置页面、400px 插件弹窗、X 页面内的设置抽屉、快捷净空、折叠提示及主页标签。品牌统一采用浅绿纯色底的黑钛 X，不使用保护圈。
+## 浅色 UI 与品牌规范
+
+全局统一采用浅色背景（`#F7F9F8` / `#FFFFFF`），覆盖五个完整设置页面、400px 插件弹窗，以及 X 页面内的设置抽屉、快捷净空按钮、单行折叠提示与个人主页标签。品牌图标统一采用浅绿纯色圆角底（`#EAF6EF`）配黑钛 X，不添加保护圈、光弧或盾牌。
 
 - [实现方案](design/ui-light-v1/implementation-plan.md)
 - [实现与验收记录](design/ui-light-v1/verification/README.md)
-- [实际界面截图](design/ui-light-v1/verification/index.html)
-- [原设计稿](design/ui-light-v1/index.html)
-- [图标与全部尺寸](design/ui-light-v1/icon-concepts/official-x/selected-black-titanium/README.md)
+- [图标与全部尺寸规范](design/ui-light-v1/icon-concepts/official-x/selected-black-titanium/README.md)
 
-## 功能与行为
+## 核心功能与行为
 
-- 七类规则：历史日均与观察窗口频率、社区记录、关键词与正则、蓝标回复、标签数量、账号质量、推广广告。提供轻度、标准、极致三档预设及关注账号、主页场景豁免。
-- 隐藏与折叠两种模式。过滤使用已收到的 X GraphQL 数据，不额外请求账号资料。已经从响应中剔除的内容需要刷新 X 才能重新加载。
-- 自定义关键词支持正文、简介、昵称和链接范围、粉丝豁免及备注；公共词库单独控制、只读。
-- 黑白名单使用数字 UID；从 X 导入时先读取完整分页、展示重复及白名单冲突，再确认本地保存。社区共享单独选择，超过 500 个账号分批提交。
-- 快捷净空先保存本地，提供 **4.5 秒撤销窗口**；窗口结束后按偏好执行 X 原生拉黑与社区提交，三阶段结果分别显示。撤销只恢复本次本地改动，不会误解除既有 X 拉黑。
-- 外部结果可能是成功、失败、未计入或未确认；不会用本地保存成功冒充外部成功。明确失败可手动重试，未知结果不盲目重试。
-- 拦截记录保留最近 200 条；今日按本地日期统计，累计独立保存。规则详情显示拦截当时的证据，旧记录缺失的证据不会补造。
-- JSON 配置导入有校验与差异预览，保存使用后台串行语义命令，避免多入口覆盖无关字段。首次升级保留原配置备份。
-- 社区快照失败时继续使用可用缓存；自定义 HTTPS 服务需授权，失败不转发到其他服务。社区计数来自快照，不代表已经核实的身份或风险。
+- **九类确定性过滤维度**：
+  1. 评论区防灌水与防高仿（极短水评、蓝标水军回复、低粉简介导流、原推主高仿识别）
+  2. 口令引流与互动乞讨拦截（评论领资料、抽奖转发诱导、互关互赞车队）
+  3. 高频刷屏拦截（历史日均发推上限 + 观察窗口短期爆发上限）
+  4. 社区高危名单（基于公开快照聚合举报数阈值）
+  5. 自定义关键词与正则（支持正文、简介、昵称、外链范围，支持仅评论区生效与粉丝数豁免）
+  6. 公共词库包（内置烂梗套话、币圈喊单、互关车队、黑灰产导流、黄赌毒广告五大分类共 24 条规则；默认无粉丝豁免，支持逐条独立开关与一键“复制自定义”）
+  7. 推文语言过滤（支持黑名单屏蔽指定语种或白名单仅保留指定语种）
+  8. 标签与代币符号堆砌过滤（`#hashtag` / `$cashtag` 数量上限）
+  9. 账号质量信号与推广广告净空（新注册低质默认头像号识别、推广流无痕移除）
+- **三档预设与豁免机制**：提供轻度、标准、极致三档预设，支持已关注账号豁免与个人主页场景保护。
+- **隐藏与折叠双模式**：过滤直接作用于页面收到的 X GraphQL 响应，零额外账号资料请求；折叠模式下若因转发/引用内容命中规则，操作按钮精准指向被转引的目标账号。
+- **数字 UID 名单与安全导入**：黑白名单基于永久数字 UID 存储；从 X 导入拉黑名单时完整读取分页、检测重复与白名单冲突，确认后再保存，超过 500 个账号自动分批处理。
+- **快捷净空与 4.5 秒撤销窗口**：先保存本地并提供 **4.5 秒撤销窗口**；窗口结束后按用户偏好执行 X 原生拉黑与匿名社区提交，三阶段结果独立真实呈现（成功 / 失败 / 未计入 / 未确认），撤销绝不误解除既有 X 拉黑。
+- **拦截记录与配置备份**：本地保留最近 200 条真实命中证据；JSON 配置导入具备完整 Schema 校验与差异预览，后台串行命令写入避免多入口并发覆盖。
+- **10 种界面语言**：内置 `en`、`zh-CN`、`zh-TW`、`ja`、`ko`、`es`、`pt`、`fr`、`de`、`ru` 完整多语言字典与浏览器语言自动跟随，非 UI 后台与 MAIN 世界脚本与 React 字典解耦以保持轻量体积。
 
-## 本地开发
+## 本地开发与打包
 
 需要 Node.js 20+ 和 pnpm。
 
 ```bash
 pnpm install
-pnpm test
 pnpm typecheck
+pnpm test
 pnpm build
 ```
 
-`pnpm test` 包括 shared、extension 和 server；服务端测试使用 Miniflare 的本地 D1/R2。
+`pnpm test` 覆盖 `shared`、`extension` 与 `server`（服务端测试基于 Miniflare 本地 D1/R2）。
 
 ```bash
 pnpm dev:ext
 pnpm --filter @keepxclean/extension zip
 ```
 
-构建目录为 `apps/extension/.output/chrome-mv3`。在 Chromium 浏览器的扩展管理页启用开发者模式，选择“加载已解压的扩展程序”后加载此目录，再刷新 X 页面。开发模式目录为 `apps/extension/.output/chrome-mv3-dev`。
+- 解压调试目录：`apps/extension/.output/chrome-mv3`（开发模式为 `chrome-mv3-dev`）
+- 商店发布压缩包：`apps/extension/.output/keepxcleanextension-0.1.0-chrome.zip`
 
-## UI 验收宿主
+## UI 预览宿主
 
 ```bash
 pnpm --filter @keepxclean/extension preview:ui
 ```
 
-打开 `http://127.0.0.1:5178/`。此宿主运行生产 UI 组件，使用独立模拟存储与接口，便于复现空态、失败和布局；不包含在扩展生产包中。
+打开 `http://127.0.0.1:5178/`（仅用于本地视觉调优与截图采集，不包含在生产扩展包中）：
 
-- `/?surface=options#/rules`：完整设置，可切换 `keywords`、`accounts`、`history`、`preferences`。
-- `/?surface=popup`：插件弹窗。
-- `/?surface=x&theme=dark`：深色 X DOM 样本；不传 `theme` 为浅色。
-- `state=empty|paused|offline|loading|error|native-error`：状态样本。
-- `/responsive.html?width=390#/rules`：实际 iframe 视口，可改为 768、1024、1440。
-
-截图与宿主检查不能替代真实扩展的权限、X 接口及浏览器生命周期验证。当前真实 X 联调尚未完成，详见验收记录。
+- `/?surface=options&lang=en#/rules`：完整设置页（可切换 `keywords`、`accounts`、`history`、`preferences` 及 `lang=zh-CN` 等语种）
+- `/?surface=popup&lang=en`：插件弹窗
+- `/?surface=x&lang=en`：X 页面内嵌折叠条、快捷按钮与浅色设置抽屉宿主
 
 ## 项目结构
 
 ```text
-packages/shared/       规则、GraphQL 解析、类型与默认配置
+packages/shared/            过滤引擎、GraphQL 解析、公共词库预设、类型与默认配置
 apps/extension/
-  entrypoints/         background、MAIN/content、设置与弹窗入口
-  src/background/      串行配置仓储、快照、可恢复操作与导入任务
-  src/services/        命令契约、完整校验、客户端
-  src/state/           多入口共享状态订阅
-  src/ui/              浅色变量与公共组件
-  src/features/        五个设置页面及快捷控制
-  src/content/         Shadow DOM、Portal、页面节点管理与 MAIN 桥
-  tests/               失败边界测试与本地 UI 宿主
-apps/server/           Workers API、D1 原子聚合与 R2 快照
+  entrypoints/              background、MAIN/content 桥接、options 与 popup 入口
+  src/background/           串行配置仓储、快照拉取、可恢复净空与导入任务
+  src/i18n/                 10 语种界面词典、轻量错误文案与语言解析
+  src/services/             命令契约、Schema 校验与消息客户端
+  src/state/                多入口共享响应式状态订阅
+  src/ui/                   浅色设计系统变量与公共组件
+  src/features/             五个设置功能模块与快捷控制面板
+  src/content/              Shadow DOM 样式隔离、Portal 挂载与 MAIN 桥接
+  tests/                    单元测试、失败边界测试与本地 UI 预览宿主
+apps/server/                Cloudflare Workers API/CDN、D1 原子聚合与 R2 快照缓存
+apps/web/                   官方网站 (keepxclean.com) 与隐私政策静态站点 Worker
+release/chrome-web-store/   Chrome Web Store 提审指南、1280x800 截图与 440x280 宣传图
 ```
 
-## 社区服务开发与部署
+## 云端服务与官网部署
+
+### GitHub Actions 推送自动部署
+
+仓库内置 [.github/workflows/deploy.yml](.github/workflows/deploy.yml)，推送至 `main` 分支或推送 `v*` 版本标签时自动运行：
+
+1. **全量质量门禁（`verify`）**：执行 `pnpm install --frozen-lockfile`、`pnpm typecheck`、`pnpm test` 及 `wxt zip`，并将构建好的扩展包上传为 Actions Artifact。
+2. **服务端按需部署（`deploy-server`）**：当 `apps/server/`、`packages/shared/` 或依赖配置变更时，自动执行 `pnpm db:migrate:remote` 与 `pnpm deploy:server`，并预热刷新线上 `snapshot.json`。
+3. **官网按需部署（`deploy-web`）**：当 `apps/web/` 变更时，自动执行 `pnpm deploy:web` 并校验 `keepxclean.com` 与 `/privacy/` 在线可用性。
+4. **版本发布（`release-extension`）**：推送 `v*` 标签（如 `git tag v0.1.0 && git push origin v0.1.0`）时，自动创建 GitHub Release 附带扩展 `.zip`；若配置了可选的 `CWS_CLIENT_ID` / `CWS_CLIENT_SECRET` / `CWS_REFRESH_TOKEN`，还会自动上传并发布到 Chrome Web Store（`plngcinmibjmkjjpfjemhfabjfjjkhhd`）。
+
+**GitHub Actions 必需 Secret**：
+- `CLOUDFLARE_API_TOKEN`：具备所属账号 `Workers Scripts: Edit`、`D1: Edit` 以及 `keepxclean.com` 站点 `Workers Routes: Edit` 权限的 Cloudflare API Token。
+
+### 手动命令
 
 ```bash
+# 本地 D1 迁移与服务端开发
 pnpm db:migrate:local
 pnpm dev:server
+
+# 远端 D1 迁移与生产环境部署
+CI=1 pnpm db:migrate:remote
+pnpm deploy:server
+pnpm deploy:web
 ```
 
-生产部署需要先配置 `apps/server/wrangler.toml` 中的 D1、R2 和域名。配置完成后可使用 `pnpm db:migrate:remote`、`pnpm deploy:server`。本次实现没有部署生产服务或发布扩展商店。
-
-服务端将每个目标与提交者的记录去重，并在 D1 事务中重算聚合，避免重试、并发或标签修改造成累加漂移。当前提交者标识和账号资料由客户端提供，未实现服务端身份认证；不要将其描述为已验证的防刷票身份系统。
+服务端对同一目标与提交者哈希（SHA-256）去重，并在 D1 事务中重算聚合计数，通过 R2 与定时任务发布静态 `snapshot.json`。社区计数代表公开快照聚合结果，客户端提交不依赖账号登录态。

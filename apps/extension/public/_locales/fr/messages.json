@@ -1,0 +1,11 @@
+{
+  "extName": {
+    "message": "KeepXClean - Filtre anti-bruit pour X"
+  },
+  "extDescription": {
+    "message": "Gardez X (Twitter) propre : filtrez le spam en réponse, les usurpateurs, les bots, les appâts et les contenus sponsorisés."
+  },
+  "extActionTitle": {
+    "message": "Contrôles KeepXClean"
+  }
+}

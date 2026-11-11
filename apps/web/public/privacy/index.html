@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy — KeepXClean</title>
+    <meta
+      name="description"
+      content="KeepXClean Privacy Policy: local-first filtering, zero account login, explicit permissions, and optional anonymous community blocklist reporting."
+    />
+    <meta name="kxc-title-en" content="Privacy Policy — KeepXClean" />
+    <meta name="kxc-title-zh" content="隐私政策 — KeepXClean" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/site.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="shell topbar-inner">
+        <a class="brand" href="/">
+          <img src="/logo.svg" alt="KeepXClean" width="34" height="34" />
+          <span>KeepXClean</span>
+        </a>
+        <nav class="nav-links" aria-label="Primary navigation">
+          <a href="/">
+            <span data-lang="en">Overview</span>
+            <span data-lang="zh">产品概览</span>
+          </a>
+          <a href="/privacy/" aria-current="page">
+            <span data-lang="en">Privacy Policy</span>
+            <span data-lang="zh">隐私政策</span>
+          </a>
+          <div class="lang-switch" role="group" aria-label="Language">
+            <button type="button" class="lang-btn" data-set-lang="en" aria-pressed="true">
+              EN
+            </button>
+            <button type="button" class="lang-btn" data-set-lang="zh-CN" aria-pressed="false">
+              中文
+            </button>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <main class="shell">
+      <article class="prose-card" data-lang="en">
+        <h1>Privacy Policy</h1>
+        <div class="prose-meta">
+          Effective Date: November 11, 2026 · Applies to the KeepXClean Browser Extension &amp; <code>keepxclean.com</code> Cloud Snapshot Service
+        </div>
+
+        <h2>1. Core Privacy Principles</h2>
+        <p>
+          KeepXClean is designed around <strong>local-first content filtering</strong> and <strong>zero account registration</strong>:
+        </p>
+        <ul>
+          <li>All timeline, search, and reply filtering runs locally in your browser against X (<code>x.com</code> / <code>twitter.com</code>) page responses.</li>
+          <li>KeepXClean never collects, reads, or transmits your browsing history outside X, direct messages (DMs), passwords, cookies, session tokens, email addresses, or private tweets.</li>
+          <li>KeepXClean uses zero third-party analytics SDKs, zero advertising trackers, and zero remote code execution.</li>
+        </ul>
+
+        <h2>2. Data Stored Locally on Your Device</h2>
+        <p>
+          KeepXClean uses your browser’s local extension storage (<code>chrome.storage.local</code>) and an on-origin fast-boot cache on <code>x.com</code> solely to store:
+        </p>
+        <ul>
+          <li>Your filter rules, preset selection, interface language, and display preferences;</li>
+          <li>Your custom keywords/regular expressions, local allowlist UIDs, and local blocklist UIDs;</li>
+          <li>Up to the 200 most recent interception log entries and daily/cumulative counter summaries so you can review or undo filter hits;</li>
+          <li>The cached public community snapshot (<code>snapshot.json</code>) downloaded from <code>keepxclean.com</code> (or your self-hosted endpoint).</li>
+        </ul>
+        <p>
+          All locally stored data remains on your device unless you explicitly export a JSON backup file. Uninstalling the extension removes its <code>chrome.storage.local</code> data.
+        </p>
+
+        <h2>3. Network Requests &amp; Optional Community Sharing</h2>
+        <p>KeepXClean communicates over HTTPS only in the following strictly scoped scenarios:</p>
+        <ul>
+          <li>
+            <strong>Public Snapshot Sync (Read-Only GET):</strong> Periodically fetches the compiled public snapshot (<code>/v1/snapshot.json</code>) from <code>cdn.keepxclean.com</code> / <code>api.keepxclean.com</code> without sending user identifiers or cookies (<code>credentials: 'omit'</code>).
+          </li>
+          <li>
+            <strong>Optional Community Block Reporting (Opt-Out Anytime):</strong> Only when <em>Community Sharing</em> (<code>enableCrowdReport</code>) is enabled and you explicitly block an account or choose to share imported X blocks, the extension submits:
+            <ul>
+              <li>Target account’s public numeric X <code>targetUid</code>, public <code>@handle</code> / display name, public follower count, and your chosen block reason tag (<code>spam</code>, <code>nsfw</code>, <code>scam</code>, <code>ad</code>, <code>bot</code>, or <code>other</code>);</li>
+              <li>A one-way salted SHA-256 hash (<code>reporterUidHash</code>) derived locally from your X numeric ID solely to deduplicate votes (1 account = 1 vote), plus your account’s approximate age in days (used only to enforce the ≥30-day anti-abuse threshold). Your raw X UID, handle, and credentials are never sent to KeepXClean servers.</li>
+            </ul>
+            Standard transient IP-based sliding-window rate-limiting is applied on the server solely to prevent automated abuse.
+          </li>
+          <li>
+            <strong>Optional Native X Block Sync:</strong> When <em>Sync Native X Block</em> (<code>syncNativeXBlock</code>) is enabled, block and blocklist-read requests are executed directly between your open X tab and <code>x.com</code> using X’s own web client session. KeepXClean servers never receive or proxy your X credentials.
+          </li>
+        </ul>
+
+        <h2>4. Browser Permissions Justification</h2>
+        <table class="policy-table">
+          <thead>
+            <tr>
+              <th>Permission</th>
+              <th>Single-Purpose Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>storage</code></td>
+              <td>Saves filter settings, custom keywords, local allow/block lists, cached snapshots, and recent interception logs locally on the device.</td>
+            </tr>
+            <tr>
+              <td><code>alarms</code></td>
+              <td>Schedules periodic background refreshes of the public snapshot and completes the 4.5-second Quick-Block undo window reliably in MV3 service workers.</td>
+            </tr>
+            <tr>
+              <td><code>*://*.x.com/*</code><br /><code>*://*.twitter.com/*</code></td>
+              <td>Runs the local timeline/reply filter script and mounts the light in-page controls, collapse bars, and risk badges on X pages.</td>
+            </tr>
+            <tr>
+              <td><code>https://*.keepxclean.com/*</code></td>
+              <td>Downloads public community snapshots and submits optional deduplicated block reports.</td>
+            </tr>
+            <tr>
+              <td><code>optional_host_permissions</code></td>
+              <td>Requested interactively <em>only</em> when an advanced user enters a custom self-hosted HTTPS snapshot/API server URL in Preferences.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>5. Data Sharing, Retention &amp; Your Controls</h2>
+        <ul>
+          <li><strong>No Sale or Brokerage:</strong> We never sell, rent, or transfer user data to third parties, advertisers, or data brokers.</li>
+          <li><strong>Retraction &amp; Opt-Out:</strong> You can disable <em>Community Sharing</em> at any time in Preferences, undo any Quick Block within the 4.5-second window, or clear local logs and lists with one click.</li>
+          <li><strong>Aggregated Public Output:</strong> Public snapshots (<code>/v1/snapshot.json</code>) publish only aggregated vote counts and dominant category tags for accounts meeting the minimum report threshold — never reporter hashes or individual report records.</li>
+        </ul>
+
+        <h2>6. Contact</h2>
+        <p>
+          For privacy questions or data inquiries regarding KeepXClean, please contact:
+          <a href="mailto:privacy@keepxclean.com">privacy@keepxclean.com</a>.
+        </p>
+      </article>
+
+      <article class="prose-card" data-lang="zh">
+        <h1>隐私政策（Privacy Policy）</h1>
+        <div class="prose-meta">
+          生效日期：2026 年 11 月 11 日 · 适用于 KeepXClean 浏览器扩展及 <code>keepxclean.com</code> 公共快照服务
+        </div>
+
+        <h2>1. 核心隐私原则</h2>
+        <p>
+          KeepXClean 采用<strong>本地优先过滤</strong>与<strong>零账号注册登录</strong>架构：
+        </p>
+        <ul>
+          <li>所有推荐流、搜索页、评论区的规则匹配均在浏览器本地对 X（<code>x.com</code> / <code>twitter.com</code>）页面自身返回的数据完成。</li>
+          <li>KeepXClean 绝不收集、读取或上传您在 X 以外的浏览历史、私信（DM）、账号密码、Cookie、登录凭据、邮箱或非公开推文。</li>
+          <li>扩展内不包含任何第三方统计分析 SDK、广告追踪器或远程动态执行代码（Remote Code）。</li>
+        </ul>
+
+        <h2>2. 保存在您设备本地的数据</h2>
+        <p>
+          扩展仅使用浏览器本地存储（<code>chrome.storage.local</code>）及 <code>x.com</code> 同源启动缓存保存以下必要数据：
+        </p>
+        <ul>
+          <li>您的过滤规则开关、预设档位、界面语言及展示偏好；</li>
+          <li>您的自定义关键词/正则表达式、本地白名单 UID 与本地黑名单 UID；</li>
+          <li>最近最多 200 条本地拦截记录及今日/累计拦截计数，便于您核查命中原因或误拦加白；</li>
+          <li>从 <code>keepxclean.com</code>（或您自建服务地址）拉取的公共社区快照缓存。</li>
+        </ul>
+        <p>
+          除您主动导出 JSON 备份外，上述本地配置不会离开您的设备；卸载扩展时浏览器会自动清除对应的本地存储。
+        </p>
+
+        <h2>3. 网络通信与可选社区共享</h2>
+        <p>KeepXClean 仅在以下明确场景发起 HTTPS 请求：</p>
+        <ul>
+          <li>
+            <strong>拉取公共快照（只读 GET）：</strong>定期从 <code>cdn.keepxclean.com</code> / <code>api.keepxclean.com</code> 下载聚合后的公共快照（<code>/v1/snapshot.json</code>），请求不携带任何 Cookie 或个人身份标识（<code>credentials: 'omit'</code>）。
+          </li>
+          <li>
+            <strong>可选的社区黑名单共建上报（随时可关闭）：</strong>仅当您开启「社区共享」（<code>enableCrowdReport</code>）并主动点击快捷净空，或在导入 X 黑名单时勾选共享社区时，扩展才会提交：
+            <ul>
+              <li>被拉黑目标账号的公开数字 <code>targetUid</code>、公开 <code>@handle</code> / 昵称、公开粉丝数及原因分类标签；</li>
+              <li>在本地对您当前 X 数字 ID 计算的单向加盐 SHA-256 哈希（<code>reporterUidHash</code>，仅用于“一账号一票”去重）以及账号大致注册天数（仅用于校验 ≥30 天防刷门槛）。您的原始 X UID、用户名及登录凭据绝不会发送至 KeepXClean 服务器。</li>
+            </ul>
+            服务端仅使用短期滑动窗口限流防止恶意刷票。
+          </li>
+          <li>
+            <strong>可选的同步 X 原生拉黑：</strong>开启 <code>syncNativeXBlock</code> 时，拉黑与读取已有黑名单请求均在您的 X 标签页内直接发往 <code>x.com</code> 官方接口，KeepXClean 服务器从不接触或中转任何 X 登录凭据。
+          </li>
+        </ul>
+
+        <h2>4. 浏览器权限用途说明</h2>
+        <table class="policy-table">
+          <thead>
+            <tr>
+              <th>权限名称</th>
+              <th>单一用途说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>storage</code></td>
+              <td>在本地设备保存过滤规则、自定义词条、本地黑白名单、快照缓存及最近 200 条拦截记录。</td>
+            </tr>
+            <tr>
+              <td><code>alarms</code></td>
+              <td>在 MV3 后台定时刷新公共快照，并可靠执行快捷净空 4.5 秒撤销窗口结束后的后续任务。</td>
+            </tr>
+            <tr>
+              <td><code>*://*.x.com/*</code><br /><code>*://*.twitter.com/*</code></td>
+              <td>在 X 页面本地运行信息流/评论区过滤引擎，并挂载浅色快捷净空按钮、折叠条、主页风险徽章与设置抽屉。</td>
+            </tr>
+            <tr>
+              <td><code>https://*.keepxclean.com/*</code></td>
+              <td>拉取公共快照及提交可选的去重社区拉黑票数。</td>
+            </tr>
+            <tr>
+              <td><code>optional_host_permissions</code></td>
+              <td>仅当高级用户在偏好设置中填写自建 HTTPS 服务地址时，按需向浏览器申请对应域名授权。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>5. 数据共享、留存与用户控制权</h2>
+        <ul>
+          <li><strong>绝不出售或交易数据：</strong>我们绝不向任何第三方、广告商或数据经纪商出售、出租或转让用户数据。</li>
+          <li><strong>随时关闭与撤销：</strong>您可随时在「偏好设置」关闭社区共享，在快捷净空 4.5 秒窗口内一键撤销，或随时一键清空本地拦截记录与名单。</li>
+          <li><strong>公开聚合快照不含提交者信息：</strong><code>/v1/snapshot.json</code> 仅包含达到票数门槛的目标账号统计票数与主要标签，不包含任何 <code>reporterUidHash</code> 或单次提交明细。</li>
+        </ul>
+
+        <h2>6. 联系方式</h2>
+        <p>
+          如对本隐私政策有任何疑问，请联系：<a href="mailto:privacy@keepxclean.com">privacy@keepxclean.com</a>。
+        </p>
+      </article>
+    </main>
+
+    <footer class="footer">
+      <div class="shell footer-inner">
+        <div>
+          <strong>KeepXClean</strong> · v0.1.0
+        </div>
+        <div class="nav-links">
+          <a href="/">
+            <span data-lang="en">Back to Overview</span>
+            <span data-lang="zh">返回首页</span>
+          </a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

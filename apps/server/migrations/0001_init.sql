@@ -42,7 +42,8 @@ CREATE TABLE IF NOT EXISTS cloud_keywords (
   pattern TEXT NOT NULL,
   is_regex INTEGER NOT NULL DEFAULT 1,
   scopes TEXT NOT NULL,
-  max_followers_exempt INTEGER DEFAULT 50000,
+  only_in_replies INTEGER NOT NULL DEFAULT 0,
+  max_followers_exempt INTEGER DEFAULT NULL,
   note TEXT,
   enabled INTEGER NOT NULL DEFAULT 1,
   updated_at INTEGER NOT NULL

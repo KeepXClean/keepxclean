@@ -1,6 +1,15 @@
 import { useState } from 'react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
-import type { KeywordMatchScope, KeywordRuleItem } from '@keepxclean/shared';
+import { Copy, Pencil, Plus, RotateCcw, Trash2 } from 'lucide-react';
+import {
+  getCloudKeywordNote,
+  type KeywordMatchScope,
+  type KeywordRuleItem,
+} from '@keepxclean/shared';
+import {
+  formatCount,
+  useI18n,
+  type CloudCategoryKey,
+} from '../../i18n';
 import { digest } from '../../services/model';
 import { validateKeyword } from '../../services/validation';
 import { mutate, useApp } from '../../state/store';
@@ -23,35 +32,45 @@ import {
   usePagination,
 } from '../../ui/components';
 
-const scopeLabels: Record<KeywordMatchScope, string> = {
-  text: '正文',
-  bio: '简介',
-  name: '昵称 / Handle',
-  url: '链接',
-};
 export function KeywordEditor({
   item,
+  customizeSource,
   initialPattern = '',
+  onCustomized,
   onClose,
 }: {
   item?: KeywordRuleItem;
+  customizeSource?: KeywordRuleItem;
   initialPattern?: string;
+  onCustomized?: (saved: KeywordRuleItem) => void;
   onClose: () => void;
 }) {
-  const [draft, setDraft] = useState<KeywordRuleItem>(
-    item ?? {
-      id: crypto.randomUUID(),
-      pattern: initialPattern,
-      isRegex: false,
-      scopes: ['text', 'bio'],
-      maxFollowersExempt: 20000,
-      note: '',
-      enabled: true,
-    }
+  const { m, locale } = useI18n();
+  const seed = customizeSource ?? item;
+  const [draft, setDraft] = useState<KeywordRuleItem>(() =>
+    customizeSource
+      ? {
+          ...structuredClone(customizeSource),
+          id: crypto.randomUUID(),
+          note:
+            getCloudKeywordNote(customizeSource, locale) ||
+            customizeSource.note,
+          enabled: true,
+        }
+      : (item ?? {
+          id: crypto.randomUUID(),
+          pattern: initialPattern,
+          isRegex: false,
+          scopes: ['text', 'bio'],
+          note: '',
+          enabled: true,
+        })
   );
-  const [exempt, setExempt] = useState(!!draft.maxFollowersExempt),
+  const [exempt, setExempt] = useState(
+      seed ? !!seed.maxFollowersExempt : false
+    ),
     [followers, setFollowers] = useState(
-      String(draft.maxFollowersExempt || 20000)
+      String(seed?.maxFollowersExempt || 20000)
     ),
     [error, setError] = useState(''),
     [pending, setPending] = useState(false);
@@ -66,16 +85,26 @@ export function KeywordEditor({
     setError('');
     try {
       if (exempt && (!followers.trim() || Number(followers) <= 0))
-        throw new Error('请输入正整数粉丝豁免值');
+        throw new Error(m.keywords.editor.exemptPositiveError);
+      const { maxFollowersExempt: _unused, ...restDraft } = draft;
       const validated = validateKeyword({
-        ...draft,
-        maxFollowersExempt: exempt ? Number(followers) : 0,
+        ...restDraft,
+        ...(exempt ? { maxFollowersExempt: Number(followers) } : {}),
       });
-      await mutate({
-        type: 'keyword.save',
-        item: validated,
-        expected: item ? digest(item) : undefined,
-      });
+      if (customizeSource) {
+        await mutate({
+          type: 'cloudKeyword.customize',
+          sourceId: customizeSource.id,
+          item: validated,
+        });
+        onCustomized?.(validated);
+      } else {
+        await mutate({
+          type: 'keyword.save',
+          item: validated,
+          expected: item ? digest(item) : undefined,
+        });
+      }
       onClose();
     } catch (e) {
       setError((e as Error).message);
@@ -83,25 +112,43 @@ export function KeywordEditor({
       setPending(false);
     }
   }
+  const scopeEntries = Object.entries(m.keywords.scopes) as [
+    KeywordMatchScope,
+    string,
+  ][];
   return (
     <>
       <Modal
-        title={item ? '编辑关键词' : '添加关键词'}
-        description="以你关心的范围精确匹配。"
+        title={
+          customizeSource
+            ? m.keywords.editor.customizeTitle
+            : item
+              ? m.keywords.editor.editTitle
+              : m.keywords.editor.addTitle
+        }
+        description={
+          customizeSource
+            ? m.keywords.editor.customizeDesc
+            : m.keywords.editor.defaultDesc
+        }
         onClose={() => {
           if (!pending) close();
         }}
         footer={
           <>
             <Button disabled={pending} onClick={close}>
-              取消
+              {m.common.cancel}
             </Button>
             <Button
               variant="primary"
               loading={pending}
               onClick={() => void save()}
             >
-              {item ? '保存修改' : '添加关键词'}
+              {customizeSource
+                ? m.keywords.editor.saveCustomizeBtn
+                : item
+                  ? m.keywords.editor.saveEditBtn
+                  : m.keywords.editor.saveAddBtn}
             </Button>
           </>
         }
@@ -114,22 +161,26 @@ export function KeywordEditor({
           }}
         >
           <Segmented
-            label="关键词类型"
+            label={m.keywords.editor.typeLabel}
             value={draft.isRegex ? 'regex' : 'text'}
             options={[
-              { value: 'text', label: '普通文字' },
-              { value: 'regex', label: '正则表达式' },
+              { value: 'text', label: m.keywords.editor.typeText },
+              { value: 'regex', label: m.keywords.editor.typeRegex },
             ]}
             onChange={(value) =>
               setDraft({ ...draft, isRegex: value === 'regex' })
             }
           />
           <Field
-            label={draft.isRegex ? '正则表达式' : '匹配内容'}
+            label={
+              draft.isRegex
+                ? m.keywords.editor.regexFieldLabel
+                : m.keywords.editor.textFieldLabel
+            }
             help={
               draft.isRegex
-                ? '不区分大小写；填写表达式本体，无需首尾斜线。'
-                : '按文字直接匹配，不需要转义。'
+                ? m.keywords.editor.regexHelp
+                : m.keywords.editor.textHelp
             }
           >
             <input
@@ -137,24 +188,28 @@ export function KeywordEditor({
               className="input"
               value={draft.pattern}
               placeholder={
-                draft.isRegex ? '例如：免费.*空投' : '输入想过滤的词语'
+                draft.isRegex
+                  ? m.keywords.editor.regexPlaceholder
+                  : m.keywords.editor.textPlaceholder
               }
               onChange={(e) => setDraft({ ...draft, pattern: e.target.value })}
             />
           </Field>
           <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-            <legend className="field-label">匹配范围 · 至少选择一项</legend>
+            <legend className="field-label">
+              {m.keywords.editor.scopesLegend}
+            </legend>
             <div className="row wrap">
-              {Object.entries(scopeLabels).map(([scope, label]) => (
+              {scopeEntries.map(([scope, label]) => (
                 <label className="check-label" key={scope}>
                   <input
                     type="checkbox"
-                    checked={draft.scopes.includes(scope as KeywordMatchScope)}
+                    checked={draft.scopes.includes(scope)}
                     onChange={(e) =>
                       setDraft({
                         ...draft,
                         scopes: e.target.checked
-                          ? [...draft.scopes, scope as KeywordMatchScope]
+                          ? [...draft.scopes, scope]
                           : draft.scopes.filter((s) => s !== scope),
                       })
                     }
@@ -165,17 +220,29 @@ export function KeywordEditor({
             </div>
           </fieldset>
           <Setting
-            title="高粉账号豁免"
-            description="粉丝数达到指定值时跳过这条关键词。"
+            title={m.keywords.editor.onlyRepliesTitle}
+            description={m.keywords.editor.onlyRepliesDesc}
           >
             <Switch
-              label="高粉账号豁免"
+              label={m.keywords.editor.onlyRepliesTitle}
+              checked={Boolean(draft.onlyInReplies)}
+              onChange={(onlyInReplies) =>
+                setDraft({ ...draft, onlyInReplies })
+              }
+            />
+          </Setting>
+          <Setting
+            title={m.keywords.editor.exemptTitle}
+            description={m.keywords.editor.exemptDesc}
+          >
+            <Switch
+              label={m.keywords.editor.exemptTitle}
               checked={exempt}
               onChange={setExempt}
             />
           </Setting>
           {exempt && (
-            <Field label="粉丝豁免门槛">
+            <Field label={m.keywords.editor.exemptThresholdLabel}>
               <input
                 className="input"
                 type="number"
@@ -186,17 +253,17 @@ export function KeywordEditor({
               />
             </Field>
           )}
-          <Field label="备注（可选）">
+          <Field label={m.keywords.editor.noteLabel}>
             <input
               className="input"
               value={draft.note ?? ''}
-              placeholder="记录这条规则的用途"
+              placeholder={m.keywords.editor.notePlaceholder}
               onChange={(e) => setDraft({ ...draft, note: e.target.value })}
             />
           </Field>
-          <Setting title="启用这条关键词">
+          <Setting title={m.keywords.editor.enableItemTitle}>
             <Switch
-              label="启用这条关键词"
+              label={m.keywords.editor.enableItemTitle}
               checked={draft.enabled}
               onChange={(enabled) => setDraft({ ...draft, enabled })}
             />
@@ -206,94 +273,257 @@ export function KeywordEditor({
       </Modal>
       {discard && (
         <Confirm
-          title="放弃未保存的修改？"
-          actionLabel="放弃修改"
+          title={m.keywords.editor.discardTitle}
+          actionLabel={m.keywords.editor.discardBtn}
           onClose={() => setDiscard(false)}
           onConfirm={async () => onClose()}
         >
-          <p>这次编辑尚未保存。</p>
+          <p>{m.keywords.editor.discardBody}</p>
         </Confirm>
       )}
     </>
   );
 }
+
+type EditorState =
+  | { kind: 'new' }
+  | { kind: 'edit'; item: KeywordRuleItem }
+  | { kind: 'customize'; source: KeywordRuleItem }
+  | null;
+
+function getCloudCategory(
+  item: KeywordRuleItem
+): Exclude<CloudCategoryKey, 'all'> {
+  if (item.id.startsWith('cloud-cliche-')) return 'cliche';
+  if (
+    item.id.startsWith('cloud-crypto-') ||
+    item.id === 'cloud-scam-crypto-1' ||
+    item.id === 'cloud-scam-rebate-1'
+  ) {
+    return 'crypto';
+  }
+  if (item.id.startsWith('cloud-follow-')) return 'follow';
+  if (
+    item.id.startsWith('cloud-nsfw-') ||
+    item.id.startsWith('cloud-gambling-') ||
+    item.id.startsWith('cloud-blackmarket-')
+  ) {
+    return 'nsfw_black';
+  }
+  return 'scam';
+}
+
+const cloudCategoryIds: CloudCategoryKey[] = [
+  'all',
+  'cliche',
+  'crypto',
+  'follow',
+  'scam',
+  'nsfw_black',
+];
+
 export function KeywordsPage() {
   const { data } = useApp();
+  const { m, locale } = useI18n();
   const { config, snapshot } = data!;
   const [tab, setTab] = useState<'local' | 'cloud'>('local'),
+    [cloudCategory, setCloudCategory] = useState<CloudCategoryKey>('all'),
     [query, setQuery] = useState(''),
-    [editor, setEditor] = useState<KeywordRuleItem | 'new' | null>(null),
-    [deleting, setDeleting] = useState<KeywordRuleItem | null>(null);
+    [editor, setEditor] = useState<EditorState>(null),
+    [deleting, setDeleting] = useState<KeywordRuleItem | null>(null),
+    [notice, setNotice] = useState('');
+  const disabledCloudSet = new Set(config.disabledCloudKeywordIds);
+  const upstreamCloudTotal = snapshot.cloudKeywords.filter(
+    (k) => k.enabled
+  ).length;
+  const activeCloudCount = snapshot.cloudKeywords.filter(
+    (k) => k.enabled && !disabledCloudSet.has(k.id)
+  ).length;
+  const disabledInSnapshotCount = upstreamCloudTotal - activeCloudCount;
+
+  const cloudCategoryCounts: Record<CloudCategoryKey, number> = {
+    all: snapshot.cloudKeywords.length,
+    cliche: 0,
+    crypto: 0,
+    follow: 0,
+    scam: 0,
+    nsfw_black: 0,
+  };
+  for (const item of snapshot.cloudKeywords) {
+    cloudCategoryCounts[getCloudCategory(item)]++;
+  }
+
   const list = (
-    tab === 'local' ? config.rules.keywords.items : snapshot.cloudKeywords
-  ).filter((k) =>
-    `${k.pattern} ${k.note ?? ''}`.toLowerCase().includes(query.toLowerCase())
+    tab === 'local'
+      ? config.rules.keywords.items
+      : snapshot.cloudKeywords.filter(
+          (k) => cloudCategory === 'all' || getCloudCategory(k) === cloudCategory
+        )
+  ).filter((k) => {
+    const note =
+      tab === 'cloud' ? getCloudKeywordNote(k, locale) : (k.note ?? '');
+    return `${k.pattern} ${note} ${k.note ?? ''}`
+      .toLowerCase()
+      .includes(query.toLowerCase());
+  });
+  const toggleableInList = list.filter((k) => k.enabled);
+  const anyActiveInList = toggleableInList.some(
+    (k) => !disabledCloudSet.has(k.id)
   );
-  const page = usePagination(list, tab + query);
+  const page = usePagination(list, `${tab}:${cloudCategory}:${query}`);
   return (
     <Page
-      title="关键词"
-      description="过滤不想看到的词语，让内容更贴近你的兴趣。"
+      title={m.keywords.pageTitle}
+      description={m.keywords.pageDesc}
       action={
         tab === 'local' && (
-          <Button variant="primary" onClick={() => setEditor('new')}>
+          <Button variant="primary" onClick={() => setEditor({ kind: 'new' })}>
             <Plus size={16} />
-            添加关键词
+            {m.keywords.addBtn}
           </Button>
         )
       }
     >
+      {notice && (
+        <Banner kind="success" onDismiss={() => setNotice('')}>
+          {notice}
+        </Banner>
+      )}
       <Tabs
         value={tab}
         onChange={setTab}
         options={[
           {
             value: 'local',
-            label: `自定义词库 · ${config.rules.keywords.items.length}`,
+            label: m.keywords.tabLocal(config.rules.keywords.items.length),
           },
           {
             value: 'cloud',
-            label: `公共词库 · ${snapshot.cloudKeywords.length}`,
+            label:
+              activeCloudCount === upstreamCloudTotal
+                ? m.keywords.tabCloudAll(snapshot.cloudKeywords.length)
+                : m.keywords.tabCloudPartial(
+                    activeCloudCount,
+                    upstreamCloudTotal
+                  ),
           },
         ]}
       />
       <Panel>
         <Setting
-          title={tab === 'local' ? '启用自定义词库' : '启用公共词库'}
+          title={
+            tab === 'local'
+              ? m.keywords.enableLocalTitle
+              : m.keywords.enableCloudTitle
+          }
           description={
             tab === 'local'
-              ? '按每条关键词设定的范围与豁免条件过滤。'
-              : '公共词库只读，随社区快照更新；未同步时使用内置词库。'
+              ? m.keywords.enableLocalDesc
+              : m.keywords.enableCloudDesc
           }
         >
-          <Switch
-            label={tab === 'local' ? '启用自定义词库' : '启用公共词库'}
-            checked={
-              tab === 'local'
-                ? config.rules.keywords.enabled
-                : config.enableCloudKeywords
-            }
-            onChange={(enabled) =>
-              perform({
-                type: 'config.patch',
-                patch:
-                  tab === 'local'
-                    ? { rules: { keywords: { enabled } } }
-                    : { enableCloudKeywords: enabled },
-              })
-            }
-          />
+          <div className="row" style={{ gap: 10 }}>
+            {tab === 'cloud' && disabledInSnapshotCount > 0 && (
+              <Button
+                variant="sm"
+                onClick={() =>
+                  perform({
+                    type: 'config.patch',
+                    patch: { disabledCloudKeywordIds: [] },
+                  })
+                }
+              >
+                <RotateCcw size={13} />
+                {m.keywords.enableAllBtn}
+              </Button>
+            )}
+            <Switch
+              label={
+                tab === 'local'
+                  ? m.keywords.enableLocalTitle
+                  : m.keywords.enableCloudTitle
+              }
+              checked={
+                tab === 'local'
+                  ? config.rules.keywords.enabled
+                  : config.enableCloudKeywords
+              }
+              onChange={(enabled) =>
+                perform({
+                  type: 'config.patch',
+                  patch:
+                    tab === 'local'
+                      ? { rules: { keywords: { enabled } } }
+                      : { enableCloudKeywords: enabled },
+                })
+              }
+            />
+          </div>
         </Setting>
       </Panel>
+      {tab === 'cloud' && (
+        <div
+          className="lang-grid"
+          role="group"
+          aria-label={m.keywords.categoryAria}
+        >
+          {cloudCategoryIds.map((catId) => {
+            const selected = cloudCategory === catId;
+            return (
+              <button
+                key={catId}
+                type="button"
+                className="lang-chip"
+                aria-pressed={selected}
+                onClick={() => setCloudCategory(catId)}
+              >
+                <span>{m.keywords.categories[catId]}</span>
+                <span className="lang-code">{cloudCategoryCounts[catId]}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
       <div className="row between wrap">
         <SearchBox
           value={query}
           onChange={setQuery}
-          placeholder="搜索关键词或备注"
+          placeholder={m.keywords.searchPlaceholder}
         />
-        <span className="small muted">
-          {list.length} 条关键词{tab === 'cloud' ? ' · 只读' : ''}
-        </span>
+        <div className="row" style={{ gap: 10 }}>
+          {tab === 'cloud' &&
+            cloudCategory !== 'all' &&
+            toggleableInList.length > 0 && (
+              <Button
+                variant="ghost sm"
+                onClick={() => {
+                  const next = new Set(config.disabledCloudKeywordIds);
+                  for (const item of toggleableInList) {
+                    if (anyActiveInList) next.add(item.id);
+                    else next.delete(item.id);
+                  }
+                  perform({
+                    type: 'config.patch',
+                    patch: { disabledCloudKeywordIds: [...next] },
+                  });
+                }}
+              >
+                {anyActiveInList
+                  ? m.keywords.disableCategory
+                  : m.keywords.enableCategory}
+              </Button>
+            )}
+          <span className="small muted">
+            {tab === 'local'
+              ? m.keywords.localCount(list.length)
+              : config.enableCloudKeywords
+                ? m.keywords.cloudActiveCount(
+                    activeCloudCount,
+                    upstreamCloudTotal
+                  )
+                : m.keywords.cloudMasterOff(upstreamCloudTotal)}
+          </span>
+        </div>
       </div>
       <Panel className="table-panel">
         {list.length ? (
@@ -302,81 +532,173 @@ export function KeywordsPage() {
               <table>
                 <thead>
                   <tr>
-                    <th>匹配内容</th>
-                    <th>匹配范围</th>
-                    <th>粉丝豁免</th>
-                    <th>状态 / 操作</th>
+                    <th>
+                      {tab === 'cloud'
+                        ? m.keywords.colCloudPack
+                        : m.keywords.colPattern}
+                    </th>
+                    <th>{m.keywords.colScopes}</th>
+                    <th>{m.keywords.colExempt}</th>
+                    <th style={{ textAlign: 'right' }}>
+                      {m.keywords.colActions}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {page.items.map((k) => (
-                    <tr key={k.id}>
-                      <td>
-                        <div className="cell-main">
-                          <div className="row">
-                            <strong className="ellipsis" title={k.pattern}>
-                              {k.pattern}
-                            </strong>
-                            {k.isRegex && <Pill kind="neutral">正则</Pill>}
-                          </div>
-                          <div className="small muted ellipsis" title={k.note}>
-                            {k.note || '无备注'}
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="row wrap" style={{ gap: 5 }}>
-                          {k.scopes.map((scope) => (
-                            <Pill key={scope} kind="neutral">
-                              {scopeLabels[scope]}
-                            </Pill>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="small muted">
-                        {k.maxFollowersExempt
-                          ? `≥ ${k.maxFollowersExempt.toLocaleString()}`
-                          : '无'}
-                      </td>
-                      <td>
-                        <div className="table-actions">
-                          {tab === 'local' ? (
-                            <>
-                              <Switch
-                                label={`启用关键词 ${k.pattern}`}
-                                checked={k.enabled}
-                                onChange={(enabled) =>
-                                  perform({
-                                    type: 'keyword.save',
-                                    item: { ...k, enabled },
-                                    expected: digest(k),
-                                  })
-                                }
-                              />
-                              <Button
-                                variant="ghost icon"
-                                aria-label={`编辑 ${k.pattern}`}
-                                onClick={() => setEditor(k)}
-                              >
-                                <Pencil size={15} />
-                              </Button>
-                              <Button
-                                variant="ghost icon"
-                                aria-label={`删除 ${k.pattern}`}
-                                onClick={() => setDeleting(k)}
-                              >
-                                <Trash2 size={15} />
-                              </Button>
-                            </>
+                  {page.items.map((k) => {
+                    const cloudItemActive =
+                      k.enabled && !disabledCloudSet.has(k.id);
+                    const rowDimmed =
+                      tab === 'local'
+                        ? !k.enabled || !config.rules.keywords.enabled
+                        : !cloudItemActive || !config.enableCloudKeywords;
+                    const displayNote =
+                      tab === 'cloud'
+                        ? getCloudKeywordNote(k, locale)
+                        : (k.note ?? '');
+                    return (
+                      <tr
+                        key={k.id}
+                        style={rowDimmed ? { opacity: 0.58 } : undefined}
+                      >
+                        <td>
+                          {tab === 'cloud' && displayNote ? (
+                            <div className="cell-main">
+                              <div className="row">
+                                <strong
+                                  className="ellipsis"
+                                  title={displayNote}
+                                >
+                                  {displayNote}
+                                </strong>
+                              </div>
+                              <div className="row" style={{ gap: 6 }}>
+                                {k.isRegex && (
+                                  <Pill kind="neutral">
+                                    {m.keywords.regexPill}
+                                  </Pill>
+                                )}
+                                <span
+                                  className="small muted ellipsis"
+                                  title={k.pattern}
+                                >
+                                  {k.pattern}
+                                </span>
+                              </div>
+                            </div>
                           ) : (
-                            <Pill kind="neutral">
-                              {k.enabled ? '已收录' : '未启用'}
-                            </Pill>
+                            <div className="cell-main">
+                              <div className="row">
+                                <strong className="ellipsis" title={k.pattern}>
+                                  {k.pattern}
+                                </strong>
+                                {k.isRegex && (
+                                  <Pill kind="neutral">
+                                    {m.keywords.regexPill}
+                                  </Pill>
+                                )}
+                              </div>
+                              <div
+                                className="small muted ellipsis"
+                                title={displayNote}
+                              >
+                                {displayNote || m.keywords.noNote}
+                              </div>
+                            </div>
                           )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td>
+                          <div className="row wrap" style={{ gap: 5 }}>
+                            {k.scopes.map((scope) => (
+                              <Pill key={scope} kind="neutral">
+                                {m.keywords.scopes[scope]}
+                              </Pill>
+                            ))}
+                            {k.onlyInReplies && (
+                              <Pill>{m.keywords.onlyRepliesPill}</Pill>
+                            )}
+                          </div>
+                        </td>
+                        <td className="small muted">
+                          {k.maxFollowersExempt
+                            ? `≥ ${formatCount(k.maxFollowersExempt, locale)}`
+                            : m.common.none}
+                        </td>
+                        <td>
+                          <div className="table-actions">
+                            {tab === 'local' ? (
+                              <>
+                                <Switch
+                                  label={m.keywords.enableItemAria(k.pattern)}
+                                  checked={k.enabled}
+                                  onChange={(enabled) =>
+                                    perform({
+                                      type: 'keyword.save',
+                                      item: { ...k, enabled },
+                                      expected: digest(k),
+                                    })
+                                  }
+                                />
+                                <Button
+                                  variant="ghost icon"
+                                  aria-label={m.keywords.editItemAria(
+                                    k.pattern
+                                  )}
+                                  onClick={() =>
+                                    setEditor({ kind: 'edit', item: k })
+                                  }
+                                >
+                                  <Pencil size={15} />
+                                </Button>
+                                <Button
+                                  variant="ghost icon"
+                                  aria-label={m.keywords.deleteItemAria(
+                                    k.pattern
+                                  )}
+                                  onClick={() => setDeleting(k)}
+                                >
+                                  <Trash2 size={15} />
+                                </Button>
+                              </>
+                            ) : k.enabled ? (
+                              <>
+                                <Button
+                                  variant="ghost sm"
+                                  title={m.keywords.customizeTooltip}
+                                  aria-label={m.keywords.customizeAria(
+                                    displayNote || k.pattern
+                                  )}
+                                  onClick={() =>
+                                    setEditor({ kind: 'customize', source: k })
+                                  }
+                                >
+                                  <Copy size={13} />
+                                  {m.keywords.customizeBtn}
+                                </Button>
+                                <Switch
+                                  label={m.keywords.enableCloudItemAria(
+                                    displayNote || k.pattern
+                                  )}
+                                  checked={cloudItemActive}
+                                  onChange={(enabled) =>
+                                    perform({
+                                      type: 'cloudKeyword.toggle',
+                                      id: k.id,
+                                      enabled,
+                                    })
+                                  }
+                                />
+                              </>
+                            ) : (
+                              <Pill kind="neutral">
+                                {m.keywords.upstreamPaused}
+                              </Pill>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -384,25 +706,35 @@ export function KeywordsPage() {
           </>
         ) : (
           <Empty
-            title={query ? '没有匹配的关键词' : '从第一个关键词开始'}
+            title={
+              query ? m.keywords.emptySearchTitle : m.keywords.emptyInitTitle
+            }
             description={
-              query
-                ? '试试其他词语，或清空搜索条件。'
-                : '添加不想看到的内容，并选择匹配范围。'
+              query ? m.keywords.emptySearchDesc : m.keywords.emptyInitDesc
             }
           />
         )}
       </Panel>
       {editor && (
         <KeywordEditor
-          item={editor === 'new' ? undefined : editor}
+          item={editor.kind === 'edit' ? editor.item : undefined}
+          customizeSource={
+            editor.kind === 'customize' ? editor.source : undefined
+          }
+          onCustomized={(saved) => {
+            setTab('local');
+            setQuery('');
+            setNotice(
+              m.keywords.customizedNotice(saved.note || saved.pattern)
+            );
+          }}
           onClose={() => setEditor(null)}
         />
       )}
       {deleting && (
         <Confirm
-          title="删除这条关键词？"
-          actionLabel="删除关键词"
+          title={m.keywords.deleteConfirmTitle}
+          actionLabel={m.keywords.deleteConfirmBtn}
           danger
           onClose={() => setDeleting(null)}
           onConfirm={() =>

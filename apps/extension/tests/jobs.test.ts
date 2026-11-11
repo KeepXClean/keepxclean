@@ -3,6 +3,7 @@ import { createDefaultConfig, STORAGE_KEYS } from '@keepxclean/shared';
 import {
   applyImport,
   changeReason,
+  resolveAccount,
   startBlock,
   startImport,
   undoBlock,
@@ -73,7 +74,9 @@ describe('durable operation boundaries', () => {
       local: 'succeeded',
       nativeX: 'unknown',
     });
-    await expect(retryBlock(id, 'nativeX')).rejects.toThrow('明确失败');
+    await expect(retryBlock(id, 'nativeX')).rejects.toThrow(
+      'Only explicitly failed stages can be retried'
+    );
   });
   it('retries only failed community import batches while retaining all local results', async () => {
     const config = await readConfig();
@@ -168,7 +171,7 @@ describe('durable operation boundaries', () => {
     const config = await readConfig();
     config.localBlocklistUids[entry.uid].reason = 'later';
     await mock.api.storage.local.set({ [STORAGE_KEYS.CONFIG]: config });
-    await expect(undoBlock(id)).rejects.toThrow('后续操作');
+    await expect(undoBlock(id)).rejects.toThrow('subsequent changes');
   });
   it('deduplicates quick repeated clicks into one pending operation', async () => {
     vi.useFakeTimers();
@@ -219,13 +222,13 @@ describe('durable operation boundaries', () => {
           ?.status
       ).toBe('error')
     );
-    await expect(applyImport(id, false, false)).rejects.toThrow('预览');
+    await expect(applyImport(id, false, false)).rejects.toThrow('preview');
   });
   it('keeps corrupt config intact and backs it up for explicit recovery', async () => {
     const corrupt = { version: 9, important: 'keep me' };
     mock.values[STORAGE_KEYS.CONFIG] = corrupt;
     await initializeStorage();
-    await expect(readConfig()).rejects.toThrow('版本');
+    await expect(readConfig()).rejects.toThrow('version');
     expect(mock.values[STORAGE_KEYS.CONFIG]).toEqual(corrupt);
     expect((mock.values[UI_KEYS.backup] as { config: unknown }).config).toEqual(
       corrupt
@@ -308,6 +311,92 @@ describe('durable operation boundaries', () => {
       todayBlocked: 1,
       todayDate: '2026-11-11',
       partialDay: undefined,
+    });
+  });
+  it('separates promoted_ad counts from content interceptions and keeps logs ad-free', async () => {
+    await initializeStorage();
+    await appendLogs([
+      {
+        id: 'ad-1',
+        tweetId: '9001',
+        authorUid: '501',
+        authorScreenName: 'brand_ad',
+        authorName: 'Brand',
+        tweetSnippet: 'Promoted offer',
+        scene: 'timeline',
+        ruleId: 'promoted_ad',
+        reasonText: '原生推广广告',
+        timestamp: Date.now(),
+      },
+      {
+        id: 'kw-1',
+        tweetId: '9002',
+        authorUid: '502',
+        authorScreenName: 'spammer',
+        authorName: 'Spammer',
+        tweetSnippet: 'Buy my course',
+        scene: 'timeline',
+        ruleId: 'keyword',
+        reasonText: '命中关键词',
+        timestamp: Date.now(),
+      },
+    ]);
+    expect(mock.values[STORAGE_KEYS.INTERCEPTION_LOGS]).toHaveLength(1);
+    expect(
+      (mock.values[STORAGE_KEYS.INTERCEPTION_LOGS] as { id: string }[])[0].id
+    ).toBe('kw-1');
+    expect(mock.values[UI_KEYS.stats]).toMatchObject({
+      todayBlocked: 1,
+      totalBlocked: 1,
+      todayAdsHidden: 1,
+      totalAdsHidden: 1,
+      byRule: { promoted_ad: 1, keyword: 1 },
+    });
+  });
+  it('resolves @handle from local logs first and falls back to X tab RESOLVE_USER_HANDLE', async () => {
+    await initializeStorage();
+    await appendLogs([
+      {
+        id: 'kw-local',
+        tweetId: '9100',
+        authorUid: '77001',
+        authorScreenName: 'cached_author',
+        authorName: 'Cached Author',
+        tweetSnippet: 'hello',
+        scene: 'timeline',
+        ruleId: 'keyword',
+        reasonText: '命中关键词',
+        timestamp: Date.now(),
+      },
+    ]);
+    const localHit = await resolveAccount('@Cached_Author');
+    expect(localHit).toMatchObject({
+      uid: '77001',
+      screenName: 'cached_author',
+      name: 'Cached Author',
+    });
+    expect(mock.api.tabs.sendMessage).not.toHaveBeenCalled();
+
+    mock.api.tabs.sendMessage.mockImplementation(async (_tab, msg) => {
+      if ((msg as { action: string }).action === 'RESOLVE_USER_HANDLE') {
+        return {
+          ok: true,
+          viewerUid: '123',
+          user: {
+            uid: '88002',
+            screenName: 'live_user',
+            name: 'Live User',
+          },
+        };
+      }
+      return { ok: true, viewerUid: '123' };
+    });
+    const remoteHit = await resolveAccount('https://x.com/live_user');
+    expect(remoteHit).toEqual({
+      uid: '88002',
+      screenName: 'live_user',
+      name: 'Live User',
+      avatarUrl: undefined,
     });
   });
 });

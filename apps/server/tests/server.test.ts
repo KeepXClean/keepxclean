@@ -178,4 +178,80 @@ describe('D1 transactional community reporting', () => {
     expect(body.version).toBe(1);
     expect(body.domain).toBe('keepxclean.com');
   });
+  it('merges D1 cloud_keywords emergency pauses and only_in_replies hotfixes with built-in packs', async () => {
+    await env.DB.batch([
+      // 1. Emergency pause on a built-in rule -> preserved with enabled: false
+      env.DB.prepare(
+        `INSERT OR REPLACE INTO cloud_keywords (id, pattern, is_regex, scopes, only_in_replies, max_followers_exempt, note, enabled, updated_at)
+         VALUES (?, ?, 1, ?, 0, 10000, 'paused builtin', 0, ?)`
+      ).bind(
+        'cloud-nsfw-bio-1',
+        '(onlyfans\\.com)',
+        JSON.stringify(['bio', 'url']),
+        Date.now()
+      ),
+      // 2. Active server hotfix with only_in_replies = 1 -> appended with onlyInReplies: true
+      env.DB.prepare(
+        `INSERT OR REPLACE INTO cloud_keywords (id, pattern, is_regex, scopes, only_in_replies, max_followers_exempt, note, enabled, updated_at)
+         VALUES (?, ?, 0, ?, 1, 5000, 'hotfix reply spam', 1, ?)`
+      ).bind(
+        'hotfix-reply-spam-1',
+        'claim-scam-link.xyz',
+        JSON.stringify(['text', 'url']),
+        Date.now()
+      ),
+      // 3. Disabled non-built-in hotfix -> omitted from snapshot
+      env.DB.prepare(
+        `INSERT OR REPLACE INTO cloud_keywords (id, pattern, is_regex, scopes, only_in_replies, max_followers_exempt, note, enabled, updated_at)
+         VALUES (?, ?, 0, ?, 0, NULL, 'retired hotfix', 0, ?)`
+      ).bind(
+        'hotfix-retired-2',
+        'old-retired-spam',
+        JSON.stringify(['text']),
+        Date.now()
+      ),
+    ]);
+
+    const res = await app.request(
+      '/v1/snapshot.json?fresh=1',
+      { headers: { 'CF-Connecting-IP': '198.51.100.77' } },
+      env
+    );
+    expect(res.status).toBe(200);
+    const snap = (await res.json()) as {
+      cloudKeywords: Array<{
+        id: string;
+        enabled: boolean;
+        onlyInReplies?: boolean;
+        maxFollowersExempt?: number;
+      }>;
+    };
+
+    const pausedBuiltin = snap.cloudKeywords.find(
+      (k) => k.id === 'cloud-nsfw-bio-1'
+    );
+    expect(pausedBuiltin).toBeDefined();
+    expect(pausedBuiltin?.enabled).toBe(false);
+
+    // Unmentioned built-in rules remain present and enabled
+    const untouchedBuiltin = snap.cloudKeywords.find(
+      (k) => k.id === 'cloud-cliche-trivia-1'
+    );
+    expect(untouchedBuiltin).toBeDefined();
+    expect(untouchedBuiltin?.enabled).toBe(true);
+
+    // Active hotfix preserves onlyInReplies: true
+    const hotfix = snap.cloudKeywords.find(
+      (k) => k.id === 'hotfix-reply-spam-1'
+    );
+    expect(hotfix).toBeDefined();
+    expect(hotfix?.enabled).toBe(true);
+    expect(hotfix?.onlyInReplies).toBe(true);
+    expect(hotfix?.maxFollowersExempt).toBe(5000);
+
+    // Disabled non-built-in hotfix is omitted
+    expect(
+      snap.cloudKeywords.some((k) => k.id === 'hotfix-retired-2')
+    ).toBe(false);
+  });
 });

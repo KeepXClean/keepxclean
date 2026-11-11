@@ -8,25 +8,40 @@ import {
 } from 'react';
 import {
   AlertCircle,
+  AlertTriangle,
   Check,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Inbox,
+  Info,
   Loader2,
+  RefreshCw,
   Search,
   X,
 } from 'lucide-react';
 import { STORAGE_KEYS } from '@keepxclean/shared';
-import { command } from '../services/client';
+import {
+  formatCount,
+  formatDateTime,
+  getActiveI18n,
+  useI18n,
+} from '../i18n';
+import {
+  command,
+  isExtensionContextValid,
+  reloadXTabs,
+  runtimeUrl,
+} from '../services/client';
 import { digest, type Command } from '../services/model';
-import { mutate, reload, useApp } from '../state/store';
+import { clearSaveError, mutate, reload, useApp } from '../state/store';
 
 export function BrandIcon({ size = 32 }: { size?: number }) {
   const resource =
     size <= 16 ? 16 : size <= 24 ? 24 : size <= 32 ? 32 : size <= 48 ? 48 : 128;
   return (
     <img
-      src={chrome.runtime.getURL(`icon/icon-${resource}.png`)}
+      src={runtimeUrl(`icon/icon-${resource}.png`)}
       alt=""
       width={size}
       height={size}
@@ -54,11 +69,11 @@ export function Button({
   return (
     <button
       type="button"
-      className={`btn ${variant} ${className}`}
+      className={`btn ${variant} ${className}`.trim()}
       {...props}
       disabled={props.disabled || loading}
     >
-      {loading && <Loader2 size={15} className="spin" />}
+      {loading && <Loader2 size={14} className="spin" />}
       {children}
     </button>
   );
@@ -119,7 +134,7 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={`panel ${className}`}>
+    <section className={`panel ${className}`.trim()}>
       {title && (
         <div className="panel-header">
           <div>
@@ -160,28 +175,104 @@ export function Page({
 export function Banner({
   children,
   kind = 'info',
+  action,
+  onDismiss,
 }: {
   children: ReactNode;
-  kind?: 'info' | 'error' | 'warning';
+  kind?: 'info' | 'success' | 'error' | 'warning';
+  action?: ReactNode;
+  onDismiss?: () => void;
 }) {
+  const { m } = useI18n();
+  const Icon =
+    kind === 'error'
+      ? AlertCircle
+      : kind === 'warning'
+        ? AlertTriangle
+        : kind === 'success'
+          ? CheckCircle2
+          : Info;
   return (
     <div
       className={`banner ${kind}`}
       role={kind === 'error' ? 'alert' : 'status'}
     >
-      <AlertCircle size={16} />
+      <Icon size={16} />
       <div className="grow">{children}</div>
+      {action}
+      {onDismiss && (
+        <Button
+          variant="ghost icon sm"
+          aria-label={m.common.dismiss}
+          onClick={onDismiss}
+        >
+          <X size={14} />
+        </Button>
+      )}
     </div>
+  );
+}
+export function ReloadXButton({
+  label,
+  variant = 'sm',
+}: {
+  label?: string;
+  variant?: string;
+}) {
+  const { m } = useI18n();
+  const buttonLabel = label ?? m.common.reloadXPage;
+  const [status, setStatus] = useState<'idle' | 'busy' | 'done' | 'none'>(
+    'idle'
+  );
+  useEffect(() => {
+    if (status !== 'done' && status !== 'none') return;
+    const timer = setTimeout(() => setStatus('idle'), 2200);
+    return () => clearTimeout(timer);
+  }, [status]);
+  return (
+    <Button
+      variant={variant}
+      loading={status === 'busy'}
+      onClick={async () => {
+        setStatus('busy');
+        try {
+          const res = await reloadXTabs();
+          setStatus(res.reloaded > 0 ? 'done' : 'none');
+        } catch {
+          setStatus('idle');
+        }
+      }}
+    >
+      {status === 'done' ? (
+        <>
+          <Check size={13} />
+          {m.common.reloaded}
+        </>
+      ) : status === 'none' ? (
+        m.common.noOpenXTab
+      ) : (
+        <>
+          <RefreshCw size={13} />
+          {buttonLabel}
+        </>
+      )}
+    </Button>
   );
 }
 export function Pill({
   children,
   kind = '',
+  title,
 }: {
   children: ReactNode;
   kind?: string;
+  title?: string;
 }) {
-  return <span className={`pill ${kind}`}>{children}</span>;
+  return (
+    <span className={`pill ${kind}`.trim()} title={title}>
+      {children}
+    </span>
+  );
 }
 export function Segmented<T extends string>({
   value,
@@ -258,21 +349,23 @@ export function Tabs<T extends string>({
 export function SearchBox({
   value,
   onChange,
-  placeholder = '搜索',
+  placeholder,
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
 }) {
+  const { m } = useI18n();
+  const text = placeholder ?? m.common.search;
   return (
     <div className="search">
       <Search size={16} />
       <input
         className="input"
         type="search"
-        aria-label={placeholder}
+        aria-label={text}
         value={value}
-        placeholder={placeholder}
+        placeholder={text}
         onChange={(e) => onChange(e.target.value)}
       />
     </div>
@@ -319,6 +412,7 @@ export function NumberField({
   unit?: string;
   sliderMax?: number;
 }) {
+  const { m } = useI18n();
   const [draft, setDraft] = useState(String(value)),
     [error, setError] = useState('');
   const id = useId();
@@ -334,7 +428,7 @@ export function NumberField({
       number < min ||
       (step === 1 && !Number.isInteger(number))
     ) {
-      setError(`请输入不小于 ${min} 的${step === 1 ? '整数' : '数值'}`);
+      setError(m.common.numberValidationError(min, step === 1));
       return;
     }
     setError('');
@@ -345,21 +439,32 @@ export function NumberField({
         setError((e as Error).message);
       }
   }
+  const parsedDraft = Number(draft);
+  const rangeValue =
+    draft.trim() && Number.isFinite(parsedDraft)
+      ? Math.max(min, parsedDraft)
+      : value;
+  const rangeMax = sliderMax
+    ? Math.max(sliderMax, value, rangeValue)
+    : undefined;
   return (
     <div className="field">
       <label className="field-label" htmlFor={id}>
         {label}
       </label>
       <div className="number-control">
-        {sliderMax && (
+        {rangeMax !== undefined && (
           <input
             type="range"
-            aria-label={`${label}滑杆`}
+            aria-label={m.common.sliderLabel(label)}
             min={min}
-            max={Math.max(sliderMax, value)}
+            max={rangeMax}
             step={step}
-            value={draft || min}
-            onChange={(e) => setDraft(e.target.value)}
+            value={rangeValue}
+            onChange={(e) => {
+              setDraft(e.target.value);
+              setError('');
+            }}
             onPointerUp={(e) => void commit(e.currentTarget.value)}
             onKeyUp={(e) => void commit(e.currentTarget.value)}
           />
@@ -379,6 +484,11 @@ export function NumberField({
             if (e.key === 'Enter') {
               e.preventDefault();
               void commit();
+            } else if (e.key === 'Escape') {
+              e.preventDefault();
+              setDraft(String(value));
+              setError('');
+              e.currentTarget.blur();
             }
           }}
         />
@@ -407,6 +517,7 @@ export function Modal({
   onClose: () => void;
   drawer?: boolean;
 }) {
+  const { m } = useI18n();
   const ref = useRef<HTMLDialogElement>(null),
     closeRef = useRef(onClose),
     id = useId();
@@ -454,7 +565,7 @@ export function Modal({
           <h2 id={id}>{title}</h2>
           {description && <p className="small muted">{description}</p>}
         </div>
-        <Button variant="ghost icon" aria-label="关闭" onClick={onClose}>
+        <Button variant="ghost icon" aria-label={m.common.close} onClick={onClose}>
           <X size={18} />
         </Button>
       </div>
@@ -466,7 +577,7 @@ export function Modal({
 export function Confirm({
   title,
   children,
-  actionLabel = '确认',
+  actionLabel,
   onConfirm,
   onClose,
   danger = false,
@@ -478,6 +589,7 @@ export function Confirm({
   onClose: () => void;
   danger?: boolean;
 }) {
+  const { m } = useI18n();
   const [pending, setPending] = useState(false),
     [error, setError] = useState('');
   return (
@@ -489,7 +601,7 @@ export function Confirm({
       footer={
         <>
           <Button disabled={pending} onClick={onClose}>
-            取消
+            {m.common.cancel}
           </Button>
           <Button
             variant={danger ? 'danger' : 'primary'}
@@ -506,7 +618,7 @@ export function Confirm({
               }
             }}
           >
-            {actionLabel}
+            {actionLabel ?? m.common.confirm}
           </Button>
         </>
       }
@@ -530,7 +642,7 @@ export function Empty({
   return (
     <div className="empty">
       <div className="empty-symbol">
-        <Inbox size={22} />
+        <Inbox size={20} />
       </div>
       <h3>{title}</h3>
       <p>{description}</p>
@@ -549,13 +661,15 @@ export function Pagination({
   count: number;
   onChange: (page: number) => void;
 }) {
+  const { m, locale } = useI18n();
+  if (pages <= 1) return null;
   return (
     <div className="pagination">
-      <span>共 {count.toLocaleString()} 条 · 每页 25 条</span>
+      <span>{m.common.paginationSummary(formatCount(count, locale))}</span>
       <div className="row">
         <Button
           variant="ghost icon"
-          aria-label="上一页"
+          aria-label={m.common.prevPage}
           disabled={page <= 1}
           onClick={() => onChange(page - 1)}
         >
@@ -566,7 +680,7 @@ export function Pagination({
         </span>
         <Button
           variant="ghost icon"
-          aria-label="下一页"
+          aria-label={m.common.nextPage}
           disabled={page >= pages}
           onClick={() => onChange(page + 1)}
         >
@@ -600,36 +714,55 @@ export function usePagination<T>(items: T[], resetKey: string) {
 }
 export function SaveStatus() {
   const state = useApp();
-  return (
-    <span className="row small muted" role="status">
-      {state.pending ? (
-        <>
-          <Loader2 size={14} className="spin" />
-          保存中
-        </>
-      ) : state.saveError ? (
-        <>
-          <AlertCircle size={14} />
-          保存失败
-        </>
-      ) : (
-        <>
-          <Check size={14} />
-          已保存到本地
-        </>
-      )}
-    </span>
-  );
+  const { m } = useI18n();
+  const [visibleSaved, setVisibleSaved] = useState(false);
+  useEffect(() => {
+    if (!state.lastSavedAt) return;
+    setVisibleSaved(true);
+    const timer = setTimeout(() => setVisibleSaved(false), 3200);
+    return () => clearTimeout(timer);
+  }, [state.lastSavedAt]);
+
+  if (state.pending) {
+    return (
+      <span className="save-status muted" role="status">
+        <Loader2 size={13} className="spin" />
+        {m.common.saving}
+      </span>
+    );
+  }
+  if (state.saveError) {
+    return (
+      <span className="save-status error" role="status">
+        <AlertCircle size={13} />
+        {m.common.saveFailed}
+      </span>
+    );
+  }
+  if (visibleSaved) {
+    return (
+      <span className="save-status saved" role="status">
+        <Check size={13} />
+        {m.common.saved}
+      </span>
+    );
+  }
+  return null;
 }
 export function SaveError() {
   const { saveError } = useApp();
-  return saveError ? <Banner kind="error">{saveError}</Banner> : null;
+  return saveError ? (
+    <Banner kind="error" onDismiss={clearSaveError}>
+      {saveError}
+    </Banner>
+  ) : null;
 }
 export function Loading() {
+  const { m } = useI18n();
   return (
     <div
       className="stack"
-      aria-label="正在加载"
+      aria-label={m.common.loading}
       role="status"
       style={{ padding: 24 }}
     >
@@ -640,30 +773,35 @@ export function Loading() {
   );
 }
 export function LoadError({ error }: { error: string }) {
+  const { m } = useI18n();
   const [recover, setRecover] = useState(false);
   return (
     <div style={{ padding: 24 }} className="stack">
-      <Banner kind="error">无法读取配置：{error}</Banner>
+      <Banner kind="error">{m.common.loadConfigError(error)}</Banner>
       <div className="row wrap">
-        <Button onClick={() => void reload()}>重新加载</Button>
+        <Button onClick={() => void reload()}>{m.common.reload}</Button>
         <Button
           onClick={async () => {
+            if (!isExtensionContextValid()) return;
             const data = await chrome.storage.local.get(STORAGE_KEYS.CONFIG);
             downloadJson(data[STORAGE_KEYS.CONFIG], 'keepxclean-recovery.json');
           }}
         >
-          导出原始数据
+          {m.common.exportRawData}
         </Button>
         <Button variant="danger" onClick={() => setRecover(true)}>
-          恢复默认配置
+          {m.common.restoreDefaults}
         </Button>
       </div>
       {recover && (
         <Confirm
-          title="恢复默认配置？"
+          title={m.common.restoreDefaultsConfirmTitle}
           danger
           onClose={() => setRecover(false)}
           onConfirm={async () => {
+            if (!isExtensionContextValid()) {
+              throw new Error(m.errors.contextInvalidated);
+            }
             const data = await chrome.storage.local.get(STORAGE_KEYS.CONFIG);
             await command({
               type: 'config.recover',
@@ -672,9 +810,7 @@ export function LoadError({ error }: { error: string }) {
             await reload();
           }}
         >
-          <p>
-            仅在配置损坏、无法使用时恢复。当前原始数据会先备份到本地；建议同时导出文件。恢复后原关键词与名单不会自动启用。
-          </p>
+          <p>{m.common.restoreDefaultsConfirmBody}</p>
         </Confirm>
       )}
     </div>
@@ -697,12 +833,6 @@ export function downloadJson(
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 export function formatTime(value?: number | string) {
-  return value
-    ? new Date(value).toLocaleString('zh-CN', {
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    : '尚未同步';
+  const { locale, m } = getActiveI18n();
+  return formatDateTime(value, locale, m.common.neverSynced);
 }

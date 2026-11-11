@@ -8,10 +8,30 @@ import type {
   ExtractedAuthor,
   ExtractedTweet,
   FilterConfig,
+  FocalTweetAuthor,
   InterceptionDecision,
   InterceptionLogEntry,
   TweetScene,
 } from './types';
+
+export const RESERVED_X_PATHS = new Set([
+  'home',
+  'explore',
+  'notifications',
+  'messages',
+  'bookmarks',
+  'settings',
+  'search',
+  'i',
+  'compose',
+  'intent',
+  'tos',
+  'privacy',
+  'jobs',
+  'lists',
+  'communities',
+  'grok',
+]);
 
 /**
  * Determines the TweetScene from a GraphQL request URL and current page pathname.
@@ -29,39 +49,27 @@ export function detectSceneFromUrl(
   ) {
     return 'search';
   }
-  if (
-    /UserTweets|UserMedia|UserByScreenName|SSR_RELAY/i.test(graphqlUrl) ||
-    (/^\/[a-zA-Z0-9_]{1,15}(\/(with_replies|media|highlights))?$/.test(
-      pagePathname
-    ) &&
-      ![
-        '/home',
-        '/explore',
-        '/notifications',
-        '/messages',
-        '/bookmarks',
-        '/settings',
-        '/search',
-      ].includes(pagePathname.toLowerCase()))
-  ) {
-    if (
-      /^\/[a-zA-Z0-9_]{1,15}(\/(with_replies|media|highlights))?$/.test(
-        pagePathname
-      ) &&
-      ![
-        '/home',
-        '/explore',
-        '/notifications',
-        '/messages',
-        '/bookmarks',
-        '/settings',
-        '/search',
-      ].includes(pagePathname.toLowerCase())
-    ) {
-      return 'profile';
-    }
+  const profileHandle = pagePathname
+    .match(
+      /^\/([a-zA-Z0-9_]{1,15})(?:\/(?:with_replies|media|highlights|likes))?\/?$/
+    )?.[1]
+    ?.toLowerCase();
+  if (profileHandle && !RESERVED_X_PATHS.has(profileHandle)) {
+    return 'profile';
+  }
+  if (/UserTweets|UserMedia/i.test(graphqlUrl)) {
+    return 'profile';
   }
   return 'timeline';
+}
+
+export function normalizeTweetLang(raw: unknown): string | undefined {
+  if (typeof raw !== 'string' || !raw.trim()) return undefined;
+  const lower = raw.trim().toLowerCase();
+  if (lower.startsWith('zh')) return 'zh';
+  if (lower === 'in') return 'id';
+  if (lower === 'iw') return 'he';
+  return lower.split('-')[0];
 }
 
 const TWITTER_SNOWFLAKE_EPOCH = 1288834974657n;
@@ -322,6 +330,32 @@ export function extractAuthorFromUserResult(
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function countTweetTags(rawTweet: any, fallbackText: string): {
+  hashtags: number;
+  cashtags: number;
+} {
+  if (!rawTweet || typeof rawTweet !== 'object') {
+    return { hashtags: 0, cashtags: 0 };
+  }
+  const legacy = rawTweet.legacy ?? {};
+  const details = rawTweet.details ?? {};
+  const hashtagEntities = details.hashtag_entities ?? legacy.entities?.hashtags;
+  const hashtags = Array.isArray(hashtagEntities)
+    ? hashtagEntities.length
+    : (fallbackText.match(/#[\p{L}\p{N}_]+/gu) ?? []).length;
+
+  const cashtagEntities =
+    details.cashtag_entities ??
+    rawTweet.cashtag_attachments ??
+    legacy.entities?.symbols;
+  const cashtags = Array.isArray(cashtagEntities)
+    ? cashtagEntities.length
+    : (fallbackText.match(/\$[A-Za-z]{2,10}\b/g) ?? []).length;
+
+  return { hashtags, cashtags };
+}
+
 /**
  * Extracts normalized ExtractedTweet from an X GraphQL timeline itemContent object
  * (supports both 2026 `details`/`counts`/`content` schema and `legacy` schema).
@@ -330,7 +364,8 @@ export function extractTweetFromItemContent(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   itemContent: any,
   scene: TweetScene,
-  focalTweetId?: string
+  focalTweetId?: string,
+  focalAuthor?: FocalTweetAuthor
 ): ExtractedTweet | null {
   if (!itemContent || typeof itemContent !== 'object') return null;
 
@@ -369,6 +404,12 @@ export function extractTweetFromItemContent(
     legacy.retweeted_status_result?.result ??
       rawTweet.retweeted_status_result?.result
   );
+  const quotedAuthor = quotedRaw
+    ? (extractAuthorFromUserResult(
+        quotedRaw.core?.user_results?.result ??
+          quotedRaw.core?.user_result?.result
+      ) ?? undefined)
+    : undefined;
   const retweetedAuthor = retweetedRaw
     ? (extractAuthorFromUserResult(
         retweetedRaw.core?.user_results?.result ??
@@ -393,6 +434,9 @@ export function extractTweetFromItemContent(
     rawTweet.url_entities,
     details.url_entities,
     legacy.entities?.urls,
+    retweetedRaw?.url_entities,
+    retweetedRaw?.details?.url_entities,
+    retweetedRaw?.legacy?.entities?.urls,
   ];
   for (const list of rawUrlLists) {
     if (Array.isArray(list)) {
@@ -404,18 +448,28 @@ export function extractTweetFromItemContent(
     }
   }
 
-  const hashtagEntities = details.hashtag_entities ?? legacy.entities?.hashtags;
-  const hashtags = Array.isArray(hashtagEntities)
-    ? hashtagEntities.length
-    : (text.match(/#[\p{L}\p{N}_]+/gu) ?? []).length;
+  const outerTags = countTweetTags(rawTweet, text);
+  const rtTags = retweetedRaw
+    ? countTweetTags(retweetedRaw, String(retweetedText ?? ''))
+    : { hashtags: 0, cashtags: 0 };
+  const hashtagCount = Math.max(outerTags.hashtags, rtTags.hashtags);
+  const cashtagCount = Math.max(outerTags.cashtags, rtTags.cashtags);
 
-  const cashtagEntities =
-    details.cashtag_entities ??
-    rawTweet.cashtag_attachments ??
-    legacy.entities?.symbols;
-  const symbols = Array.isArray(cashtagEntities)
-    ? cashtagEntities.length
-    : (text.match(/\$[A-Za-z]{2,10}\b/g) ?? []).length;
+  const mediaLists = [
+    rawTweet.media_entities,
+    details.media_entities,
+    legacy.extended_entities?.media,
+    legacy.entities?.media,
+  ];
+  const hasMedia = mediaLists.some((m) => Array.isArray(m) && m.length > 0);
+
+  const lang = normalizeTweetLang(
+    details.lang ??
+      rawTweet.lang ??
+      legacy.lang ??
+      retweetedRaw?.details?.lang ??
+      retweetedRaw?.legacy?.lang
+  );
 
   const isPromoted = Boolean(
     itemContent.promotedMetadata ||
@@ -427,7 +481,27 @@ export function extractTweetFromItemContent(
     details.in_reply_to_status_id_str ??
     rawTweet.in_reply_to_status_id_str ??
     legacy.in_reply_to_status_id_str;
+  const inReplyToUserId =
+    details.in_reply_to_user_id_str ??
+    rawTweet.in_reply_to_user_id_str ??
+    legacy.in_reply_to_user_id_str;
   const isReply = Boolean(inReplyToTweetId || scene === 'reply');
+
+  let resolvedFocal = focalAuthor;
+  if (
+    !resolvedFocal &&
+    focalTweetId &&
+    inReplyToTweetId &&
+    String(inReplyToTweetId) === focalTweetId &&
+    inReplyToUserId
+  ) {
+    resolvedFocal = {
+      restId: String(inReplyToUserId),
+      screenName: '',
+      name: '',
+      followersCount: 0,
+    };
+  }
 
   const replyCount = Number(counts.reply_count ?? legacy.reply_count ?? 0);
   const favoriteCount = Number(
@@ -440,9 +514,11 @@ export function extractTweetFromItemContent(
     text,
     quotedText:
       secondaryTextParts.length > 0 ? secondaryTextParts.join('\n') : undefined,
+    lang,
+    hasMedia,
     urls,
-    hashtagCount: hashtags,
-    cashtagCount: symbols,
+    hashtagCount,
+    cashtagCount,
     isPromoted,
     isReply,
     inReplyToTweetId: inReplyToTweetId ? String(inReplyToTweetId) : undefined,
@@ -452,6 +528,8 @@ export function extractTweetFromItemContent(
     scene,
     author,
     retweetedAuthor,
+    quotedAuthor,
+    focalAuthor: resolvedFocal,
   };
 }
 
@@ -472,6 +550,33 @@ export interface GraphqlProcessResult {
       riskBadges: string[];
     }
   >;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function locateFocalAuthor(node: any, focalTweetId: string, depth = 0): ExtractedAuthor | undefined {
+  if (!node || typeof node !== 'object' || depth > 14) return undefined;
+  const rawTweet = unwrapTweetResult(node.tweet_results?.result);
+  if (rawTweet) {
+    const id = String(rawTweet.rest_id ?? rawTweet.legacy?.id_str ?? '');
+    if (id === focalTweetId) {
+      const userRes =
+        rawTweet.core?.user_results?.result ??
+        rawTweet.core?.user_result?.result;
+      return extractAuthorFromUserResult(userRes) ?? undefined;
+    }
+  }
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const found = locateFocalAuthor(child, focalTweetId, depth + 1);
+      if (found) return found;
+    }
+    return undefined;
+  }
+  for (const key of Object.keys(node)) {
+    const found = locateFocalAuthor(node[key], focalTweetId, depth + 1);
+    if (found) return found;
+  }
+  return undefined;
 }
 
 /**
@@ -502,8 +607,9 @@ export function processGraphqlResponsePayload(
   }
 
   const scene = detectSceneFromUrl(graphqlUrl, pagePathname);
-  const statusMatch = pagePathname.match(/\/status\/(\d+)/);
-  const focalTweetId = statusMatch ? statusMatch[1] : undefined;
+  const statusMatch = pagePathname.match(/\/(?:([a-zA-Z0-9_]{1,15})\/)?status\/(\d+)/);
+  const focalHandleFromPath = statusMatch?.[1] ?? '';
+  const focalTweetId = statusMatch?.[2];
 
   const recordAuthor = (author: ExtractedAuthor) => {
     if (!author.screenName) return;
@@ -516,6 +622,20 @@ export function processGraphqlResponsePayload(
       riskBadges: profileEval.riskBadges,
     };
   };
+
+  let focalAuthor: FocalTweetAuthor | undefined;
+  if (focalTweetId) {
+    const located = locateFocalAuthor(payload, focalTweetId);
+    if (located) {
+      recordAuthor(located);
+      focalAuthor = {
+        restId: located.restId,
+        screenName: located.screenName || focalHandleFromPath,
+        name: located.name,
+        followersCount: located.followersCount,
+      };
+    }
+  }
 
   // Check if this is a UserByScreenName / user_result_by_screen_name response
   const topUserCandidates = [
@@ -535,12 +655,20 @@ export function processGraphqlResponsePayload(
   // Helper to evaluate an itemContent and decide whether to strip it from the array
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleItemContent = (itemContent: any): boolean => {
-    const tweet = extractTweetFromItemContent(itemContent, scene, focalTweetId);
+    const tweet = extractTweetFromItemContent(
+      itemContent,
+      scene,
+      focalTweetId,
+      focalAuthor
+    );
     if (!tweet) return false;
 
     recordAuthor(tweet.author);
     if (tweet.retweetedAuthor) {
       recordAuthor(tweet.retweetedAuthor);
+    }
+    if (tweet.quotedAuthor) {
+      recordAuthor(tweet.quotedAuthor);
     }
 
     const decision = evaluateTweet(tweet, config, crowdSnapshot, windowTracker);
@@ -548,14 +676,28 @@ export function processGraphqlResponsePayload(
     result.decisionsByTweetId[tweet.tweetId] = { decision, tweet };
 
     if (decision.blocked && decision.ruleId && decision.reasonText) {
+      const hitUid = decision.evidence?.find(
+        (ev) => ev.key === 'hit_uid'
+      )?.value;
+      const secondaryHit = [tweet.retweetedAuthor, tweet.quotedAuthor].find(
+        (u) =>
+          u?.restId &&
+          u.restId !== tweet.author.restId &&
+          hitUid !== undefined &&
+          String(hitUid) === u.restId
+      );
+      const logAuthor = secondaryHit ?? tweet.author;
+      const snippetSource =
+        secondaryHit && tweet.quotedText ? tweet.quotedText : tweet.text;
+
       result.interceptedLogs.push({
         id: `${tweet.tweetId}-${Date.now()}`,
         tweetId: tweet.tweetId,
-        authorUid: tweet.author.restId,
-        authorScreenName: tweet.author.screenName,
-        authorName: tweet.author.name,
-        authorAvatar: tweet.author.avatarUrl,
-        tweetSnippet: tweet.text.slice(0, 140),
+        authorUid: logAuthor.restId,
+        authorScreenName: logAuthor.screenName,
+        authorName: logAuthor.name,
+        authorAvatar: logAuthor.avatarUrl,
+        tweetSnippet: snippetSource.slice(0, 140),
         scene: tweet.scene,
         ruleId: decision.ruleId,
         reasonText: decision.reasonText,

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { History, ListFilter, Settings2, Type, Users } from 'lucide-react';
+import { useDocumentLocale, useI18n } from '../../src/i18n';
 import { useApp } from '../../src/state/store';
 import {
   Brand,
@@ -15,36 +16,41 @@ import { KeywordsPage } from '../../src/features/keywords/KeywordsPage';
 import { AccountsPage } from '../../src/features/accounts/AccountsPage';
 import { HistoryPage } from '../../src/features/history/HistoryPage';
 import { PreferencesPage } from '../../src/features/preferences/PreferencesPage';
-const routes = [
-  { id: 'rules', title: '过滤规则', icon: ListFilter, component: RulesPage },
-  { id: 'keywords', title: '关键词', icon: Type, component: KeywordsPage },
-  { id: 'accounts', title: '黑白名单', icon: Users, component: AccountsPage },
-  { id: 'history', title: '拦截记录', icon: History, component: HistoryPage },
-  {
-    id: 'preferences',
-    title: '偏好设置',
-    icon: Settings2,
-    component: PreferencesPage,
-  },
-];
+
+const routeDefs = [
+  { id: 'rules', icon: ListFilter, component: RulesPage },
+  { id: 'keywords', icon: Type, component: KeywordsPage },
+  { id: 'accounts', icon: Users, component: AccountsPage },
+  { id: 'history', icon: History, component: HistoryPage },
+  { id: 'preferences', icon: Settings2, component: PreferencesPage },
+] as const;
+
 function currentRoute() {
   return location.hash.split('?')[0].replace('#/', '') || 'rules';
 }
+
 export function App() {
   const state = useApp();
+  const { m, locale } = useI18n();
   const [route, setRoute] = useState(currentRoute());
   useEffect(() => {
     const listener = () => setRoute(currentRoute());
     window.addEventListener('hashchange', listener);
     return () => window.removeEventListener('hashchange', listener);
   }, []);
+  const routes = routeDefs.map((r) => ({
+    ...r,
+    title: m.nav[r.id],
+  }));
   const active = routes.find((x) => x.id === route) || routes[0];
+  useDocumentLocale(m.meta.optionsTitle(active.title), locale);
+
   return (
     <div className="kxc-root">
       <div className="app-shell">
         <aside className="sidebar">
           <Brand />
-          <nav aria-label="设置导航">
+          <nav aria-label={m.nav.ariaLabel}>
             {routes.map((r) => (
               <a
                 className="nav-link"
@@ -58,9 +64,9 @@ export function App() {
             ))}
           </nav>
           <div className="sidebar-bottom">
-            <p className="small">让阅读保持清爽。</p>
+            <p className="small">{m.nav.tagline}</p>
             <p className="small muted" style={{ marginTop: 5 }}>
-              KeepXClean · 本地优先
+              {m.nav.localFirst}
             </p>
           </div>
         </aside>
@@ -71,13 +77,19 @@ export function App() {
               {active.title}
             </div>
             {state.data && (
-              <div className="row">
+              <div className="row" style={{ gap: 10 }}>
                 <SaveStatus />
-                <span className="small muted">
-                  {state.data.config.enabled ? '过滤开启' : '已暂停'}
+                <span
+                  className="status-pill"
+                  data-enabled={String(state.data.config.enabled)}
+                >
+                  <span className="status-dot" />
+                  {state.data.config.enabled
+                    ? m.nav.statusActive
+                    : m.nav.statusPaused}
                 </span>
                 <Switch
-                  label="启用过滤"
+                  label={m.nav.enableFilter}
                   checked={state.data.config.enabled}
                   onChange={(enabled) =>
                     perform({ type: 'config.patch', patch: { enabled } })
@@ -92,9 +104,11 @@ export function App() {
             <Loading />
           ) : (
             <>
-              <div style={{ padding: '12px 40px 0' }}>
-                <SaveError />
-              </div>
+              {state.saveError && (
+                <div className="sticky-error-wrap">
+                  <SaveError />
+                </div>
+              )}
               <active.component key={active.id} />
             </>
           )}
