@@ -2,6 +2,7 @@ import {
   applyPresetToConfig,
   createDefaultConfig,
   type FilterConfig,
+  type ViewerProfile,
 } from '@keepxclean/shared';
 import { digest, type Command } from '../services/model';
 import {
@@ -117,6 +118,28 @@ export function applyConfigCommand(
       throw new Error('不是配置命令');
   }
   return validateConfig(next);
+}
+export function mergeViewerProfile(
+  previous: ViewerProfile | undefined,
+  incoming: ViewerProfile
+): ViewerProfile {
+  if (!previous || previous.restId !== incoming.restId) {
+    return incoming;
+  }
+  return {
+    ...incoming,
+    screenName: incoming.screenName || previous.screenName,
+    accountAgeDays:
+      incoming.screenName && incoming.accountAgeDays > 0
+        ? incoming.accountAgeDays
+        : previous.accountAgeDays > 0
+          ? previous.accountAgeDays
+          : incoming.accountAgeDays,
+    followersCount:
+      incoming.followersCount > 0
+        ? incoming.followersCount
+        : previous.followersCount,
+  };
 }
 export function serialQueue() {
   let tail: Promise<unknown> = Promise.resolve();

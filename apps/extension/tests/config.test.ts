@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { createDefaultConfig } from '@keepxclean/shared';
-import { applyConfigCommand, serialQueue } from '../src/background/config';
+import {
+  applyConfigCommand,
+  mergeViewerProfile,
+  serialQueue,
+} from '../src/background/config';
 import { digest } from '../src/services/model';
 import {
   normalizeServiceUrl,
@@ -158,5 +162,31 @@ describe('configuration contracts', () => {
   });
   it('rejects invalid community snapshots before cache replacement', () => {
     expect(() => validateSnapshot({ version: 1, counts: {} })).toThrow();
+  });
+  it('preserves rich GraphQL viewer profile across cookie-only GET_VIEWER pings while replacing on account switch', () => {
+    const rich = {
+      restId: '44196397',
+      screenName: 'alice',
+      accountAgeDays: 1200,
+      followersCount: 850,
+      reporterHash: 'a'.repeat(64),
+    };
+    const cookiePing = {
+      restId: '44196397',
+      screenName: '',
+      accountAgeDays: 5800,
+      followersCount: 0,
+      reporterHash: 'a'.repeat(64),
+    };
+    expect(mergeViewerProfile(rich, cookiePing)).toEqual(rich);
+
+    const switched = {
+      restId: '99887766',
+      screenName: '',
+      accountAgeDays: 4000,
+      followersCount: 0,
+      reporterHash: 'b'.repeat(64),
+    };
+    expect(mergeViewerProfile(rich, switched)).toEqual(switched);
   });
 });

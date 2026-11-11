@@ -3,7 +3,10 @@ import {
   STORAGE_KEYS,
   type ViewerProfile,
 } from '@keepxclean/shared';
-import { applyConfigCommand } from '../src/background/config';
+import {
+  applyConfigCommand,
+  mergeViewerProfile,
+} from '../src/background/config';
 import {
   appendLogs,
   enqueue,
@@ -169,23 +172,7 @@ export default defineBackground(() => {
           const data = await chrome.storage.local.get(UI_KEYS.viewers);
           const viewers = data[UI_KEYS.viewers] ?? {};
           const previous = viewers[sender.tab.id];
-          viewers[sender.tab.id] =
-            previous?.restId === viewer.restId
-              ? {
-                  ...viewer,
-                  screenName: viewer.screenName || previous.screenName,
-                  accountAgeDays:
-                    viewer.screenName && viewer.accountAgeDays > 0
-                      ? viewer.accountAgeDays
-                      : previous.accountAgeDays > 0
-                        ? previous.accountAgeDays
-                        : viewer.accountAgeDays,
-                  followersCount:
-                    viewer.followersCount > 0
-                      ? viewer.followersCount
-                      : previous.followersCount,
-                }
-              : viewer;
+          viewers[sender.tab.id] = mergeViewerProfile(previous, viewer);
           await chrome.storage.local.set({ [UI_KEYS.viewers]: viewers });
         });
       case 'tabs.list':
