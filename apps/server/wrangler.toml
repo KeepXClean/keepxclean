@@ -1,4 +1,5 @@
 name = "keepxclean-api"
+account_id = "fac906e305f0f4df576524f107365e35"
 main = "src/index.ts"
 compatibility_date = "2025-02-01"
 
@@ -12,16 +13,18 @@ routes = [
 SITE_DOMAIN = "keepxclean.com"
 MIN_SNAPSHOT_BLOCK_COUNT = "2"
 
-# Cron Trigger: Every 10 minutes compile D1 block counts into R2 static snapshot
+# Cron Trigger: Every 10 minutes compile D1 block counts into snapshot cache
 [triggers]
 crons = ["*/10 * * * *"]
 
 [[d1_databases]]
 binding = "DB"
 database_name = "keepxclean-db"
-database_id = "00000000-0000-0000-0000-000000000000" # Replace with `wrangler d1 create keepxclean-db` ID when deploying
+database_id = "28bf859e-ba09-44fd-9c19-52df001a14c7"
 migrations_dir = "migrations"
 
-[[r2_buckets]]
-binding = "SNAPSHOT_BUCKET"
-bucket_name = "keepxclean-snapshots"
+# Optional R2 bucket: when R2 is enabled on the Cloudflare account, uncomment below.
+# When omitted, compiled snapshots are served from D1 `snapshot_cache` + Cloudflare CDN Edge cache.
+# [[r2_buckets]]
+# binding = "SNAPSHOT_BUCKET"
+# bucket_name = "keepxclean-snapshots"

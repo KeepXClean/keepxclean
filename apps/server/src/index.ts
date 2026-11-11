@@ -17,7 +17,7 @@ import {
 
 export interface Env {
   DB: D1Database;
-  SNAPSHOT_BUCKET: R2Bucket;
+  SNAPSHOT_BUCKET?: R2Bucket;
   SITE_DOMAIN?: string;
   MIN_SNAPSHOT_BLOCK_COUNT?: string;
 }
@@ -88,6 +88,13 @@ async function ensureSchema(db: D1Database): Promise<void> {
         max_followers_exempt INTEGER DEFAULT 50000,
         note TEXT,
         enabled INTEGER NOT NULL DEFAULT 1,
+        updated_at INTEGER NOT NULL
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS snapshot_cache (
+        cache_key TEXT PRIMARY KEY,
+        payload TEXT NOT NULL,
         updated_at INTEGER NOT NULL
       )
     `),
@@ -218,13 +225,20 @@ export async function buildAndSaveSnapshot(
     cloudKeywords,
   };
 
+  const serialized = JSON.stringify(snapshot);
   if (env.SNAPSHOT_BUCKET) {
-    await env.SNAPSHOT_BUCKET.put(SNAPSHOT_R2_KEY, JSON.stringify(snapshot), {
+    await env.SNAPSHOT_BUCKET.put(SNAPSHOT_R2_KEY, serialized, {
       httpMetadata: {
         contentType: 'application/json; charset=utf-8',
         cacheControl: 'public, max-age=300, s-maxage=600',
       },
     });
+  } else {
+    await env.DB.prepare(
+      'INSERT OR REPLACE INTO snapshot_cache (cache_key, payload, updated_at) VALUES (?, ?, ?)'
+    )
+      .bind(SNAPSHOT_R2_KEY, serialized, Date.now())
+      .run();
   }
 
   return snapshot;
@@ -269,20 +283,38 @@ function getActorIp(c: Context<{ Bindings: Env }>): string {
   );
 }
 
+async function readCachedSnapshot(
+  env: Env
+): Promise<CrowdBlockSnapshot | null> {
+  if (env.SNAPSHOT_BUCKET) {
+    const obj = await env.SNAPSHOT_BUCKET.get(SNAPSHOT_R2_KEY);
+    return obj ? obj.json<CrowdBlockSnapshot>() : null;
+  }
+  await ensureSchema(env.DB);
+  const row = await env.DB.prepare(
+    'SELECT payload FROM snapshot_cache WHERE cache_key = ?'
+  )
+    .bind(SNAPSHOT_R2_KEY)
+    .first<{ payload: string }>();
+  if (!row?.payload) return null;
+  try {
+    return JSON.parse(row.payload) as CrowdBlockSnapshot;
+  } catch {
+    return null;
+  }
+}
+
 async function handleGetSnapshot(c: Context<{ Bindings: Env }>) {
   const forceFresh = c.req.query('fresh') === '1';
-  const cachedObj = c.env.SNAPSHOT_BUCKET
-    ? await c.env.SNAPSHOT_BUCKET.get(SNAPSHOT_R2_KEY)
-    : null;
+  const cachedData = await readCachedSnapshot(c.env);
 
-  if (!forceFresh && cachedObj) {
-    const data = await cachedObj.json<CrowdBlockSnapshot>();
-    return c.json(data, 200, {
+  if (!forceFresh && cachedData) {
+    return c.json(cachedData, 200, {
       'Cache-Control': 'public, max-age=300, s-maxage=600',
     });
   }
 
-  if (forceFresh && cachedObj) {
+  if (forceFresh && cachedData) {
     await ensureSchema(c.env.DB);
     const freshAllowed = await checkRateLimit(
       c.env.DB,
@@ -290,8 +322,7 @@ async function handleGetSnapshot(c: Context<{ Bindings: Env }>) {
       12
     );
     if (!freshAllowed) {
-      const data = await cachedObj.json<CrowdBlockSnapshot>();
-      return c.json(data, 200, {
+      return c.json(cachedData, 200, {
         'Cache-Control': 'public, max-age=300, s-maxage=600',
       });
     }

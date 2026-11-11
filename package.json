@@ -12,7 +12,7 @@
     "typecheck": "pnpm -r typecheck",
     "db:migrate:local": "pnpm --filter @keepxclean/server db:migrate:local",
     "db:migrate:remote": "pnpm --filter @keepxclean/server db:migrate:remote",
-    "deploy:server": "pnpm --filter @keepxclean/server deploy"
+    "deploy:server": "pnpm --filter @keepxclean/server run deploy"
   },
   "devDependencies": {
     "prettier": "3.6.2",

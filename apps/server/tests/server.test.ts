@@ -161,4 +161,21 @@ describe('D1 transactional community reporting', () => {
       expect(snap.status).toBe(200);
     }
   });
+  it('compiles and serves cached snapshots from D1 snapshot_cache when R2 is not bound', async () => {
+    const d1OnlyEnv: Env = {
+      DB: env.DB,
+      MIN_SNAPSHOT_BLOCK_COUNT: '2',
+    };
+    const built = await app.request(
+      '/v1/snapshot.json?fresh=1',
+      { headers: { 'CF-Connecting-IP': '203.0.113.99' } },
+      d1OnlyEnv
+    );
+    expect(built.status).toBe(200);
+    const cached = await app.request('/v1/snapshot.json', {}, d1OnlyEnv);
+    expect(cached.status).toBe(200);
+    const body = (await cached.json()) as { version: number; domain: string };
+    expect(body.version).toBe(1);
+    expect(body.domain).toBe('keepxclean.com');
+  });
 });
