@@ -30,9 +30,11 @@
 
 **KeepXClean** filters spam, reply bots, lookalike impersonators, engagement bait, crypto shilling, and promoted ads on X (`x.com`) in under **1 ms** — directly inside your browser without reading your account credentials or slowing down timeline scrolling.
 
-<p align="center">
-  <a href="https://keepxclean.com"><img src="docs/assets/keepxclean-demo.gif" width="800" alt="KeepXClean demo: spam replies on X folded and removed automatically" /></a>
-</p>
+<div align="center">
+
+https://github.com/user-attachments/assets/744a6b36-b6b5-4933-b22a-6471c5741ea7
+
+</div>
 
 ## Highlights
 
