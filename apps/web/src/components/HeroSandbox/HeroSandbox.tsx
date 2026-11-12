@@ -40,7 +40,13 @@ import { Controls } from './Controls';
 import { TweetFeed } from './TweetFeed';
 import { UndoToast } from './UndoToast';
 import { XVerifiedBadge } from './TweetItem';
-import { getActiveCtaConfig } from '../../config';
+import {
+  AUTHOR_30STO_LABEL,
+  AUTHOR_30STO_URL,
+  AUTHOR_X_HANDLE,
+  AUTHOR_X_URL,
+  getActiveCtaConfig,
+} from '../../config';
 import { getDictionary } from '../../locales';
 import '../../styles/sandbox.css';
 
@@ -408,6 +414,41 @@ export function HeroSandbox({ locale = 'en' }: HeroSandboxProps) {
           >
             <Github size={16} />
             <span>{dict.hero.ctaGitHub}</span>
+          </a>
+        </div>
+
+        <div className="hero-author-byline">
+          <span>
+            {locale === 'zh-CN' || locale === 'zh-TW' || locale === 'ja'
+              ? '作者'
+              : locale === 'ko'
+                ? '제작자'
+                : locale === 'fr'
+                  ? 'Auteur'
+                  : locale === 'es' || locale === 'pt' || locale === 'de'
+                    ? 'Autor'
+                    : locale === 'ru'
+                      ? 'Автор'
+                      : 'Author'}
+            :
+          </span>
+          <a
+            href={AUTHOR_X_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hero-author-link"
+          >
+            <OfficialXGlyph size={11} />
+            <span>{AUTHOR_X_HANDLE}</span>
+          </a>
+          <span className="hero-author-sep" aria-hidden="true">·</span>
+          <a
+            href={AUTHOR_30STO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hero-author-link"
+          >
+            <span>{AUTHOR_30STO_LABEL}</span>
           </a>
         </div>
       </div>

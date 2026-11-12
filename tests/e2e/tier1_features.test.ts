@@ -388,6 +388,8 @@ describe('Tier 1: Feature Coverage (Features 1 – 34)', () => {
 
       expect(footerSource).toContain('className="copyright-text"');
       expect(footerSource).toContain('{currentYear} KeepXClean contributors');
+      expect(footerSource).toContain('AUTHOR_X_URL');
+      expect(footerSource).toContain('AUTHOR_30STO_URL');
       expect(footerSource).toContain('MIT License');
       expect(currentYear).toBeGreaterThanOrEqual(2026);
     });

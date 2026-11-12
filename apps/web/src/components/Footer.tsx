@@ -1,6 +1,11 @@
+import { ExternalLink } from 'lucide-react';
 import { useI18n } from '../locales';
 import {
   API_STATS_URL,
+  AUTHOR_30STO_LABEL,
+  AUTHOR_30STO_URL,
+  AUTHOR_X_HANDLE,
+  AUTHOR_X_URL,
   CWS_LIVE,
   CWS_STORE_URL,
   GITHUB_ISSUES_URL,
@@ -10,14 +15,28 @@ import {
   PRIVACY_EMAIL,
 } from '../config';
 
+const AUTHOR_BYLINE_LABELS: Record<string, string> = {
+  en: 'Author',
+  'zh-CN': '作者',
+  'zh-TW': '作者',
+  ja: '作者',
+  ko: '제작자',
+  es: 'Autor',
+  pt: 'Autor',
+  fr: 'Auteur',
+  de: 'Autor',
+  ru: 'Автор',
+};
+
 export interface FooterProps {
   currentPage?: 'home' | 'privacy';
 }
 
 export function Footer({ currentPage = 'home' }: FooterProps) {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const currentYear = new Date().getFullYear();
   const linkPrefix = currentPage === 'privacy' ? '/' : '';
+  const authorLabel = AUTHOR_BYLINE_LABELS[locale] || AUTHOR_BYLINE_LABELS.en;
 
   return (
     <footer className="site-footer">
@@ -42,6 +61,35 @@ export function Footer({ currentPage = 'home' }: FooterProps) {
               <span className="footer-badge">{t.footer.badgeEarlyAccess}</span>
               <span className="footer-badge">{t.footer.badgeLocalFirst}</span>
               <span className="footer-badge">{t.footer.badgeLanguages}</span>
+            </div>
+            <div className="footer-author-row" data-testid="footer-author-links">
+              <span className="footer-author-label">{authorLabel}:</span>
+              <a
+                href={AUTHOR_X_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="footer-author-pill"
+              >
+                <svg
+                  width={12}
+                  height={12}
+                  viewBox="0 0 1200 1227"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z" />
+                </svg>
+                <span>{AUTHOR_X_HANDLE}</span>
+              </a>
+              <a
+                href={AUTHOR_30STO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="footer-author-pill"
+              >
+                <ExternalLink size={12} aria-hidden="true" />
+                <span>{AUTHOR_30STO_LABEL}</span>
+              </a>
             </div>
           </div>
 
@@ -141,7 +189,24 @@ export function Footer({ currentPage = 'home' }: FooterProps) {
 
         <div className="footer-bottom">
           <p className="copyright-text">
-            © {currentYear} KeepXClean contributors. {t.footer.releasedUnder}{' '}
+            © {currentYear} KeepXClean contributors · {authorLabel}:{' '}
+            <a
+              href={AUTHOR_X_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              X ({AUTHOR_X_HANDLE})
+            </a>
+            {' · '}
+            <a
+              href={AUTHOR_30STO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {AUTHOR_30STO_LABEL}
+            </a>
+            {' · '}
+            {t.footer.releasedUnder}{' '}
             <a
               href={GITHUB_LICENSE_URL}
               target="_blank"

@@ -9,6 +9,8 @@ import {
   GITHUB_LICENSE_URL,
   API_STATS_URL,
   PRIVACY_EMAIL,
+  AUTHOR_X_URL,
+  AUTHOR_30STO_URL,
   CURRENT_VERSION,
   getActiveCtaConfig,
 } from '../src/config';
@@ -42,8 +44,10 @@ describe('Feature 23: CTA Configuration & CWS Reservation', () => {
     expect(API_STATS_URL).toBe('https://api.keepxclean.com/v1/stats');
   });
 
-  it('PRIVACY_EMAIL and CURRENT_VERSION are correct', () => {
+  it('PRIVACY_EMAIL, AUTHOR links, and CURRENT_VERSION are correct', () => {
     expect(PRIVACY_EMAIL).toBe('privacy@keepxclean.com');
+    expect(AUTHOR_X_URL).toBe('https://x.com/linheitu');
+    expect(AUTHOR_30STO_URL).toBe('https://30s.to/@linmo');
     expect(CURRENT_VERSION).toBe('v0.1.0');
   });
 

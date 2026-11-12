@@ -54,6 +54,14 @@ export const API_STATS_URL = 'https://api.keepxclean.com/v1/stats';
 export const PRIVACY_EMAIL = 'privacy@keepxclean.com';
 
 /**
+ * Author profile links
+ */
+export const AUTHOR_X_HANDLE = '@linheitu';
+export const AUTHOR_X_URL = 'https://x.com/linheitu';
+export const AUTHOR_30STO_LABEL = '30s.to/@linmo';
+export const AUTHOR_30STO_URL = 'https://30s.to/@linmo';
+
+/**
  * Current release version tag
  */
 export const CURRENT_VERSION = 'v0.1.0';

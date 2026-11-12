@@ -6,6 +6,8 @@
   <p>
     <a href="https://chromewebstore.google.com/detail/keepxclean/plngcinmibjmkjjpfjemhfabjfjjkhhd"><img src="https://img.shields.io/badge/Chrome_線上應用程式商店-添加至_Chrome-13865F?style=flat-square&logo=googlechrome&logoColor=white" alt="Chrome Web Store" /></a>
     <a href="https://keepxclean.com/?lang=zh-TW"><img src="https://img.shields.io/badge/官方網站-keepxclean.com-0F1419?style=flat-square" alt="Website" /></a>
+    <a href="https://x.com/linheitu"><img src="https://img.shields.io/badge/X-%40linheitu-000000?style=flat-square&logo=x&logoColor=white" alt="X @linheitu" /></a>
+    <a href="https://30s.to/@linmo"><img src="https://img.shields.io/badge/30s.to-%40linmo-13865F?style=flat-square" alt="30s.to/@linmo" /></a>
     <a href="../../LICENSE"><img src="https://img.shields.io/badge/開源授權-MIT-blue?style=flat-square" alt="MIT License" /></a>
     <a href="https://github.com/KeepXClean/keepxclean/actions/workflows/deploy.yml"><img src="https://github.com/KeepXClean/keepxclean/actions/workflows/deploy.yml/badge.svg" alt="CI & Auto Deploy" /></a>
   </p>
@@ -78,6 +80,7 @@ pnpm build        # 建置正式版產物
 
 自架部署與 CI/CD 設定請參閱 [docs/DEPLOYMENT.md](../DEPLOYMENT.md)。
 
-## 開源授權
+## 作者與開源授權
 
-基於 [MIT License](../../LICENSE) 開源發布。KeepXClean 為獨立開源專案，與 X Corp. 無任何隸屬或關聯關係。
+- **作者**：X [@linheitu](https://x.com/linheitu) · [30s.to/@linmo](https://30s.to/@linmo)
+- **開源授權**：基於 [MIT License](../../LICENSE) 開源發布。KeepXClean 為獨立開源專案，與 X Corp. 無任何隸屬或關聯關係。

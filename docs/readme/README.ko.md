@@ -6,6 +6,8 @@
   <p>
     <a href="https://chromewebstore.google.com/detail/keepxclean/plngcinmibjmkjjpfjemhfabjfjjkhhd"><img src="https://img.shields.io/badge/Chrome_웹_스토어-Chrome에_추가-13865F?style=flat-square&logo=googlechrome&logoColor=white" alt="Chrome Web Store" /></a>
     <a href="https://keepxclean.com/?lang=ko"><img src="https://img.shields.io/badge/Website-keepxclean.com-0F1419?style=flat-square" alt="Website" /></a>
+    <a href="https://x.com/linheitu"><img src="https://img.shields.io/badge/X-%40linheitu-000000?style=flat-square&logo=x&logoColor=white" alt="X @linheitu" /></a>
+    <a href="https://30s.to/@linmo"><img src="https://img.shields.io/badge/30s.to-%40linmo-13865F?style=flat-square" alt="30s.to/@linmo" /></a>
     <a href="../../LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="MIT License" /></a>
     <a href="https://github.com/KeepXClean/keepxclean/actions/workflows/deploy.yml"><img src="https://github.com/KeepXClean/keepxclean/actions/workflows/deploy.yml/badge.svg" alt="CI & Auto Deploy" /></a>
   </p>
@@ -77,6 +79,7 @@ pnpm build        # 프로덕션 빌드
 
 자체 호스팅 및 CI/CD 배포 가이드는 [docs/DEPLOYMENT.md](../DEPLOYMENT.md)를 참고하세요.
 
-## 라이선스
+## 제작자 및 라이선스
 
-[MIT License](../../LICENSE)에 따라 배포됩니다. KeepXClean은 독립적인 오픈소스 프로젝트이며 X Corp.와 제휴되어 있지 않습니다.
+- **제작자**: X [@linheitu](https://x.com/linheitu) · [30s.to/@linmo](https://30s.to/@linmo)
+- **라이선스**: [MIT License](../../LICENSE)에 따라 배포됩니다. KeepXClean은 독립적인 오픈소스 프로젝트이며 X Corp.와 제휴되어 있지 않습니다.

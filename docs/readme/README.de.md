@@ -6,6 +6,8 @@
   <p>
     <a href="https://chromewebstore.google.com/detail/keepxclean/plngcinmibjmkjjpfjemhfabjfjjkhhd"><img src="https://img.shields.io/badge/Chrome_Web_Store-Hinzufügen-13865F?style=flat-square&logo=googlechrome&logoColor=white" alt="Chrome Web Store" /></a>
     <a href="https://keepxclean.com/?lang=de"><img src="https://img.shields.io/badge/Website-keepxclean.com-0F1419?style=flat-square" alt="Website" /></a>
+    <a href="https://x.com/linheitu"><img src="https://img.shields.io/badge/X-%40linheitu-000000?style=flat-square&logo=x&logoColor=white" alt="X @linheitu" /></a>
+    <a href="https://30s.to/@linmo"><img src="https://img.shields.io/badge/30s.to-%40linmo-13865F?style=flat-square" alt="30s.to/@linmo" /></a>
     <a href="../../LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="MIT License" /></a>
     <a href="https://github.com/KeepXClean/keepxclean/actions/workflows/deploy.yml"><img src="https://github.com/KeepXClean/keepxclean/actions/workflows/deploy.yml/badge.svg" alt="CI & Auto Deploy" /></a>
   </p>
@@ -77,6 +79,7 @@ pnpm build        # Produktions-Build erstellen
 
 Informationen zu Self-Hosting und CI/CD finden Sie unter [docs/DEPLOYMENT.md](../DEPLOYMENT.md).
 
-## Lizenz
+## Autor & Lizenz
 
-Veröffentlicht unter der [MIT-Lizenz](../../LICENSE). Unabhängiges Open-Source-Projekt ohne Verbindung zu X Corp.
+- **Autor**: X [@linheitu](https://x.com/linheitu) · [30s.to/@linmo](https://30s.to/@linmo)
+- **Lizenz**: Veröffentlicht unter der [MIT-Lizenz](../../LICENSE). Unabhängiges Open-Source-Projekt ohne Verbindung zu X Corp.
