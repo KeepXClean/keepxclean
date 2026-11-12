@@ -26,7 +26,7 @@ env:
 
 jobs:
   verify:
-    name: Typecheck, Test & Build Extension
+    name: Typecheck, Test & Build (Extension & Web)
     runs-on: ubuntu-24.04
     outputs:
       deploy_server: ${{ steps.changes.outputs.deploy_server }}
@@ -55,8 +55,14 @@ jobs:
       - name: Run unit & integration tests
         run: pnpm test
 
+      - name: Run E2E test suite
+        run: pnpm test:e2e
+
       - name: Build & package Chrome extension (.zip)
         run: pnpm --filter @keepxclean/extension zip
+
+      - name: Build official website
+        run: pnpm --filter @keepxclean/web build
 
       - name: Upload Chrome extension artifact
         uses: actions/upload-artifact@v7
@@ -93,13 +99,13 @@ jobs:
           echo "Changed files:"
           echo "$CHANGED"
 
-          if echo "$CHANGED" | grep -qE '^(apps/server/|packages/shared/|package\.json$|pnpm-lock\.yaml$|\.github/workflows/deploy\.yml$)'; then
+          if echo "$CHANGED" | grep -qE '^(apps/server/|packages/shared/|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|\.github/workflows/deploy\.yml$)'; then
             echo "deploy_server=true" >> "$GITHUB_OUTPUT"
           else
             echo "deploy_server=false" >> "$GITHUB_OUTPUT"
           fi
 
-          if echo "$CHANGED" | grep -qE '^(apps/web/|package\.json$|pnpm-lock\.yaml$|\.github/workflows/deploy\.yml$)'; then
+          if echo "$CHANGED" | grep -qE '^(apps/web/|packages/shared/|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|\.github/workflows/deploy\.yml$)'; then
             echo "deploy_web=true" >> "$GITHUB_OUTPUT"
           else
             echo "deploy_web=false" >> "$GITHUB_OUTPUT"
@@ -171,6 +177,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build official website
+        run: pnpm --filter @keepxclean/web build
 
       - name: Deploy keepxclean-web Worker
         env:
