@@ -30,6 +30,10 @@
 
 **KeepXClean** filters spam, reply bots, lookalike impersonators, engagement bait, crypto shilling, and promoted ads on X (`x.com`) in under **1 ms** — directly inside your browser without reading your account credentials or slowing down timeline scrolling.
 
+<p align="center">
+  <a href="https://keepxclean.com"><img src="docs/assets/keepxclean-demo.gif" width="800" alt="KeepXClean demo: spam replies on X folded and removed automatically" /></a>
+</p>
+
 ## Highlights
 
 - **Local-First & `< 1ms` Deterministic Engine**: Evaluates tweet payloads already delivered to your browser via X's own GraphQL streams. Zero account login, zero extra X API polling, and smooth 60/120 FPS scrolling.

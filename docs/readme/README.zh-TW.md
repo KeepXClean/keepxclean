@@ -30,6 +30,10 @@
 
 **KeepXClean** 直接在瀏覽器本地解析 X（`x.com`）既有的 GraphQL 資料流，以 **低於 1 ms** 的確定性規則即時攔截留言區機器人、高仿原推主、抽獎導流、幣圈洗版與推廣廣告——無需登入帳號，不觸碰隱私憑證，時間軸保持 60/120 FPS 絲滑流暢。
 
+<p align="center">
+  <a href="https://keepxclean.com"><img src="../assets/keepxclean-demo.gif" width="800" alt="KeepXClean 示範：X 上的垃圾回覆被自動摺疊與清除" /></a>
+</p>
+
 ## 核心亮點
 
 - **本地優先與 `< 1ms` 確定性引擎**：直接複用瀏覽器已接收的 X GraphQL 回應，零額外 API 請求、零風控輪詢。

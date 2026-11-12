@@ -310,6 +310,12 @@ export const fr: TranslationDictionary = {
     disclaimer:
       'KeepXClean est un projet open source indépendant et n’est ni affilié, ni approuvé, ni associé à X Corp. ou Twitter.',
   },
+  promoVideo: {
+    badge: 'Visite en 30 secondes',
+    title: 'Découvrez KeepXClean en 30 secondes',
+    sub: 'Spam, bots et appâts sont repliés ou supprimés pendant que vous défilez — en local, en moins de 1 ms par publication.',
+    ariaLabel: 'Vidéo de présentation de KeepXClean : réponses indésirables sur X filtrées automatiquement',
+  },
   privacy: {
     backToHome: 'Retour à l’accueil',
     bilingualNotice: 'La politique juridique officielle est fournie en anglais et en chinois simplifié.',

@@ -1,0 +1,23 @@
+{
+  "name": "keepxclean-promo-video",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "music": "node scripts/make-music.mjs",
+    "studio": "node scripts/make-music.mjs && remotion studio src/index.tsx",
+    "render": "remotion render src/index.tsx Promo out/keepxclean-promo-1080p.mp4",
+    "export": "node scripts/export.mjs"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.543",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "remotion": "^4.0.543"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "^7.0.2"
+  }
+}

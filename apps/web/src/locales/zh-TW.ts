@@ -310,6 +310,12 @@ export const zhTW: TranslationDictionary = {
     disclaimer:
       'KeepXClean 是獨立開源專案，與 X Corp. 或 Twitter 無任何隸屬、認可或關聯關係。',
   },
+  promoVideo: {
+    badge: '30 秒速覽',
+    title: '30 秒看懂 KeepXClean',
+    sub: '滑推時，垃圾回覆、機器人和導流內容被自動摺疊或清除——全程本地執行，單則判定不到 1ms。',
+    ariaLabel: 'KeepXClean 宣傳影片：X 上的垃圾回覆被自動過濾',
+  },
   privacy: {
     backToHome: '返回首頁',
     bilingualNotice: '官方具有法律效力的隱私權政策提供英文與簡體中文版本。',

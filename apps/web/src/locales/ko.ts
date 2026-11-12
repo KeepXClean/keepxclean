@@ -311,6 +311,12 @@ export const ko: TranslationDictionary = {
     disclaimer:
       'KeepXClean은 독립적인 오픈 소스 프로젝트이며 X Corp. 또는 Twitter와 제휴, 보증 또는 관련이 없습니다.',
   },
+  promoVideo: {
+    badge: '30초 둘러보기',
+    title: '30초 만에 보는 KeepXClean',
+    sub: '스크롤하는 동안 스팸, 봇, 낚시성 게시물이 자동으로 접히거나 사라집니다. 모두 로컬에서, 게시물당 1ms 미만.',
+    ariaLabel: 'KeepXClean 소개 영상: X의 스팸 답글이 자동으로 필터링되는 모습',
+  },
   privacy: {
     backToHome: '홈으로 돌아가기',
     bilingualNotice: '공식 법적 개인정보 처리방침은 영어 및 중국어 간체로 제공됩니다.',

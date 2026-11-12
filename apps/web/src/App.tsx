@@ -5,6 +5,7 @@ import { BentoGrid } from './components/BentoGrid';
 import { ArchitectureFlow } from './components/ArchitectureFlow';
 import { CommunityStats } from './components/CommunityStats';
 import { SideloadGuide } from './components/SideloadGuide';
+import { PromoVideo } from './components/PromoVideo';
 import { FaqAccordion } from './components/FaqAccordion';
 import { I18nProvider, useI18n } from './locales';
 import './styles/tokens.css';
@@ -22,6 +23,11 @@ function AppContent() {
         {/* Hero Interactive Sandbox Simulator */}
         <section id="hero" className="section-hero shell">
           <HeroSandbox locale={locale} />
+        </section>
+
+        {/* 30-second promo video (marketing/promo-video) */}
+        <section id="video" className="section-video shell">
+          <PromoVideo />
         </section>
 
         {/* Bento Grid 4-Card Showcase (Feature 24-27) */}

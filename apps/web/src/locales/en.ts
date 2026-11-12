@@ -310,6 +310,12 @@ export const en: TranslationDictionary = {
     disclaimer:
       'KeepXClean is an independent open-source project and is not affiliated with, endorsed by, or associated with X Corp. or Twitter.',
   },
+  promoVideo: {
+    badge: '30-Second Tour',
+    title: 'See KeepXClean in 30 seconds',
+    sub: 'Spam, bots, and bait get folded or removed as you scroll — locally, in under 1 ms per post.',
+    ariaLabel: 'KeepXClean promo video: spam replies on X being filtered automatically',
+  },
   privacy: {
     backToHome: 'Back to Home',
     bilingualNotice: 'Official legal policy is provided in English and Simplified Chinese.',

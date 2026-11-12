@@ -30,6 +30,10 @@
 
 **KeepXClean** filtra spam, bots de respostas, perfis falsos que imitam o autor, iscas de engajamento, golpes cripto e anúncios promovidos no X (`x.com`) em menos de **1 ms** diretamente no navegador, sem acessar credenciais e mantendo rolagem fluida a 60/120 FPS.
 
+<p align="center">
+  <a href="https://keepxclean.com"><img src="../assets/keepxclean-demo.gif" width="800" alt="Demo do KeepXClean: respostas de spam no X recolhidas e removidas automaticamente" /></a>
+</p>
+
 ## Destaques
 
 - **Motor Determinístico Local (`< 1ms`)**: Avalia em memória as respostas GraphQL já entregues pelo X ao navegador — zero login e zero chamadas extras à API do X.

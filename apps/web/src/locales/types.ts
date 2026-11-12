@@ -301,6 +301,13 @@ export interface PrivacyPageTranslations {
   viewChinese: string;
 }
 
+export interface PromoVideoTranslations {
+  badge: string;
+  title: string;
+  sub: string;
+  ariaLabel: string;
+}
+
 export interface TranslationDictionary {
   locale: SupportedLocale;
   meta: MetaTranslations;
@@ -313,5 +320,6 @@ export interface TranslationDictionary {
   install: InstallTranslations;
   faq: FaqTranslations;
   footer: FooterTranslations;
+  promoVideo: PromoVideoTranslations;
   privacy: PrivacyPageTranslations;
 }

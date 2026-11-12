@@ -310,6 +310,12 @@ export const ja: TranslationDictionary = {
     disclaimer:
       'KeepXClean は独立したオープンソースプロジェクトであり、X Corp. または Twitter と提携、後援、関係はありません。',
   },
+  promoVideo: {
+    badge: '30秒ツアー',
+    title: '30秒でわかる KeepXClean',
+    sub: 'スクロール中のスパム、ボット、釣り投稿を自動で折りたたみ・非表示に。すべてローカルで、1件あたり1ms未満。',
+    ariaLabel: 'KeepXClean 紹介動画：X のスパム返信が自動でフィルタリングされる様子',
+  },
   privacy: {
     backToHome: 'トップページに戻る',
     bilingualNotice: '公式プライバシーポリシーは英語および簡体中国語で提供されています。',
