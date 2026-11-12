@@ -286,8 +286,8 @@ describe('M4 Challenger 2: Feature 23 Config & CTA Behavior Stress-Test', () => 
     expect(/^[a-p]{32}$/.test(CWS_EXTENSION_ID)).toBe(true);
   });
 
-  it('CWS_LIVE is false by default in production config', () => {
-    expect(CWS_LIVE).toBe(false);
+  it('CWS_LIVE is true by default in production config now that Chrome Web Store is approved', () => {
+    expect(CWS_LIVE).toBe(true);
   });
 
   it('CWS_STORE_URL and GITHUB_RELEASE_URL are correctly constructed', () => {
@@ -300,25 +300,25 @@ describe('M4 Challenger 2: Feature 23 Config & CTA Behavior Stress-Test', () => 
     expect(GITHUB_REPO_URL).toBe('https://github.com/KeepXClean/keepxclean');
   });
 
-  it('getActiveCtaConfig() returns GitHub release URL and isStore=false by default', () => {
+  it('getActiveCtaConfig() returns CWS store URL and isStore=true by default', () => {
     const config = getActiveCtaConfig();
-    expect(config.cwsLive).toBe(false);
+    expect(config.cwsLive).toBe(true);
     expect(config.primaryUrl).toBe(
-      'https://github.com/KeepXClean/keepxclean/releases/latest'
+      'https://chromewebstore.google.com/detail/keepxclean/plngcinmibjmkjjpfjemhfabjfjjkhhd'
     );
     expect(config.secondaryUrl).toBe('https://github.com/KeepXClean/keepxclean');
-    expect(config.isStore).toBe(false);
+    expect(config.isStore).toBe(true);
     expect(config.cwsExtensionId).toBe('plngcinmibjmkjjpfjemhfabjfjjkhhd');
   });
 
-  it('getActiveCtaConfig(true) toggle returns CWS store URL and isStore=true', () => {
-    const toggled = getActiveCtaConfig(true);
-    expect(toggled.cwsLive).toBe(true);
-    expect(toggled.primaryUrl).toBe(
-      'https://chromewebstore.google.com/detail/keepxclean/plngcinmibjmkjjpfjemhfabjfjjkhhd'
+  it('getActiveCtaConfig(false) fallback returns GitHub release URL and isStore=false', () => {
+    const fallback = getActiveCtaConfig(false);
+    expect(fallback.cwsLive).toBe(false);
+    expect(fallback.primaryUrl).toBe(
+      'https://github.com/KeepXClean/keepxclean/releases/latest'
     );
-    expect(toggled.secondaryUrl).toBe('https://github.com/KeepXClean/keepxclean');
-    expect(toggled.isStore).toBe(true);
+    expect(fallback.secondaryUrl).toBe('https://github.com/KeepXClean/keepxclean');
+    expect(fallback.isStore).toBe(false);
   });
 
   it('useCta hook exposes review badge when cwsLive is false, and hides it when cwsLive is true', () => {
@@ -379,7 +379,7 @@ describe('M4 Challenger 2: DOM Component & Header Toggle Empirical Verification'
     document.body.innerHTML = '';
   });
 
-  it('Header component renders CWS review badge and GitHub release CTA with CWS_LIVE=false', async () => {
+  it('Header component hides CWS review badge and links to Chrome Web Store by default, and supports cwsLive=false fallback', async () => {
     const root = createRoot(container);
     await act(async () => {
       root.render(
@@ -390,16 +390,29 @@ describe('M4 Challenger 2: DOM Component & Header Toggle Empirical Verification'
       await Promise.resolve();
     });
 
-    // Verify .header-cws-badge exists
+    // Default (CWS_LIVE = true): no review badge, CTA links directly to CWS
+    expect(container.querySelector('.header-cws-badge')).toBeNull();
+    const liveBtn = container.querySelector('.btn-header-cta');
+    expect(liveBtn?.getAttribute('href')).toBe(CWS_STORE_URL);
+    expect(liveBtn?.textContent).toContain(en.nav.addToChrome);
+
+    // Fallback (cwsLive = false): review badge + GitHub release CTA
+    await act(async () => {
+      root.render(
+        <I18nProvider initialLocale="en">
+          <Header currentPage="home" cwsLive={false} />
+        </I18nProvider>
+      );
+      await Promise.resolve();
+    });
+
     const badge = container.querySelector('.header-cws-badge');
-    expect(badge, 'CWS review badge must exist when CWS_LIVE is false').not.toBeNull();
+    expect(badge, 'CWS review badge must exist when cwsLive is false').not.toBeNull();
     expect(badge?.textContent).toContain(en.nav.cwsReviewBadge);
 
-    // Verify pulsing status dot
     const pulseDot = badge?.querySelector('.status-dot-pulse');
     expect(pulseDot, 'Pulsing dot must exist inside review badge').not.toBeNull();
 
-    // Verify CTA button href points to GitHub Releases
     const ctaBtn = container.querySelector('.btn-header-cta');
     expect(ctaBtn).not.toBeNull();
     expect(ctaBtn?.getAttribute('href')).toBe(GITHUB_RELEASE_URL);
@@ -410,7 +423,7 @@ describe('M4 Challenger 2: DOM Component & Header Toggle Empirical Verification'
     });
   });
 
-  it('Header renders localized review badges and CTA labels across all 10 locales', async () => {
+  it('Header renders localized Chrome Web Store CTA labels across all 10 locales (and review badges when cwsLive=false)', async () => {
     for (const locale of SUPPORTED_LOCALES) {
       const root = createRoot(container);
       await act(async () => {
@@ -423,6 +436,20 @@ describe('M4 Challenger 2: DOM Component & Header Toggle Empirical Verification'
       });
 
       const dict = DICTIONARIES[locale];
+      expect(container.querySelector('.header-cws-badge')).toBeNull();
+      const liveBtn = container.querySelector('.btn-header-cta');
+      expect(liveBtn?.getAttribute('href')).toBe(CWS_STORE_URL);
+      expect(liveBtn?.textContent).toContain(dict.nav.addToChrome);
+
+      await act(async () => {
+        root.render(
+          <I18nProvider initialLocale={locale}>
+            <Header currentPage="home" cwsLive={false} />
+          </I18nProvider>
+        );
+        await Promise.resolve();
+      });
+
       const badge = container.querySelector('.header-cws-badge');
       expect(
         badge?.textContent,
@@ -449,11 +476,11 @@ describe('M4 Challenger 2: DOM Component & Header Toggle Empirical Verification'
     });
 
     const badge = container.querySelector('.header-cws-badge');
-    expect(badge).not.toBeNull();
-    expect(badge?.textContent).toContain(en.nav.cwsReviewBadge);
+    expect(badge).toBeNull();
 
     const ctaBtn = container.querySelector('.btn-header-cta');
-    expect(ctaBtn?.getAttribute('href')).toBe(GITHUB_RELEASE_URL);
+    expect(ctaBtn?.getAttribute('href')).toBe(CWS_STORE_URL);
+    expect(ctaBtn?.textContent).toContain(en.nav.addToChrome);
 
     await act(async () => {
       root.unmount();

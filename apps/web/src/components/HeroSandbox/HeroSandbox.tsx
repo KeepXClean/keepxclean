@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   RotateCcw,
   Download,
+  ExternalLink,
   Github,
   Sparkles,
   Lock,
@@ -382,7 +383,11 @@ export function HeroSandbox({ locale = 'en' }: HeroSandboxProps) {
             rel="noopener noreferrer"
             className="btn-hero-primary"
           >
-            <Download size={16} />
+            {ctaConfig.isStore ? (
+              <ExternalLink size={16} />
+            ) : (
+              <Download size={16} />
+            )}
             <span>
               {ctaConfig.isStore ? dict.hero.ctaStore : dict.hero.ctaPrimary}
             </span>

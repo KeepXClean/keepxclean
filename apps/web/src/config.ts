@@ -16,7 +16,7 @@ export const CWS_EXTENSION_ID = 'plngcinmibjmkjjpfjemhfabjfjjkhhd';
  *          accompanied by a "Chrome Web Store under review" / "Chrome 商店审核中" badge.
  * - true:  Chrome Web Store is approved & live. Primary CTA points directly to CWS_STORE_URL ("Add to Chrome").
  */
-export const CWS_LIVE = false;
+export const CWS_LIVE = true;
 
 /**
  * Direct link to the Chrome Web Store listing for KeepXClean

@@ -228,10 +228,10 @@ export const zhCN: TranslationDictionary = {
     fallbackNotice: '快照缓存数据',
   },
   install: {
-    badge: '抢先体验安装',
-    title: '三步加载 KeepXClean 抢先版',
-    sub: '在 Chrome 应用商店官方审核期间，您只需 60 秒即可加载抢先构建包体验。',
-    sectionTitle: '3 步侧载安装指南',
+    badge: '官方商店与开源安装',
+    title: '一键从 Chrome 商店安装，或手动加载开源包',
+    sub: '现已正式通过审核并上架 Chrome 应用商店，支持一键添加；无法访问谷歌商店或偏好离线审计的用户也可按下方三步加载 GitHub 发布包。',
+    sectionTitle: '备选方案：开源离线包 3 步手动加载指南',
     sectionDesc:
       '下载 Release 压缩包 · 本地解压 · 打开 Chrome 开发者模式加载已解压程序。',
     copyTooltip: '复制 chrome://extensions',
@@ -252,10 +252,10 @@ export const zhCN: TranslationDictionary = {
   faq: {
     badge: '常见问答',
     title: '关于 KeepXClean 的一切疑问',
-    sub: '关于隐私安全、运行开销、转推穿透与商店上架的权威解答。',
+    sub: '关于隐私安全、运行开销、转推穿透与商店安装的权威解答。',
     sectionTitle: '常见问答解答',
     sectionDesc:
-      '深入了解本地隐私、性能开销、引用推文识别与 Chrome 应用商店审核进程。',
+      '深入了解本地隐私、性能开销、引用推文识别与 Chrome 应用商店安装说明。',
     items: [
       {
         q: 'KeepXClean 会读取我的推特密码、Token 或私信吗？',
@@ -266,8 +266,8 @@ export const zhCN: TranslationDictionary = {
         a: '完全不会。KeepXClean 采用毫秒级（< 1ms）确定性规则引擎，没有庞大的模型运行开销或同步网络阻塞，时间线滚动始终保持 60/120 FPS 丝滑顺畅。',
       },
       {
-        q: '为什么目前在 GitHub Releases 下载，而不是 Chrome 商店？',
-        a: '我们已将 KeepXClean 提交至 Chrome 应用商店（扩展 ID: plngcinmibjmkjjpfjemhfabjfjjkhhd），目前正在等待谷歌官方审核。审核期间，您可以直接下载开源构建包以开发者模式加载体验。',
+        q: '在哪里安装 KeepXClean？支持哪些浏览器？',
+        a: 'KeepXClean 已正式通过谷歌官方审核并上架 Chrome 应用商店（扩展 ID: plngcinmibjmkjjpfjemhfabjfjjkhhd），支持 Chrome、Edge、Brave、Arc 等 Chromium 桌面浏览器一键安装；同时我们也在 GitHub Releases 持续提供 100% 一致的开源离线构建包（.zip）。',
       },
       {
         q: '如果误拦了正常推文，我可以撤销或加白吗？',
@@ -286,7 +286,7 @@ export const zhCN: TranslationDictionary = {
   footer: {
     tagline:
       'X 纯净高信噪比时间线与评论区过滤器。本地优先、零账号登录、彻底开源且注重隐私。',
-    badgeEarlyAccess: 'v0.1.0 抢先体验版',
+    badgeEarlyAccess: 'Chrome 商店官方上架',
     badgeLocalFirst: '本地优先引擎',
     badgeLanguages: '10 国语言支持',
     colProduct: '产品功能',
@@ -296,7 +296,7 @@ export const zhCN: TranslationDictionary = {
     bento: '核心能力',
     architecture: '本地架构',
     stats: '实时防线',
-    install: '抢先版安装',
+    install: '安装指南',
     faq: '常见问答',
     githubRepo: 'GitHub 仓库',
     releaseZip: '发布包 v0.1.0 (.zip)',

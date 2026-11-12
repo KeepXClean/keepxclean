@@ -1,7 +1,12 @@
 import { useState } from 'react';
-import { Download, Copy, Check, ExternalLink, Laptop } from 'lucide-react';
+import { Download, Copy, Check, ExternalLink, Laptop, CheckCircle2 } from 'lucide-react';
 import { useI18n } from '../locales';
-import { GITHUB_RELEASE_URL } from '../config';
+import {
+  CWS_EXTENSION_ID,
+  CWS_LIVE,
+  CWS_STORE_URL,
+  GITHUB_RELEASE_URL,
+} from '../config';
 
 export function SideloadGuide() {
   const { t } = useI18n();
@@ -37,6 +42,49 @@ export function SideloadGuide() {
         <h2 className="m5-title">{install.title}</h2>
         <p className="m5-desc">{install.sub}</p>
       </div>
+
+      {CWS_LIVE && (
+        <div className="cws-official-banner" data-testid="cws-official-banner">
+          <div className="cws-official-left">
+            <img
+              src="/logo.svg"
+              alt="KeepXClean Logo"
+              width={48}
+              height={48}
+              className="cws-official-logo"
+            />
+            <div className="cws-official-meta">
+              <div className="cws-official-title-row">
+                <span className="cws-official-title">Chrome Web Store</span>
+                <span className="cws-official-verified">
+                  <CheckCircle2 size={13} />
+                  <span>{t.footer.badgeEarlyAccess}</span>
+                </span>
+              </div>
+              <p className="cws-official-id">
+                ID: <code>{CWS_EXTENSION_ID}</code> · Manifest V3 · MIT Open Source
+              </p>
+            </div>
+          </div>
+
+          <a
+            href={CWS_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-cws-official"
+            data-testid="cws-store-install-btn"
+          >
+            <ExternalLink size={16} />
+            <span>{t.nav.addToChrome}</span>
+          </a>
+        </div>
+      )}
+
+      {CWS_LIVE && (
+        <div className="install-sideload-divider">
+          <span>{install.sectionTitle}</span>
+        </div>
+      )}
 
       <div className="install-steps-grid">
         {/* Step 1: Download Release Package */}

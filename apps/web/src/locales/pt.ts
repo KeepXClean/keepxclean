@@ -228,10 +228,10 @@ export const pt: TranslationDictionary = {
     fallbackNotice: 'Dados em cache do instantâneo',
   },
   install: {
-    badge: 'Instalação Prévia',
-    title: 'Instale o KeepXClean em 3 passos simples',
-    sub: 'Enquanto a Chrome Web Store conclui a análise oficial, carregue a compilação aberta em menos de 60 segundos.',
-    sectionTitle: 'Guia de instalação em 3 passos',
+    badge: 'Loja Oficial e Código Aberto',
+    title: 'Adicione ao Chrome em 1 clique ou via ZIP',
+    sub: 'Agora aprovado oficialmente e disponível na Chrome Web Store — ou carregue o pacote aberto do GitHub Releases em 3 passos abaixo.',
+    sectionTitle: 'Alternativa: Guia de instalação manual ZIP em 3 passos',
     sectionDesc:
       'Baixar arquivo ZIP · Descompactar pasta · Ativar Modo de desenvolvedor no Chrome e carregar.',
     copyTooltip: 'Copiar chrome://extensions',
@@ -255,7 +255,7 @@ export const pt: TranslationDictionary = {
     sub: 'Respostas diretas sobre privacidade, desempenho e compatibilidade.',
     sectionTitle: 'Perguntas frequentes e respostas',
     sectionDesc:
-      'Esclarecimentos sobre proteção de dados, velocidade no navegador, retweets e revisão da loja.',
+      'Esclarecimentos sobre proteção de dados, velocidade no navegador, retweets e instalação na Chrome Web Store.',
     items: [
       {
         q: 'O KeepXClean acessa minhas senhas, tokens ou mensagens privadas do X?',
@@ -266,8 +266,8 @@ export const pt: TranslationDictionary = {
         a: 'De forma alguma. Ele utiliza um motor determinístico ultrarrápido (< 1ms) sem modelos pesados de IA ou chamadas bloqueantes de rede. A rolagem do feed permanece lisa a 60/120 FPS.',
       },
       {
-        q: 'Por que o download está no GitHub e não na Chrome Web Store agora?',
-        a: 'Já submetemos o KeepXClean à Chrome Web Store (ID da extensão: plngcinmibjmkjjpfjemhfabjfjjkhhd) e ele está atualmente em análise pela equipe do Google. Até a aprovação, você pode instalá-lo diretamente pelo modo de desenvolvedor.',
+        q: 'Onde posso instalar o KeepXClean e quais navegadores são compatíveis?',
+        a: 'O KeepXClean já foi aprovado oficialmente pelo Google e está publicado na Chrome Web Store (ID da extensão: plngcinmibjmkjjpfjemhfabjfjjkhhd) para instalação em 1 clique no Chrome, Edge, Brave, Arc e outros navegadores Chromium. Também disponibilizamos pacotes abertos idênticos (.zip) no GitHub Releases.',
       },
       {
         q: 'Posso restaurar um tweet caso ele tenha sido filtrado por engano?',
@@ -286,7 +286,7 @@ export const pt: TranslationDictionary = {
   footer: {
     tagline:
       'Filtro de alto sinal para timeline e respostas no X. Prioridade local, sem login, código aberto e foco em privacidade.',
-    badgeEarlyAccess: 'v0.1.0 Acesso Prévio',
+    badgeEarlyAccess: 'Oficial na Chrome Web Store',
     badgeLocalFirst: 'Motor Local-First',
     badgeLanguages: '10 Idiomas',
     colProduct: 'Produto',
@@ -296,7 +296,7 @@ export const pt: TranslationDictionary = {
     bento: 'Recursos Principais',
     architecture: 'Arquitetura Local',
     stats: 'Defesa em Tempo Real',
-    install: 'Instalação Prévia',
+    install: 'Guia de Instalação',
     faq: 'Perguntas Frequentes',
     githubRepo: 'Repositório no GitHub',
     releaseZip: 'Versão v0.1.0 (.zip)',

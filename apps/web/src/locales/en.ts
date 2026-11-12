@@ -228,10 +228,10 @@ export const en: TranslationDictionary = {
     fallbackNotice: 'Cached Snapshot Data',
   },
   install: {
-    badge: 'Early Access Installation',
-    title: 'Install KeepXClean in 3 Simple Steps',
-    sub: 'While Chrome Web Store review is underway, load the signed developer build in under 60 seconds.',
-    sectionTitle: '3-Step Sideload Installation Guide',
+    badge: 'Official Store & Open-Source Install',
+    title: 'Add to Chrome in 1 Click, or Sideload ZIP',
+    sub: 'Now officially approved and live on the Chrome Web Store — or load the auditable GitHub release ZIP manually in 3 steps below.',
+    sectionTitle: 'Alternative: 3-Step Offline ZIP Sideload Guide',
     sectionDesc:
       'Download Release ZIP · Unpack · Load unpacked extension in Chrome Developer Mode.',
     copyTooltip: 'Copy chrome://extensions',
@@ -255,7 +255,7 @@ export const en: TranslationDictionary = {
     sub: 'Clear answers about privacy, performance, platform compatibility, and features.',
     sectionTitle: 'Frequently Asked Questions',
     sectionDesc:
-      'Clear answers on local privacy, performance impact, quote retweets, and Chrome Web Store review.',
+      'Clear answers on local privacy, performance impact, quote retweets, and Chrome Web Store installation.',
     items: [
       {
         q: 'Does KeepXClean access my X account passwords, tokens, or private messages?',
@@ -266,8 +266,8 @@ export const en: TranslationDictionary = {
         a: 'Not at all. KeepXClean is built on a < 1ms deterministic evaluation engine without heavy AI models or synchronous network calls. Timeline scrolling remains smooth at 60/120 FPS.',
       },
       {
-        q: 'Why is KeepXClean on GitHub Releases instead of the Chrome Web Store right now?',
-        a: 'We have already submitted KeepXClean to the Chrome Web Store (Extension ID: plngcinmibjmkjjpfjemhfabjfjjkhhd) and it is currently undergoing official Google review. In the meantime, you can sideload the open-source release build in developer mode immediately.',
+        q: 'Where can I install KeepXClean, and which browsers are supported?',
+        a: 'KeepXClean is officially approved and live on the Chrome Web Store (Extension ID: plngcinmibjmkjjpfjemhfabjfjjkhhd) for 1-click installation on Chrome, Edge, Brave, Arc, and other Chromium desktop browsers. Identical auditable open-source builds (.zip) are also available on GitHub Releases.',
       },
       {
         q: 'Can I undo a block if a normal tweet was accidentally filtered?',
@@ -286,7 +286,7 @@ export const en: TranslationDictionary = {
   footer: {
     tagline:
       'High-signal timeline & reply filter for X. Local-first, zero account login, open-source and privacy-respecting.',
-    badgeEarlyAccess: 'v0.1.0 Early Access',
+    badgeEarlyAccess: 'Chrome Web Store Official',
     badgeLocalFirst: 'Local-First Engine',
     badgeLanguages: '10 Languages',
     colProduct: 'Product',
@@ -296,7 +296,7 @@ export const en: TranslationDictionary = {
     bento: 'Bento Showcase',
     architecture: 'Local-First Engine',
     stats: 'Live Defense Board',
-    install: 'Sideload Install',
+    install: 'Install Guide',
     faq: 'FAQ',
     githubRepo: 'GitHub Repository',
     releaseZip: 'Release v0.1.0 (.zip)',

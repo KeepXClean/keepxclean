@@ -1,6 +1,8 @@
 import { useI18n } from '../locales';
 import {
   API_STATS_URL,
+  CWS_LIVE,
+  CWS_STORE_URL,
   GITHUB_ISSUES_URL,
   GITHUB_LICENSE_URL,
   GITHUB_RELEASE_URL,
@@ -60,6 +62,17 @@ export function Footer({ currentPage = 'home' }: FooterProps) {
             <div className="footer-col">
               <h4 className="footer-col-title">{t.footer.colResources}</h4>
               <ul className="footer-links-list">
+                {CWS_LIVE && (
+                  <li>
+                    <a
+                      href={CWS_STORE_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Chrome Web Store
+                    </a>
+                  </li>
+                )}
                 <li>
                   <a
                     href={GITHUB_REPO_URL}

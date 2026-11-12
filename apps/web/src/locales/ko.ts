@@ -229,10 +229,10 @@ export const ko: TranslationDictionary = {
     fallbackNotice: '캐시된 스냅샷 데이터',
   },
   install: {
-    badge: '얼리 액세스 설치',
-    title: '3단계로 완료하는 KeepXClean 설치',
-    sub: '공식 스토어 심사 중에도 60초 만에 서명된 개발자 빌드를 로드하여 사용해 볼 수 있습니다.',
-    sectionTitle: '3단계 사이드로드 설치 가이드',
+    badge: '공식 스토어 및 오픈소스 설치',
+    title: 'Chrome 웹 스토어 원클릭 설치 또는 수동 로드',
+    sub: 'Chrome 웹 스토어 공식 심사를 통과하여 정식 출시되었습니다. 원클릭으로 추가하거나 아래 3단계로 GitHub 릴리스 ZIP을 직접 로드할 수 있습니다.',
+    sectionTitle: '대안: 오프라인 오픈소스 ZIP 3단계 수동 설치 가이드',
     sectionDesc:
       '릴리스 ZIP 다운로드 · 압축 해제 · Chrome 개발자 모드에서 압축해제된 확장 프로그램 로드.',
     copyTooltip: 'chrome://extensions 복사',
@@ -256,7 +256,7 @@ export const ko: TranslationDictionary = {
     sub: '개인정보 보호, 성능, 플랫폼 호환성에 대한 명확한 답변.',
     sectionTitle: '자주 묻는 질문 답변',
     sectionDesc:
-      '로컬 보안, 브라우저 성능, 인용 트윗 보존 및 Chrome 웹 스토어 심사 관련 안내.',
+      '로컬 보안, 브라우저 성능, 인용 트윗 보존 및 Chrome 웹 스토어 설치 안내.',
     items: [
       {
         q: 'KeepXClean이 내 X 계정 비밀번호나 토큰, 쪽지(DM)를 읽나요?',
@@ -267,8 +267,8 @@ export const ko: TranslationDictionary = {
         a: '전혀 느려지지 않습니다. 1ms 미만의 경량 결정론적 엔진을 사용하여 무거운 AI 모델이나 동기식 네트워크 지연 없이 60/120 FPS 부드러운 스크롤을 유지합니다.',
       },
       {
-        q: '지금 왜 Chrome 웹 스토어가 아닌 GitHub에서 다운로드하나요?',
-        a: '현재 Chrome 웹 스토어에 등록 신청(확장 프로그램 ID: plngcinmibjmkjjpfjemhfabjfjjkhhd)을 완료하고 공식 심사를 진행 중입니다. 심사 통과 전까지 개발자 모드로 즉시 경험하실 수 있습니다.',
+        q: '어디에서 설치할 수 있으며 어떤 브라우저를 지원하나요?',
+        a: 'Google 공식 심사를 통과하여 Chrome 웹 스토어(확장 프로그램 ID: plngcinmibjmkjjpfjemhfabjfjjkhhd)에 정식 등록되었습니다. Chrome, Edge, Brave, Arc 등 Chromium 데스크톱 브라우저에서 원클릭으로 설치할 수 있으며, GitHub Releases에서도 동일한 오픈소스 빌드(.zip)를 제공합니다.',
       },
       {
         q: '정상적인 트윗이 잘못 차단되었을 때 복원할 수 있나요?',
@@ -287,7 +287,7 @@ export const ko: TranslationDictionary = {
   footer: {
     tagline:
       'X를 위한 고신호 타임라인 및 답글 필터. 로컬 우선, 무로그인, 완전 오픈 소스 및 개인정보 보호.',
-    badgeEarlyAccess: 'v0.1.0 얼리 액세스',
+    badgeEarlyAccess: 'Chrome 웹 스토어 정식 출시',
     badgeLocalFirst: '로컬 우선 엔진',
     badgeLanguages: '10개 언어 지원',
     colProduct: '제품 소개',
@@ -297,7 +297,7 @@ export const ko: TranslationDictionary = {
     bento: '주요 기능',
     architecture: '로컬 아키텍처',
     stats: '실시간 방어망',
-    install: '얼리 액세스 설치',
+    install: '설치 가이드',
     faq: '자주 묻는 질문',
     githubRepo: 'GitHub 저장소',
     releaseZip: '릴리스 v0.1.0 (.zip)',

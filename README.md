@@ -3,6 +3,7 @@
 KeepXClean 是面向 X（Twitter）的信息流与评论区高信噪比过滤扩展，采用 WXT（Manifest V3）、React 与共享确定性规则引擎构建；官方网站与社区快照服务基于 Cloudflare Workers、D1 与 R2 部署。
 
 - **官方网站**：https://keepxclean.com
+- **Chrome 应用商店（一键安装）**：https://chromewebstore.google.com/detail/keepxclean/plngcinmibjmkjjpfjemhfabjfjjkhhd
 - **隐私政策**：https://keepxclean.com/privacy/
 - **公共快照接口**：`https://api.keepxclean.com/v1/snapshot.json` · `https://cdn.keepxclean.com/v1/snapshot.json`
 - **Chrome Web Store 提审指南与素材**：[SUBMISSION_GUIDE.md](release/chrome-web-store/SUBMISSION_GUIDE.md)

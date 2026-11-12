@@ -18,9 +18,9 @@ describe('Feature 23: CTA Configuration & CWS Reservation', () => {
     expect(CWS_EXTENSION_ID).toBe('plngcinmibjmkjjpfjemhfabjfjjkhhd');
   });
 
-  it('CWS_LIVE is a boolean and currently defaulted to false (under review)', () => {
+  it('CWS_LIVE is a boolean and enabled (true) now that Chrome Web Store is approved', () => {
     expect(typeof CWS_LIVE).toBe('boolean');
-    expect(CWS_LIVE).toBe(false);
+    expect(CWS_LIVE).toBe(true);
   });
 
   it('CWS_STORE_URL is accurately constructed from CWS_EXTENSION_ID', () => {
@@ -47,19 +47,19 @@ describe('Feature 23: CTA Configuration & CWS Reservation', () => {
     expect(CURRENT_VERSION).toBe('v0.1.0');
   });
 
-  it('getActiveCtaConfig returns GitHub release when CWS_LIVE is false', () => {
+  it('getActiveCtaConfig returns Chrome Web Store URL by default when CWS_LIVE is true', () => {
     const config = getActiveCtaConfig();
-    expect(config.cwsLive).toBe(false);
-    expect(config.primaryUrl).toBe(GITHUB_RELEASE_URL);
-    expect(config.secondaryUrl).toBe(GITHUB_REPO_URL);
-    expect(config.isStore).toBe(false);
-  });
-
-  it('getActiveCtaConfig returns Chrome Web Store URL when cwsLive is overridden to true', () => {
-    const config = getActiveCtaConfig(true);
     expect(config.cwsLive).toBe(true);
     expect(config.primaryUrl).toBe(CWS_STORE_URL);
     expect(config.secondaryUrl).toBe(GITHUB_REPO_URL);
     expect(config.isStore).toBe(true);
+  });
+
+  it('getActiveCtaConfig returns GitHub release when cwsLive is overridden to false', () => {
+    const config = getActiveCtaConfig(false);
+    expect(config.cwsLive).toBe(false);
+    expect(config.primaryUrl).toBe(GITHUB_RELEASE_URL);
+    expect(config.secondaryUrl).toBe(GITHUB_REPO_URL);
+    expect(config.isStore).toBe(false);
   });
 });

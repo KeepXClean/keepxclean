@@ -1253,8 +1253,131 @@
 }
 
 /* ==========================================================================
-   Feature 30: 3-Step Sideload Guide & FAQ Accordion
+   Feature 30: Chrome Web Store 1-Click Install & 3-Step Sideload Guide
    ========================================================================== */
+
+.cws-official-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: var(--surface);
+  border: 1.5px solid rgba(19, 134, 95, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 22px 26px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.cws-official-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.cws-official-logo {
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.cws-official-meta {
+  min-width: 0;
+}
+
+.cws-official-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.cws-official-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cws-official-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--selected);
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cws-official-id {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.cws-official-id code {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text);
+  background: var(--surface-subtle);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.btn-cws-official {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border-radius: var(--radius-pill);
+  background: var(--green);
+  color: #ffffff;
+  font-size: 14.5px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.btn-cws-official:hover {
+  background: var(--green-hover);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.install-sideload-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 4px 0 18px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.install-sideload-divider::before,
+.install-sideload-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+@media (max-width: 720px) {
+  .cws-official-banner {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 18px;
+  }
+  .btn-cws-official {
+    width: 100%;
+  }
+}
 
 .install-steps-grid {
   display: grid;

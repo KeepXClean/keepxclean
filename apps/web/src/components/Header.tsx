@@ -14,12 +14,14 @@ export interface HeaderProps {
   currentPage?: 'home' | 'privacy';
   locale?: SupportedLocale;
   onLocaleChange?: (locale: SupportedLocale) => void;
+  cwsLive?: boolean;
 }
 
 export function Header({
   currentPage = 'home',
   locale: propLocale,
   onLocaleChange: propOnLocaleChange,
+  cwsLive = CWS_LIVE,
 }: HeaderProps = {}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { locale: ctxLocale, setLocale: ctxSetLocale, t } = useI18n();
@@ -31,8 +33,8 @@ export function Header({
   // Link prefix: if on /privacy/, anchor links should navigate to /#features
   const linkPrefix = currentPage === 'privacy' ? '/' : '';
 
-  const ctaUrl = CWS_LIVE ? CWS_STORE_URL : GITHUB_RELEASE_URL;
-  const ctaLabel = CWS_LIVE ? (t.nav.addToChrome || 'Add to Chrome') : t.nav.downloadCta;
+  const ctaUrl = cwsLive ? CWS_STORE_URL : GITHUB_RELEASE_URL;
+  const ctaLabel = cwsLive ? (t.nav.addToChrome || 'Add to Chrome') : t.nav.downloadCta;
 
   return (
     <header className="site-header">
@@ -90,7 +92,7 @@ export function Header({
 
           {/* Dynamic CTA Button & Optional Review Badge */}
           <div className="header-cta-group">
-            {!CWS_LIVE && (
+            {!cwsLive && (
               <span
                 className="header-cws-badge"
                 title="Chrome Web Store review in progress"
@@ -105,7 +107,7 @@ export function Header({
               rel="noopener noreferrer"
               className="btn-header-cta"
             >
-              {CWS_LIVE ? <ExternalLink size={14} /> : <Download size={14} />}
+              {cwsLive ? <ExternalLink size={14} /> : <Download size={14} />}
               <span>{ctaLabel}</span>
             </a>
           </div>
@@ -159,7 +161,7 @@ export function Header({
             </a>
 
             <div className="mobile-cta-group">
-              {!CWS_LIVE && (
+              {!cwsLive && (
                 <span className="mobile-cws-badge">
                   <span className="status-dot-pulse" aria-hidden="true" />
                   <span>{t.nav.cwsReviewBadge}</span>
@@ -172,7 +174,7 @@ export function Header({
                 className="btn-header-cta"
                 style={{ display: 'inline-flex' }}
               >
-                {CWS_LIVE ? <ExternalLink size={14} /> : <Download size={14} />}
+                {cwsLive ? <ExternalLink size={14} /> : <Download size={14} />}
                 <span>{ctaLabel}</span>
               </a>
             </div>

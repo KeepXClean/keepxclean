@@ -228,10 +228,10 @@ export const ja: TranslationDictionary = {
     fallbackNotice: 'キャッシュ済みスナップショット',
   },
   install: {
-    badge: '先行版インストール',
-    title: '3つのステップで KeepXClean を導入',
-    sub: '公式ストアの審査期間中も、わずか60秒でオープンソース開発版を読み込めます。',
-    sectionTitle: '3ステップ導入ガイド',
+    badge: '公式ストア＆オープンソース導入',
+    title: 'Chrome ウェブストアからワンクリック導入',
+    sub: 'Chrome ウェブストアで正式公開されました。ワンクリックで追加できるほか、GitHub リリース ZIP からの手動導入にも対応しています。',
+    sectionTitle: '代替手順：GitHub ZIP 3ステップ手動導入ガイド',
     sectionDesc:
       'リリース ZIP を入手 · 解凍 · Chrome 拡張機能管理画面でデベロッパーモード有効化。',
     copyTooltip: 'chrome://extensions をコピー',
@@ -255,7 +255,7 @@ export const ja: TranslationDictionary = {
     sub: 'プライバシー、パフォーマンス、対応環境に関する公式回答。',
     sectionTitle: 'よくある質問',
     sectionDesc:
-      'プライバシー保護、ブラウザ負荷、引用ポスト対応、Chrome Web Store 審査状況について。',
+      'プライバシー保護、ブラウザ負荷、引用ポスト対応、Chrome Web Store からの導入について。',
     items: [
       {
         q: 'X のパスワード、認証トークン、DM にアクセスされますか？',
@@ -266,8 +266,8 @@ export const ja: TranslationDictionary = {
         a: '全く影響ありません。ミリ秒単位（< 1ms）の軽量な決定論的エンジンで動作するため、タイムラインの 60/120 FPS スムーズスクロールを損ないません。',
       },
       {
-        q: 'なぜ現在 Chrome ウェブストアではなく GitHub で配布されているのですか？',
-        a: 'すでに Chrome Web Store に申請済み（拡張機能 ID: plngcinmibjmkjjpfjemhfabjfjjkhhd）で、現在 Google による公式審査が行われています。審査通過までの間、GitHub から直接導入可能です。',
+        q: 'どこからインストールできますか？対応ブラウザは？',
+        a: 'Google の公式審査を通過し、Chrome Web Store（拡張機能 ID: plngcinmibjmkjjpfjemhfabjfjjkhhd）にて公開中です。Chrome、Edge、Brave、Arc などのデスクトップブラウザにワンクリックで導入でき、GitHub Releases では同一のオープンソース版（.zip）も配布しています。',
       },
       {
         q: '誤って通常のリプライが隠された場合、元に戻せますか？',
@@ -286,7 +286,7 @@ export const ja: TranslationDictionary = {
   footer: {
     tagline:
       'X のための高シグナルタイムライン＆リプライフィルター。完全ローカル処理・ログイン不要・オープンソース。',
-    badgeEarlyAccess: 'v0.1.0 先行アクセス',
+    badgeEarlyAccess: 'Chrome ウェブストア公開中',
     badgeLocalFirst: 'ローカルファーストエンジン',
     badgeLanguages: '10言語対応',
     colProduct: '機能紹介',
@@ -296,7 +296,7 @@ export const ja: TranslationDictionary = {
     bento: 'コア機能一覧',
     architecture: 'ローカルアーキテクチャ',
     stats: 'リアルタイム防御ステータス',
-    install: '先行版インストール',
+    install: 'インストールガイド',
     faq: 'よくある質問',
     githubRepo: 'GitHub リポジトリ',
     releaseZip: '最新リリース v0.1.0 (.zip)',

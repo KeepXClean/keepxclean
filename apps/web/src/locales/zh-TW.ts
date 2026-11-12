@@ -228,10 +228,10 @@ export const zhTW: TranslationDictionary = {
     fallbackNotice: '快照快取資料',
   },
   install: {
-    badge: '搶先體驗安裝',
-    title: '三步載入 KeepXClean 搶先版',
-    sub: '在 Chrome 線上應用程式商店官方審核期間，您只需 60 秒即可載入搶先建置套件體驗。',
-    sectionTitle: '3 步側載安裝指南',
+    badge: '官方商店與開源安裝',
+    title: '一鍵從 Chrome 商店安裝，或手動載入開源套件',
+    sub: '現已正式通過審核並上架 Chrome 線上應用程式商店，支援一鍵安裝；偏好離線審計的使用者亦可按下方三步載入 GitHub 發布套件。',
+    sectionTitle: '備選方案：開源離線套件 3 步手動載入指南',
     sectionDesc:
       '下載 Release 壓縮包 · 本地解壓 · 開啟 Chrome 開發人員模式載入未打包項目。',
     copyTooltip: '複製 chrome://extensions',
@@ -252,10 +252,10 @@ export const zhTW: TranslationDictionary = {
   faq: {
     badge: '常見問答',
     title: '關於 KeepXClean 的一切疑問',
-    sub: '關於隱私安全、運作開銷、轉推穿透與商店上架的權威解答。',
+    sub: '關於隱私安全、運作開銷、轉推穿透與商店安裝的權威解答。',
     sectionTitle: '常見問答解答',
     sectionDesc:
-      '深入了解本地隱私、效能開銷、引用推文辨識與 Chrome 線上應用程式商店審核進程。',
+      '深入了解本地隱私、效能開銷、引用推文辨識與 Chrome 線上應用程式商店安裝說明。',
     items: [
       {
         q: 'KeepXClean 會讀取我的推特密碼、Token 或私訊嗎？',
@@ -266,8 +266,8 @@ export const zhTW: TranslationDictionary = {
         a: '完全不會。KeepXClean 採用毫秒級（< 1ms）確定性規則引擎，沒有龐大的模型運作開銷或同步網路阻塞，時間軸捲動始終保持 60/120 FPS 絲滑順暢。',
       },
       {
-        q: '為什麼目前在 GitHub Releases 下載，而不是 Chrome 商店？',
-        a: '我們已將 KeepXClean 提交至 Chrome 線上應用程式商店（擴充功能 ID: plngcinmibjmkjjpfjemhfabjfjjkhhd），目前正在等待 Google 官方審核。審核期間，您可以直接下載開源建置套件以開發者模式載入體驗。',
+        q: '在哪裡安裝 KeepXClean？支援哪些瀏覽器？',
+        a: 'KeepXClean 已正式通過 Google 官方審核並上架 Chrome 線上應用程式商店（擴充功能 ID: plngcinmibjmkjjpfjemhfabjfjjkhhd），支援 Chrome、Edge、Brave、Arc 等 Chromium 桌面瀏覽器一鍵安裝；同時也在 GitHub Releases 持續提供 100% 一致的開源離線建置套件（.zip）。',
       },
       {
         q: '如果誤攔了正常推文，我可以復原或加白名單嗎？',
@@ -286,7 +286,7 @@ export const zhTW: TranslationDictionary = {
   footer: {
     tagline:
       'X 純淨高信噪比時間軸與留言區過濾器。本地優先、零帳號登入、徹底開源且注重隱私。',
-    badgeEarlyAccess: 'v0.1.0 搶先體驗版',
+    badgeEarlyAccess: 'Chrome 商店官方上架',
     badgeLocalFirst: '本地優先引擎',
     badgeLanguages: '10 國語言支援',
     colProduct: '產品功能',
@@ -296,7 +296,7 @@ export const zhTW: TranslationDictionary = {
     bento: '核心能力',
     architecture: '本地架構',
     stats: '即時防線',
-    install: '搶先版安裝',
+    install: '安裝指南',
     faq: '常見問答',
     githubRepo: 'GitHub 倉庫',
     releaseZip: '發布套件 v0.1.0 (.zip)',
