@@ -30,9 +30,11 @@
 
 **KeepXClean** filtra spam, bots de respostas, perfis falsos que imitam o autor, iscas de engajamento, golpes cripto e anúncios promovidos no X (`x.com`) em menos de **1 ms** diretamente no navegador, sem acessar credenciais e mantendo rolagem fluida a 60/120 FPS.
 
-<p align="center">
-  <a href="https://keepxclean.com"><img src="../assets/keepxclean-demo.gif" width="800" alt="Demo do KeepXClean: respostas de spam no X recolhidas e removidas automaticamente" /></a>
-</p>
+<div align="center">
+
+https://github.com/user-attachments/assets/744a6b36-b6b5-4933-b22a-6471c5741ea7
+
+</div>
 
 ## Destaques
 

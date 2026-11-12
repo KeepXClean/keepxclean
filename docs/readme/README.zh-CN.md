@@ -30,9 +30,11 @@
 
 **KeepXClean** 直接在浏览器本地解析 X（`x.com`）既有的 GraphQL 数据流，以 **低于 1 ms** 的确定性规则毫秒级拦截评论区水军、高仿号、口令抽奖引流、币圈刷屏与推广广告——无需登录任何账号，不触碰隐私凭据，刷推保持 60/120 FPS 丝滑顺畅。
 
-<p align="center">
-  <a href="https://keepxclean.com"><img src="../assets/keepxclean-demo.gif" width="800" alt="KeepXClean 演示：X 上的垃圾回复被自动折叠和清除" /></a>
-</p>
+<div align="center">
+
+https://github.com/user-attachments/assets/744a6b36-b6b5-4933-b22a-6471c5741ea7
+
+</div>
 
 ## 核心亮点
 

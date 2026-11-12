@@ -30,9 +30,11 @@
 
 **KeepXClean**은 브라우저가 이미 수신한 X(`x.com`) GraphQL 응답을 로컬 메모리에서 직접 분석하여 답글 봇, 사칭 계정, 이벤트 미끼, 코인 도배 및 프로모션 광고를 **1ms 미만**으로 차단하는 오픈소스 확장 프로그램입니다.
 
-<p align="center">
-  <a href="https://keepxclean.com"><img src="../assets/keepxclean-demo.gif" width="800" alt="KeepXClean 데모: X의 스팸 답글을 자동으로 접고 제거" /></a>
-</p>
+<div align="center">
+
+https://github.com/user-attachments/assets/744a6b36-b6b5-4933-b22a-6471c5741ea7
+
+</div>
 
 ## 핵심 특징
 

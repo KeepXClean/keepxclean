@@ -30,9 +30,11 @@
 
 **KeepXClean** は、ブラウザがすでに受信した X（`x.com`）の GraphQL レスポンスをローカルメモリ上で直接解析し、インプレゾンビ・なりすまし・懸賞誘導・暗号資産スパム・プロモーション広告を **1 ms 未満** で遮断するオープンソース拡張機能です。
 
-<p align="center">
-  <a href="https://keepxclean.com"><img src="../assets/keepxclean-demo.gif" width="800" alt="KeepXClean デモ：X のスパム返信を自動で折りたたみ・非表示に" /></a>
-</p>
+<div align="center">
+
+https://github.com/user-attachments/assets/744a6b36-b6b5-4933-b22a-6471c5741ea7
+
+</div>
 
 ## 主な特長
 

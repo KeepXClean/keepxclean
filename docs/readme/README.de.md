@@ -30,9 +30,11 @@
 
 **KeepXClean** filtert Spam, Antwort-Bots, Nachahmer-Konten, Engagement-Köder, Krypto-Shilling und gesponserte Anzeigen auf X (`x.com`) in unter **1 ms** direkt lokal im Browser — ohne Kontozugriff und bei flüssigen 60/120 FPS.
 
-<p align="center">
-  <a href="https://keepxclean.com"><img src="../assets/keepxclean-demo.gif" width="800" alt="KeepXClean-Demo: Spam-Antworten auf X werden automatisch eingeklappt und entfernt" /></a>
-</p>
+<div align="center">
+
+https://github.com/user-attachments/assets/744a6b36-b6b5-4933-b22a-6471c5741ea7
+
+</div>
 
 ## Highlights
 

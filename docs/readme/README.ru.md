@@ -30,9 +30,11 @@
 
 **KeepXClean** фильтрует спам, ботов в комментариях, фейковые аккаунты-двойники, байты на активность, крипто-спам и рекламные посты в X (`x.com`) быстрее чем за **1 мс** прямо в вашем браузере — без чтения учетных данных и с плавной прокруткой 60/120 FPS.
 
-<p align="center">
-  <a href="https://keepxclean.com"><img src="../assets/keepxclean-demo.gif" width="800" alt="Демо KeepXClean: спам-ответы в X автоматически сворачиваются и удаляются" /></a>
-</p>
+<div align="center">
+
+https://github.com/user-attachments/assets/744a6b36-b6b5-4933-b22a-6471c5741ea7
+
+</div>
 
 ## Ключевые возможности
 

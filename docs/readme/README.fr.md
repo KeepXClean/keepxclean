@@ -30,9 +30,11 @@
 
 **KeepXClean** filtre le spam, les bots de réponses, les usurpateurs d'identité, les pièges à engagement, les arnaques crypto et les publicités sponsorisées sur X (`x.com`) en moins d'**1 ms** directement dans votre navigateur — sans lire vos identifiants et en préservant un défilement fluide à 60/120 FPS.
 
-<p align="center">
-  <a href="https://keepxclean.com"><img src="../assets/keepxclean-demo.gif" width="800" alt="Démo KeepXClean : réponses indésirables sur X repliées et supprimées automatiquement" /></a>
-</p>
+<div align="center">
+
+https://github.com/user-attachments/assets/744a6b36-b6b5-4933-b22a-6471c5741ea7
+
+</div>
 
 ## Points Forts
 
