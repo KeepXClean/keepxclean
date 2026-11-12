@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "KeepXCleanE2ETestReport",
-  "timestamp": "2026-11-12T05:41:24.447Z",
-  "durationMs": 512,
+  "timestamp": "2026-11-12T05:55:51.708Z",
+  "durationMs": 514,
   "success": true,
   "exitCode": 0,
   "summary": {
@@ -16,31 +16,31 @@
       "total": 170,
       "passed": 170,
       "failed": 0,
-      "durationMs": 187
+      "durationMs": 185
     },
     "tier2": {
       "total": 170,
       "passed": 170,
       "failed": 0,
-      "durationMs": 223
+      "durationMs": 225
     },
     "tier3": {
       "total": 35,
       "passed": 35,
       "failed": 0,
-      "durationMs": 49
+      "durationMs": 51
     },
     "tier4": {
       "total": 18,
       "passed": 18,
       "failed": 0,
-      "durationMs": 28
+      "durationMs": 27
     },
     "tier5": {
       "total": 30,
       "passed": 30,
       "failed": 0,
-      "durationMs": 25
+      "durationMs": 26
     }
   },
   "failures": []

@@ -2,8 +2,13 @@
   "name": "keepxclean",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "KeepXClean - High signal-to-noise ratio filter extension for X (Twitter) powered by Cloudflare crowd-sourced blocklist (keepxclean.com)",
   "homepage": "https://keepxclean.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KeepXClean/keepxclean.git"
+  },
   "scripts": {
     "build": "pnpm --filter @keepxclean/shared build && pnpm --filter @keepxclean/extension build && pnpm --filter @keepxclean/web build",
     "dev:ext": "pnpm --filter @keepxclean/extension dev",
