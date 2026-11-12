@@ -1,11 +1,11 @@
 {
   "extName": {
-    "message": "KeepXClean - X 高信噪比净空插件"
+    "message": "KeepXClean - 屏蔽 X (Twitter) 垃圾评论、水军与广告"
   },
   "extDescription": {
-    "message": "让 X (Twitter) 保持清爽：无感过滤评论区水评与高仿号、高频刷屏号、口令引流、推广广告与社区高危账号 (keepxclean.com)"
+    "message": "免费开源的 X (Twitter) 净化插件：自动折叠或屏蔽垃圾评论、水军机器人、高仿骗子、引流刷屏与推广广告，本地运行不读隐私。官网 keepxclean.com"
   },
   "extActionTitle": {
-    "message": "KeepXClean 净空控制台"
+    "message": "KeepXClean 快捷设置"
   }
 }

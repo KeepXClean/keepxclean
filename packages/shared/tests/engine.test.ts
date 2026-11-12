@@ -424,6 +424,7 @@ describe('KeepXClean Rule Engine', () => {
 
   it('protects focal thread author multi-tweet threads and detects lookalike impersonators in TweetDetail', () => {
     const config = createDefaultConfig('standard');
+    config.interceptionMode = 'strip';
     const tracker = new SlidingWindowTracker();
 
     const makeDetailItem = (
@@ -659,6 +660,8 @@ describe('KeepXClean Rule Engine', () => {
 
   it('strips blocked tweets directly from X GraphQL timeline payload in strip mode', () => {
     const config = createDefaultConfig('standard');
+    expect(config.interceptionMode).toBe('collapse');
+    config.interceptionMode = 'strip';
     const mockGraphqlPayload = {
       data: {
         home: {
@@ -752,6 +755,7 @@ describe('KeepXClean Rule Engine', () => {
 
   it('extracts dailyTweetRate and filters tweets using X 2026 Relay schema (tweet_counts, relationship_counts, details.full_text)', () => {
     const config = createDefaultConfig('standard');
+    config.interceptionMode = 'strip';
     const createdAtMs = Date.now() - 100 * 86_400_000; // 100 days ago
     const payload2026 = {
       data: {
@@ -1029,6 +1033,7 @@ describe('KeepXClean Rule Engine', () => {
 
     // 2. GraphQL payload log attribution in non-Chinese locale ('ja') must credit quotedAuthor, not followed friend
     config.locale = 'ja';
+    config.interceptionMode = 'strip';
     const snapshot = createDefaultCrowdSnapshot();
     snapshot.counts['u-scammer-jp'] = { c: 8, t: 'scam' };
 

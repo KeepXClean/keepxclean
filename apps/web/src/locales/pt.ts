@@ -16,7 +16,7 @@ export const pt: TranslationDictionary = {
     faq: 'Perguntas',
     privacy: 'Privacidade',
     github: 'GitHub',
-    downloadCta: 'Obter v0.1.0',
+    downloadCta: 'Obter v0.1.1',
     addToChrome: 'Adicionar ao Chrome',
     cwsBadge: 'Em análise na Chrome Web Store',
     cwsReviewBadge: 'Em análise na Chrome Web Store',
@@ -32,8 +32,8 @@ export const pt: TranslationDictionary = {
     headlineHighlight: 'nas respostas e no feed do X',
     subheadline:
       'Filtragem determinística local executada diretamente sobre as respostas GraphQL do X. Zero credenciais, processamento em < 1ms, regras abertas e defesa comunitária contra bots de IA e golpes.',
-    ctaDownload: 'Baixar versão prévia (v0.1.0)',
-    ctaPrimary: 'Baixar versão prévia (v0.1.0)',
+    ctaDownload: 'Baixar versão prévia (v0.1.1)',
+    ctaPrimary: 'Baixar versão prévia (v0.1.1)',
     ctaStore: 'Adicionar ao Chrome',
     ctaSecondary: 'Ver código no GitHub',
     ctaGitHub: 'Ver código no GitHub',
@@ -83,7 +83,7 @@ export const pt: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.0 está disponível! Arquitetura local-first, avaliação em < 1ms, zero vazamento de tokens e suporte a 10 idiomas. Uma experiência limpa no X.',
+        'KeepXClean v0.1.1 está disponível! Arquitetura local-first, avaliação em < 1ms, zero vazamento de tokens e suporte a 10 idiomas. Uma experiência limpa no X.',
       time: '2h',
       replies: '142',
       reposts: '389',
@@ -235,10 +235,10 @@ export const pt: TranslationDictionary = {
     sectionDesc:
       'Baixar arquivo ZIP · Descompactar pasta · Ativar Modo de desenvolvedor no Chrome e carregar.',
     copyTooltip: 'Copiar chrome://extensions',
-    readyStatus: 'KeepXClean v0.1.0 · Pronto para limpar',
+    readyStatus: 'KeepXClean v0.1.1 · Pronto para limpar',
     step1Title: 'Passo 1: Baixar o pacote (.zip)',
     step1Desc:
-      'Baixe o arquivo keepxclean (v0.1.0) mais recente no GitHub Releases e descompacte em uma pasta permanente.',
+      'Baixe o arquivo keepxclean (v0.1.1) mais recente no GitHub Releases e descompacte em uma pasta permanente.',
     step1Action: 'Baixar arquivo ZIP',
     step2Title: 'Passo 2: Ativar o Modo de desenvolvedor',
     step2Desc:
@@ -299,7 +299,7 @@ export const pt: TranslationDictionary = {
     install: 'Guia de Instalação',
     faq: 'Perguntas Frequentes',
     githubRepo: 'Repositório no GitHub',
-    releaseZip: 'Versão v0.1.0 (.zip)',
+    releaseZip: 'Versão v0.1.1 (.zip)',
     statsApi: 'API de Estatísticas',
     issues: 'Rastreador de Problemas',
     privacyPolicy: 'Política de Privacidade (Bilíngue)',

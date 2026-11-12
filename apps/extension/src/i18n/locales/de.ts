@@ -82,7 +82,7 @@ export const de: ExtensionMessages = {
       'Ein Wechsel aktualisiert die Schwellenwerte unten in Echtzeit, oder klappe einzelne Bereiche zum Feinjustieren auf.',
     presentationTitle: 'Darstellung gefilterter Beiträge',
     presentationDesc:
-      'Sauber ausblenden entfernt rückstandslos; Hinweiszeile lässt eine einzeilige Leiste zum Aufklappen oder Freigeben stehen.',
+      'Hinweiszeile lässt eine einzeilige Leiste zum Aufklappen oder Freigeben stehen; Sauber ausblenden entfernt rückstandslos.',
     dimensionsHeading: 'Filterbereiche',
     enabledCount: (active, total) => `${active} / ${total} aktiv`,
     enableRule: (title) => `${title} aktivieren`,
@@ -656,7 +656,7 @@ export const de: ExtensionMessages = {
     resetConfirmTitle: 'Filterregeln zurücksetzen?',
     resetConfirmBtn: 'Standardregeln wiederherstellen',
     resetConfirmBody:
-      'Stellt Ausgewogen-Schwellenwerte, sauberes Ausblenden, Ausnahmen und den Wortfilter-Schalter wieder her.',
+      'Stellt Ausgewogen-Schwellenwerte, den Modus Hinweiszeile, Ausnahmen und den Wortfilter-Schalter wieder her.',
     resetConfirmBanner:
       'Bewahrt eigene Wortfilter, Sprache, Sperr-/Positivlisten, Sync-Einstellungen, Endpunkt, Protokolle und Statistik.',
     resetSuccessMsg:

@@ -427,7 +427,7 @@ export function createDefaultConfig(
     enabled: true,
     locale: 'auto',
     preset,
-    interceptionMode: 'strip',
+    interceptionMode: 'collapse',
     exemptFollowing: true,
     profileSceneBadgeOnly: true,
     syncNativeXBlock: true,

@@ -1,6 +1,6 @@
 {
   "name": "keepxclean",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "license": "MIT",
   "description": "KeepXClean - High signal-to-noise ratio filter extension for X (Twitter) powered by Cloudflare crowd-sourced blocklist (keepxclean.com)",

@@ -16,7 +16,7 @@ export const de: TranslationDictionary = {
     faq: 'FAQ',
     privacy: 'Datenschutz',
     github: 'GitHub',
-    downloadCta: 'v0.1.0 holen',
+    downloadCta: 'v0.1.1 holen',
     addToChrome: 'Zu Chrome hinzufügen',
     cwsBadge: 'In Chrome Web Store Prüfung',
     cwsReviewBadge: 'In Chrome Web Store Prüfung',
@@ -32,8 +32,8 @@ export const de: TranslationDictionary = {
     headlineHighlight: 'Timeline und Antworten auf X zurück',
     subheadline:
       'Deterministische lokale Filterung direkt auf GraphQL-Antworten von X. Keine Anmeldedaten, < 1ms Ausführung, transparente Regeln und gemeinschaftlicher Schutz gegen KI-Bots und Betrug.',
-    ctaDownload: 'Release herunterladen (v0.1.0)',
-    ctaPrimary: 'Release herunterladen (v0.1.0)',
+    ctaDownload: 'Release herunterladen (v0.1.1)',
+    ctaPrimary: 'Release herunterladen (v0.1.1)',
     ctaStore: 'Zu Chrome hinzufügen',
     ctaSecondary: 'Quellcode auf GitHub ansehen',
     ctaGitHub: 'Quellcode auf GitHub ansehen',
@@ -83,7 +83,7 @@ export const de: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.0 ist live! Local-First Architektur, < 1ms Auswertung, keine Token-Lecks und Matrix in 10 Sprachen. Erleben Sie wieder eine saubere Timeline auf X.',
+        'KeepXClean v0.1.1 ist live! Local-First Architektur, < 1ms Auswertung, keine Token-Lecks und Matrix in 10 Sprachen. Erleben Sie wieder eine saubere Timeline auf X.',
       time: '2 Std.',
       replies: '142',
       reposts: '389',
@@ -235,10 +235,10 @@ export const de: TranslationDictionary = {
     sectionDesc:
       'Release-ZIP herunterladen · Entpacken · Im Chrome-Entwicklermodus entpackte Erweiterung laden.',
     copyTooltip: 'chrome://extensions kopieren',
-    readyStatus: 'KeepXClean v0.1.0 · Bereit zur Bereinigung',
+    readyStatus: 'KeepXClean v0.1.1 · Bereit zur Bereinigung',
     step1Title: 'Schritt 1: Release-Paket (.zip) herunterladen',
     step1Desc:
-      'Laden Sie die neueste keepxclean-Datei (v0.1.0) von GitHub Releases herunter und entpacken Sie sie in einen Ordner.',
+      'Laden Sie die neueste keepxclean-Datei (v0.1.1) von GitHub Releases herunter und entpacken Sie sie in einen Ordner.',
     step1Action: 'Release-ZIP herunterladen',
     step2Title: 'Schritt 2: Entwicklermodus aktivieren',
     step2Desc:
@@ -299,7 +299,7 @@ export const de: TranslationDictionary = {
     install: 'Installationsanleitung',
     faq: 'FAQ',
     githubRepo: 'GitHub-Repository',
-    releaseZip: 'Release v0.1.0 (.zip)',
+    releaseZip: 'Release v0.1.1 (.zip)',
     statsApi: 'Statistik-API',
     issues: 'Issue-Tracker',
     privacyPolicy: 'Datenschutzerklärung (Zweisprachig)',

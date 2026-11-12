@@ -1,9 +1,9 @@
 {
   "extName": {
-    "message": "KeepXClean - X ノイズ除去フィルター"
+    "message": "KeepXClean - X (Twitter) のスパム返信・ゾンビ・広告をブロック"
   },
   "extDescription": {
-    "message": "X (Twitter) を快適に：インプレゾンビ・なりすまし・連投ボット・宣伝スパム・広告を自動フィルタリングします。"
+    "message": "無料・オープンソースの X (Twitter) 浄化拡張機能：スパム返信・インプレゾンビ・なりすまし・広告を端末内で自動折りたたみ・非表示。公式 keepxclean.com"
   },
   "extActionTitle": {
     "message": "KeepXClean コントロール"

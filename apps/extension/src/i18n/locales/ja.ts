@@ -82,7 +82,7 @@ export const ja: ExtensionMessages = {
       'プリセットを切り替えると各しきい値に即時反映されます。個別に展開して微調整も可能です。',
     presentationTitle: '除外した投稿の表示',
     presentationDesc:
-      '「完全に非表示」は痕跡を残さず除去し、「1 行に折りたたむ」は理由バーを残して展開や許可ができます。',
+      '「1 行に折りたたむ」は理由バーを残して展開や許可ができ、「完全に非表示」は痕跡を残さず除去します。',
     dimensionsHeading: 'フィルター項目',
     enabledCount: (active, total) => `${active} / ${total} 件有効`,
     enableRule: (title) => `${title} を有効化`,
@@ -650,7 +650,7 @@ export const ja: ExtensionMessages = {
     resetConfirmTitle: 'フィルタールールをリセットしますか？',
     resetConfirmBtn: '標準ルールに戻す',
     resetConfirmBody:
-      '「バランス」プリセットのしきい値、完全非表示モード、シーン除外、カスタム語句の有効スイッチを復元します。',
+      '「バランス」プリセットのしきい値、折りたたみモード、シーン除外、カスタム語句の有効スイッチを復元します。',
     resetConfirmBanner:
       'カスタム語句の中身、言語設定、ブロック/許可リスト、同期設定、接続先、ログ、統計は消去されません。',
     resetSuccessMsg: '標準フィルタールールに戻しました（語句とリストは保持されています）。',

@@ -1,6 +1,6 @@
-# KeepXClean — Chrome Web Store 提交指南 (v0.1.0)
+# KeepXClean — Chrome Web Store 提交与更新指南 (v0.1.1)
 
-本文档整理了 Chrome Web Store Developer Dashboard 提审所需的全部产物路径、双语商店文案、权限理由与隐私合规问卷答案，可直接复制粘贴使用。
+本文档整理了 Chrome Web Store Developer Dashboard 所需的全部产物路径、优化后的通俗商店标题/副标题/详情页文案、官方网址与开源说明、权限理由及隐私合规问卷答案，可直接复制粘贴使用。
 
 ---
 
@@ -8,7 +8,7 @@
 
 | 用途 | 规格要求 | 项目内文件路径 |
 | --- | --- | --- |
-| **扩展上传包 (ZIP)** | Manifest V3 `.zip` | `apps/extension/.output/keepxcleanextension-0.1.0-chrome.zip` |
+| **扩展上传包 (ZIP)** | Manifest V3 `.zip` | `apps/extension/.output/keepxcleanextension-0.1.1-chrome.zip` |
 | **商店图标 (Store Icon)** | `128×128` PNG | `apps/extension/public/icon/icon-128.png` |
 | **截图 1（规则总览 EN）** | `1280×800`, 24-bit RGB PNG (无透明通道) | `release/chrome-web-store/assets/01-filter-rules-en.png` |
 | **截图 2（公共词库包 EN）** | `1280×800`, 24-bit RGB PNG (无透明通道) | `release/chrome-web-store/assets/02-public-keyword-packs-en.png` |
@@ -17,75 +17,73 @@
 | **截图 5（规则总览 简体中文）** | `1280×800`, 24-bit RGB PNG (无透明通道) | `release/chrome-web-store/assets/05-filter-rules-zh.png` |
 | **小型宣传图 (Small Promo Tile)** | `440×280`, 24-bit RGB PNG (无透明通道) | `release/chrome-web-store/assets/promo-small-440x280.png` |
 
-### 官方在线地址（已部署上线 & 已提审）
+### 官方在线地址与开源仓库
 
-- **Chrome Web Store Extension ID**: `plngcinmibjmkjjpfjemhfabjfjjkhhd`（v0.1.0 已提审，通过后自动发布地址：`https://chromewebstore.google.com/detail/plngcinmibjmkjjpfjemhfabjfjjkhhd`）
-- **Official URL / Homepage URL**: `https://keepxclean.com`
-- **Privacy Policy URL**: `https://keepxclean.com/privacy/`
-- **Support / Feedback Email**: `support@keepxclean.com`（或在 Dashboard 填写开发者联系邮箱）
-- **Live Cloud Snapshot API / CDN**: `https://api.keepxclean.com/v1/snapshot.json` · `https://cdn.keepxclean.com/v1/snapshot.json`
+- **Chrome Web Store 地址**: `https://chromewebstore.google.com/detail/keepxclean/plngcinmibjmkjjpfjemhfabjfjjkhhd`
+- **官方网站 (Official Website / Homepage URL)**: `https://keepxclean.com`
+- **GitHub 开源仓库 (MIT License)**: `https://github.com/KeepXClean/keepxclean`
+- **隐私政策 (Privacy Policy URL)**: `https://keepxclean.com/privacy/`
+- **支持与反馈邮箱**: `support@keepxclean.com`
+- **公开防垃圾快照 CDN**: `https://api.keepxclean.com/v1/snapshot.json` · `https://cdn.keepxclean.com/v1/snapshot.json`
 
 ---
 
 ## 2. Store Listing（商店详情页文案）
 
-> 扩展包内已包含 10 种语言的 `_locales/*/messages.json`（默认 `default_locale: "en"`），商店标题与简短摘要会自动从扩展包读取；下方提供完整详细描述供粘贴。
+> 扩展包内已包含 10 种语言的 `_locales/*/messages.json`（默认 `default_locale: "en"`），商店标题（Title）与副标题/简短摘要（Summary）会自动从扩展包读取；下方提供优化后的完整详细描述（Detailed Description）供粘贴到 Chrome Web Store 后台。
 
 ### Category & Language
 
-- **Primary Category**: `Workflow & Planning`（或 `Social & Communication`）
+- **Primary Category**: `Social & Communication`（或 `Workflow & Planning`）
 - **Mature Content**: `No`
 
 ### English (Default — `en`)
 
 **Title**（来自 `_locales/en/messages.json`）:
 ```text
-KeepXClean - High-Signal Filter for X
+KeepXClean - Block Spam, Bots & Ads on X (Twitter)
 ```
 
-**Summary**（118 chars，≤ 132 字符限制）:
+**Summary / Subtitle**（来自 `_locales/en/messages.json`，≤ 132 字符限制）:
 ```text
-Keep X (Twitter) clean: filter reply spam, impersonators, bots, engagement bait, ads, and crowd-blocked accounts.
+Free, open-source filter for X (Twitter): auto-collapse or hide spam replies, bots, impersonators & ads locally. keepxclean.com
 ```
 
 **Detailed Description**:
 ```text
-KeepXClean keeps your X (formerly Twitter) timeline, search results, and reply threads calm, readable, and high-signal.
+Tired of opening a post on X (Twitter) only to scroll past Verified reply bots, scam impersonators, giveaway bait, and promoted ads? KeepXClean automatically cleans up your X timeline, search results, and reply sections in under 1 ms — right inside your browser.
 
-Instead of scraping pages with extra API calls, KeepXClean evaluates X’s own timeline and reply responses locally in your browser — letting you strip noise cleanly or collapse filtered posts into a single-line reason bar with one-click expand, allowlist, or block actions.
+🌐 Official Website & Live Demo: https://keepxclean.com
+💻 100% Free & Open Source (MIT): https://github.com/KeepXClean/keepxclean
 
-KEY CAPABILITIES
+HOW IT FEELS IN DAILY USE
 
-• 9 Deterministic Filter Dimensions & 3 Presets (Light / Balanced / Strict)
-  1. Reply Spam & Impersonators — Catch ultra-short reply spam, Verified boost bots, low-follower bio-link funnels, and lookalike author impersonators.
-  2. Engagement Bait & Giveaways — Mute "comment X to get DM" funnels, giveaway loops, and follow-for-follow pods.
-  3. High-Frequency Posting — Filter accounts exceeding your daily average or rolling 1-hour burst thresholds.
-  4. Community Blocklist — Optionally filter accounts flagged by aggregated public community reports.
-  5. Custom Keywords & Regular Expressions — Match across post text, bio, display name, or URLs, with optional reply-only scope and follower exemptions.
-  6. Public Keyword Packs — 24 curated rules across Clichés & Slop, Crypto & Shilling, Follow Pods, Phishing & Funnels, and NSFW & Illicit. Toggle any rule individually or click "Customize" to edit your own copy.
-  7. Post Language Filter — Block specific languages or allow only your preferred reading languages.
-  8. Hashtag & Cashtag Stuffing — Filter posts overloaded with #hashtags or $cashtags.
-  9. Account Quality & Promoted Ads — Catch brand-new default-avatar spam accounts and hide promoted timeline/reply ads.
+• Collapse Bar by Default (Never Miss Real Posts)
+  - Collapse Bar (Default): Replaces filtered spam with a subtle one-line reason bar. Click anytime to peek at the original post, add a false positive to your allowlist, or block the account in one click.
+  - Hide Cleanly: Prefer zero visual trace? Switch to Hide Cleanly to remove matched posts without placeholders. (Promoted ads are always removed cleanly in both modes.)
 
-• Two Clean Display Modes
-  - Hide Cleanly: Strip matched items from timeline/reply responses without leaving empty placeholders.
-  - Collapse Bar: Replace matched posts with a subtle one-line reason bar so you can expand, allowlist, or block on demand.
+WHAT KEEPXCLEAN FILTERS FOR YOU
 
-• Safe Quick-Block with 4.5-Second Undo Window
-  - Saves locally first and gives you 4.5 seconds to undo or pick a reason tag before optionally syncing native X block or anonymous community reporting.
-  - Undoing restores only the current action and never accidentally unblocks previously blocked X accounts.
+• Reply Spam, Bots & Impersonators — Blocks ultra-short bot replies, Verified engagement farmers, bio-link scam funnels, and lookalike accounts impersonating the original author.
+• Engagement Bait & Follow Pods — Mutes "Comment X and I'll DM you" traps, fake giveaways, and follow-for-follow rings.
+• High-Frequency Spammers — Filters accounts posting dozens or hundreds of times a day or flooding feeds in short bursts.
+• 24 Built-in Public Anti-Spam Rules — Ready-to-use packs against AI slop/clichés, crypto shilling, follow pods, phishing funnels, and NSFW spam. Toggle any rule individually or customize your own copy.
+• Custom Keywords & Regex — Filter by post text, bio, display name, or links, with reply-only mode and follower exemptions.
+• Language & Tag Filters — Show only the languages you read (or block specific ones), and hide posts stuffed with #hashtags or $cashtags.
+• Promoted Ads & Low-Quality New Accounts — Automatically strips promoted ads and catches brand-new default-avatar spam bots.
+• Community Blocklist & Quote Penetration — Optionally filter repeat spammers reported by the community. Even when someone you follow quotes or retweets a scammer, KeepXClean accurately targets the quoted spammer.
 
-• Transparent Activity Log & Portable JSON Backups
-  - Review the 200 most recent filter hits with exact rule evidence (never fabricated).
-  - Import your existing X blocklist by numeric UID with conflict detection against your allowlist.
-  - Export and import validated JSON configuration backups anytime.
+THOUGHTFUL SAFEGUARDS
 
-• 10 Interface Languages
-  - English, Simplified Chinese, Traditional Chinese, Japanese, Korean, Spanish, Portuguese, French, German, and Russian.
+• 4.5-Second Undo Window — One-click quick-block applies locally right away with a 4.5-second undo toast before optionally syncing native X block or anonymous community reports.
+• Permanent UID Lists & Easy Backups — Import your X blocklist by permanent numeric user ID (survives handle changes), inspect the 200 latest filter hits with clear reasons, and export/import JSON backups anytime.
+• 10 Native UI Languages — English, 简体中文, 繁體中文, 日本語, 한국어, Español, Português, Français, Deutsch, and Русский.
 
-LOCAL-FIRST PRIVACY
-• Zero account registration, zero third-party analytics SDKs, and zero remote code execution.
-• Filtering runs locally in your browser. Optional native X blocking and optional hashed community reporting are controlled explicitly by your preferences.
+OPEN SOURCE & LOCAL-FIRST PRIVACY
+
+• 100% Open Source under the MIT License — Every line of code is public and auditable on GitHub: https://github.com/KeepXClean/keepxclean
+• Zero Account Login & Zero Tracking — Never reads your passwords, cookies, auth tokens, or DMs. No third-party analytics SDKs and no remote code execution.
+• Official Website: https://keepxclean.com
 • Privacy Policy: https://keepxclean.com/privacy/
 ```
 
@@ -95,46 +93,50 @@ LOCAL-FIRST PRIVACY
 
 **Title**（来自 `_locales/zh_CN/messages.json`）:
 ```text
-KeepXClean - X 高信噪比净空插件
+KeepXClean - 屏蔽 X (Twitter) 垃圾评论、水军与广告
 ```
 
-**Summary**:
+**Summary / Subtitle**（来自 `_locales/zh_CN/messages.json`，≤ 132 字符限制）:
 ```text
-让 X (Twitter) 保持清爽：无感过滤评论区水评与高仿号、高频刷屏号、口令引流、推广广告与社区高危账号 (keepxclean.com)
+免费开源的 X (Twitter) 净化插件：自动折叠或屏蔽垃圾评论、水军机器人、高仿骗子、引流刷屏与推广广告，本地运行不读隐私。官网 keepxclean.com
 ```
 
 **Detailed Description**:
 ```text
-KeepXClean 是一款面向 X（原 Twitter）的信息流与评论区高信噪比过滤扩展，帮助你在不额外轮询 X 接口、无需注册登录的前提下，重获清爽安静的阅读体验。
+点开 X（原 Twitter）热门推文，评论区却全是蓝标复读机、卖课引流、高仿假号、币圈喊单和硬广？KeepXClean 帮你在浏览器本地自动净化时间线、搜索页与评论区，把干净清爽的阅读体验还给你。
 
-核心能力
+🌐 官方网站与在线互动演示：https://keepxclean.com
+💻 100% 免费开源（MIT 协议）：https://github.com/KeepXClean/keepxclean
 
-• 九大确定性过滤维度与三档预设（轻度 / 标准 / 极致）
-  1. 评论区防灌水与防高仿：精准识别评论区极短水评、蓝标水军回复、低粉简介导流号及高仿原推主账号。
-  2. 口令引流与互动乞讨拦截：拦截“评论扣 1 领资料”、抽奖转发诱导、互关互赞车队。
-  3. 高频刷屏拦截：同时支持历史日均发推上限与观察窗口短期爆发上限。
-  4. 社区高危名单：可选参考社区公开聚合举报阈值进行过滤。
-  5. 自定义关键词与正则：支持匹配推文正文、简介、昵称与外链域名，支持仅限评论区生效与粉丝数豁免。
-  6. 公共词库包：内置 24 条精细规则（烂梗套话、币圈喊单、互关车队、黑灰产导流、黄赌毒广告），支持分类筛选、逐条独立开关，以及一键“复制自定义”微调。
-  7. 推文语言过滤：支持屏蔽指定语种，或仅保留你阅读的目标语种。
-  8. 标签堆砌过滤：拦截堆砌过多 #话题标签 或 $代币符号 的营销内容。
-  9. 账号质量与推广广告净空：过滤新建默认头像低质号，无痕移除时间线与评论区推广广告。
+为什么好用、不怕误伤？
 
-• 两种净空展示模式
-  - 直接无痕隐藏：在数据层剔除命中内容，不留空白占位。
-  - 单行折叠提示：保留克制的单行命中原因条，随时点击展开查看、加入白名单或一键净空（转发/引用推文命中时精准指向被转引账号）。
+• 默认“折叠提示”，也可一键“直接隐藏”
+  - 折叠提示（默认）：将拦截内容收起为克制的单行原因提示条，想看原文随时点开核对，误判可一键加白名单，确认垃圾可一键拉黑。
+  - 直接隐藏：追求极致清爽时可切换为直接隐藏，不留任何空白占位（注：原生推广广告在两种模式下均会直接无痕抹除）。
 
-• 4.5 秒安全撤销窗口与数字 UID 名单管理
-  - 页面内快捷净空先写入本地并提供 4.5 秒撤销窗口；窗口结束后再按偏好决定是否同步 X 原生拉黑与匿名社区共享，三阶段状态真实呈现。
-  - 支持从 X 导入既有拉黑名单（基于数字 UID 永久识别，改名不失效），自动检测重复与白名单冲突。
+能帮你自动过滤哪些垃圾内容？
 
-• 透明拦截记录与 10 种界面语言
-  - 保留最近 200 条命中证据明细，支持 JSON 配置校验导入与本地备份导出。
-  - 内置简体中文、繁體中文、English、日本語、한국어、Español、Português、Français、Deutsch、Русский 10 种界面语言。
+• 评论区水军与高仿骗子：拦截评论区敷衍水评、蓝标流量乞丐、简介挂外部导流链接的低粉号，以及模仿原推主头像昵称的高仿假号。
+• 口令引流与互关车队：自动屏蔽“评论扣 1 私信发你”、虚假抽奖转发、蓝标互关互赞团伙。
+• 高频刷屏与机器号：按日均发推数或短时连发频率，拦截全天候刷屏的营销号与搬运机器人。
+• 内置 24 条开源防垃圾词库：涵盖 AI 烂梗套话、币圈喊单空投、互关车队、黑灰产诈骗引流、黄赌毒广告五大分类，支持逐条独立开关，也能一键复制改成你自己的规则。
+• 自定义关键词与正则：支持匹配推文正文、简介、昵称、链接域名，可设置“仅在评论区生效”或高粉账号豁免。
+• 语种过滤与标签堆砌拦截：支持“只看勾选语言”或“屏蔽指定语言”，自动过滤塞满 #话题标签 与 $代币符号 的垃圾推文。
+• 推广广告与新注册三无号：无痕移除信息流与评论区推广广告，拦截刚注册、默认头像的低质水军号。
+• 社区共治黑名单与转推穿透：可选启用社区高危黑名单；即使你关注的博主转发或引用了垃圾营销号，也能精准识别并指向被转引的违规账号。
 
-本地优先与隐私承诺
-• 零账号注册、零第三方统计 SDK、零远程代码执行。
-• 全部内容过滤均在浏览器本地完成；隐私政策详见：https://keepxclean.com/privacy/
+贴心安全细节
+
+• 4.5 秒防手滑撤销：页面内点“一键净空”先在本地生效，提供 4.5 秒随时撤销窗口，之后再按你的设置决定是否同步 X 原生拉黑与匿名社区举报。
+• 永久数字 UID 名单与备份：按 X 永久数字 UID 管理黑白名单（骗子改名换皮也不失效），随时查看最近 200 条拦截原因明细，支持 JSON 配置导入导出。
+• 10 种原生界面语言：内置简体中文、繁體中文、English、日本語、한국어、Español、Português、Français、Deutsch、Русский。
+
+开源透明与本地隐私承诺
+
+• 完全开源免费：项目基于 MIT 协议完整开源（https://github.com/KeepXClean/keepxclean），所有过滤逻辑与规则公开透明、可自行审查或自托管。
+• 本地运行零隐私泄露：无需注册登录，绝不读取账号密码、Cookie 或私信，不含任何第三方统计追踪代码，单条推文判定不到 1 毫秒。
+• 官方网站：https://keepxclean.com
+• 隐私政策：https://keepxclean.com/privacy/
 ```
 
 ---
@@ -202,8 +204,8 @@ https://keepxclean.com/privacy/
 每次重新打包上传前可执行：
 
 ```bash
-pnpm typecheck && pnpm test && pnpm --filter @keepxclean/extension zip
+pnpm typecheck && pnpm test && pnpm test:e2e && pnpm --filter @keepxclean/extension zip
 ```
 
 生成的上传包位于：
-`apps/extension/.output/keepxcleanextension-0.1.0-chrome.zip`
+`apps/extension/.output/keepxcleanextension-0.1.1-chrome.zip`

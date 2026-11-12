@@ -64,7 +64,7 @@ export const AUTHOR_30STO_URL = 'https://30s.to/@linmo';
 /**
  * Current release version tag
  */
-export const CURRENT_VERSION = 'v0.1.0';
+export const CURRENT_VERSION = 'v0.1.1';
 
 /**
  * Runtime CTA configuration snapshot

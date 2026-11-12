@@ -98,7 +98,7 @@ describe('Tier 1: Feature Coverage (Features 1 – 34)', () => {
 
     it('T1-F01-05: Release Tag Tree Verification', () => {
       const pkg = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf8'));
-      expect(pkg.version).toBe('0.1.0');
+      expect(pkg.version).toBe('0.1.1');
     });
   });
 
@@ -202,8 +202,8 @@ describe('Tier 1: Feature Coverage (Features 1 – 34)', () => {
     it('T1-F04-04: Release Manifest Version Alignment', () => {
       const rootPkg = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf8'));
       const extPkg = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'apps/extension/package.json'), 'utf8'));
-      expect(rootPkg.version).toBe('0.1.0');
-      expect(extPkg.version).toBe('0.1.0');
+      expect(rootPkg.version).toBe('0.1.1');
+      expect(extPkg.version).toBe('0.1.1');
     });
 
     it('T1-F04-05: Release Asset API Tag Verification', () => {

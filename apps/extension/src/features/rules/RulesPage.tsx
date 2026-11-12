@@ -218,8 +218,8 @@ export function Presentation({
       label={m.presets.presentationLabel}
       value={config.interceptionMode}
       options={[
-        { value: 'strip', label: m.presets.modeStrip },
         { value: 'collapse', label: m.presets.modeCollapse },
+        { value: 'strip', label: m.presets.modeStrip },
       ]}
       onChange={(interceptionMode) => {
         if (interceptionMode !== config.interceptionMode) {

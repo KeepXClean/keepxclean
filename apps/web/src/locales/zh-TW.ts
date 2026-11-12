@@ -16,7 +16,7 @@ export const zhTW: TranslationDictionary = {
     faq: '常見問答',
     privacy: '隱私權政策',
     github: 'GitHub 原始碼',
-    downloadCta: '取得 v0.1.0',
+    downloadCta: '取得 v0.1.1',
     addToChrome: '新增至 Chrome',
     cwsBadge: 'Chrome 商店審核中',
     cwsReviewBadge: 'Chrome 商店審核中',
@@ -32,8 +32,8 @@ export const zhTW: TranslationDictionary = {
     headlineHighlight: 'X 時間軸與留言區',
     subheadline:
       '直接解析 X 自身 GraphQL 回應，在瀏覽器本地執行確定性過濾。零帳號憑證、<1ms 比對、透明規則，全網協同防範 AI 水軍、殺豬盤與惡意導流。',
-    ctaDownload: '下載 GitHub 搶先版 (v0.1.0)',
-    ctaPrimary: '下載 GitHub 搶先版 (v0.1.0)',
+    ctaDownload: '下載 GitHub 搶先版 (v0.1.1)',
+    ctaPrimary: '下載 GitHub 搶先版 (v0.1.1)',
     ctaStore: '新增至 Chrome',
     ctaSecondary: '查看 GitHub 原始碼',
     ctaGitHub: '查看 GitHub 原始碼',
@@ -83,7 +83,7 @@ export const zhTW: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.0 正式發布！採用本地優先架構，<1ms 確定性規則比對，零帳號外洩風險，支援 10 種語言。還你純淨高信噪比的 X 體驗。',
+        'KeepXClean v0.1.1 正式發布！採用本地優先架構，<1ms 確定性規則比對，零帳號外洩風險，支援 10 種語言。還你純淨高信噪比的 X 體驗。',
       time: '2小時前',
       replies: '142',
       reposts: '389',
@@ -235,10 +235,10 @@ export const zhTW: TranslationDictionary = {
     sectionDesc:
       '下載 Release 壓縮包 · 本地解壓 · 開啟 Chrome 開發人員模式載入未打包項目。',
     copyTooltip: '複製 chrome://extensions',
-    readyStatus: 'KeepXClean v0.1.0 · 就緒可用',
+    readyStatus: 'KeepXClean v0.1.1 · 就緒可用',
     step1Title: '第一步：下載發布套件 (.zip)',
     step1Desc:
-      '從 GitHub Releases 下載最新的 keepxclean-v0.1.0.zip 並解壓縮至本地固定資料夾。',
+      '從 GitHub Releases 下載最新的 keepxclean-v0.1.1.zip 並解壓縮至本地固定資料夾。',
     step1Action: '下載發布套件 (.zip)',
     step2Title: '第二步：開啟擴充功能開發者模式',
     step2Desc:
@@ -299,7 +299,7 @@ export const zhTW: TranslationDictionary = {
     install: '安裝指南',
     faq: '常見問答',
     githubRepo: 'GitHub 倉庫',
-    releaseZip: '發布套件 v0.1.0 (.zip)',
+    releaseZip: '發布套件 v0.1.1 (.zip)',
     statsApi: '社群防線 API',
     issues: '問題反饋',
     privacyPolicy: '隱私權政策（雙語）',

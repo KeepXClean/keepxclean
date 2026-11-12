@@ -103,7 +103,7 @@ describe('Tier 2: Boundary & Corner Cases (Features 1 – 34)', () => {
 
     it('T2-F01-04: Large Binary Blob Scan Memory Safety (>50MB)', () => {
       const binaryRegex = /\.(zip|png|jpg|ico|gz|wasm|tar)$/i;
-      expect(binaryRegex.test('keepxcleanextension-0.1.0-chrome.zip')).toBe(true);
+      expect(binaryRegex.test('keepxcleanextension-0.1.1-chrome.zip')).toBe(true);
       expect(binaryRegex.test('src/main.tsx')).toBe(false);
       expect(fs.existsSync(path.join(ROOT_DIR, 'apps/web/public/logo.svg'))).toBe(true);
     });
@@ -240,7 +240,7 @@ describe('Tier 2: Boundary & Corner Cases (Features 1 – 34)', () => {
     });
 
     it('T2-F04-02: Interrupted HTTP Download Byte Count Detection', () => {
-      const zipPath = path.join(ROOT_DIR, 'apps/extension/.output/keepxcleanextension-0.1.0-chrome.zip');
+      const zipPath = path.join(ROOT_DIR, 'apps/extension/.output/keepxcleanextension-0.1.1-chrome.zip');
       const exists = fs.existsSync(zipPath);
       expect(exists !== undefined).toBe(true);
       const expectedBytes = 550000;
@@ -250,7 +250,7 @@ describe('Tier 2: Boundary & Corner Cases (Features 1 – 34)', () => {
     });
 
     it('T2-F04-03: Corrupted Zip Header Detection', () => {
-      const zipPath = path.join(ROOT_DIR, 'apps/extension/.output/keepxcleanextension-0.1.0-chrome.zip');
+      const zipPath = path.join(ROOT_DIR, 'apps/extension/.output/keepxcleanextension-0.1.1-chrome.zip');
       const expectedMagic = Buffer.from([0x50, 0x4b, 0x03, 0x04]);
       const zipBuffer = fs.existsSync(zipPath)
         ? fs.readFileSync(zipPath)
@@ -265,7 +265,7 @@ describe('Tier 2: Boundary & Corner Cases (Features 1 – 34)', () => {
     });
 
     it('T2-F04-04: High Latency Network Streaming Fallback', async () => {
-      const assetUrl = 'https://github.com/KeepXClean/keepxclean/releases/download/v0.1.0/keepxcleanextension-0.1.0-chrome.zip';
+      const assetUrl = 'https://github.com/KeepXClean/keepxclean/releases/download/v0.1.0/keepxcleanextension-0.1.1-chrome.zip';
       fetchMock.mock({
         url: assetUrl,
         networkError: new TypeError('Network request timed out: latency exceeded 30000ms'),
@@ -283,7 +283,7 @@ describe('Tier 2: Boundary & Corner Cases (Features 1 – 34)', () => {
     });
 
     it('T2-F04-05: Concurrent Multi-Downloads Hash Consistency', () => {
-      const zipPath = path.join(ROOT_DIR, 'apps/extension/.output/keepxcleanextension-0.1.0-chrome.zip');
+      const zipPath = path.join(ROOT_DIR, 'apps/extension/.output/keepxcleanextension-0.1.1-chrome.zip');
       const expectedMagic = Buffer.from([0x50, 0x4b, 0x03, 0x04]);
       const zipBuffer = fs.existsSync(zipPath)
         ? fs.readFileSync(zipPath)

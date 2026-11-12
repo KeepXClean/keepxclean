@@ -1,9 +1,9 @@
 {
   "extName": {
-    "message": "KeepXClean - Rauschfilter für X"
+    "message": "KeepXClean - Spam, Bots & Werbung auf X blockieren"
   },
   "extDescription": {
-    "message": "Halte X (Twitter) sauber: Filtert Antwort-Spam, Nachahmer, Hochfrequenz-Bots, Engagement-Bait und gesponserte Anzeigen."
+    "message": "Kostenloser Open-Source-Filter für X (Twitter): klappt Spam, Bots, Nachahmer & Werbung lokal ein oder blendet aus. keepxclean.com"
   },
   "extActionTitle": {
     "message": "KeepXClean Steuerung"

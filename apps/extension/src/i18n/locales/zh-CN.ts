@@ -82,7 +82,7 @@ export const zhCN: ExtensionMessages = {
       '切换预设将实时更新下方各维度的拦截门槛，也可展开任意维度单独微调。',
     presentationTitle: '过滤后呈现方式',
     presentationDesc:
-      '直接隐藏不留占位；折叠提示保留单行原因条，可随时展开核对或一键加白。',
+      '折叠提示保留单行原因条，可随时展开核对或一键加白；直接隐藏不留占位。',
     dimensionsHeading: '过滤维度',
     enabledCount: (active, total) => `已启用 ${active} / ${total} 项`,
     enableRule: (title) => `启用${title}`,
@@ -634,7 +634,7 @@ export const zhCN: ExtensionMessages = {
     resetConfirmTitle: '重置过滤设置？',
     resetConfirmBtn: '恢复标准规则',
     resetConfirmBody:
-      '恢复标准规则参数、直接隐藏模式、场景豁免和自定义词库总开关。',
+      '恢复标准规则参数、折叠提示模式、场景豁免和自定义词库总开关。',
     resetConfirmBanner:
       '保留关键词条目、界面语言、总启停、黑白名单、同步与共享偏好、服务地址、记录和统计。',
     resetSuccessMsg: '已恢复标准过滤规则，关键词条目与名单均已保留。',

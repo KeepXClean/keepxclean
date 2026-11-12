@@ -1,9 +1,9 @@
 {
   "extName": {
-    "message": "KeepXClean - Filtro de ruido para X"
+    "message": "KeepXClean - Bloquea spam, bots y anuncios en X"
   },
   "extDescription": {
-    "message": "Mantén X (Twitter) limpio: filtra spam en respuestas, suplantadores, bots, cebos de interacción y anuncios promocionados."
+    "message": "Filtro gratuito y open-source para X (Twitter): pliega u oculta spam, bots, suplantadores y anuncios localmente. keepxclean.com"
   },
   "extActionTitle": {
     "message": "Panel KeepXClean"

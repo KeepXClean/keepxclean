@@ -82,7 +82,7 @@ export const ko: ExtensionMessages = {
       '프리셋을 전환하면 아래 임계값이 실시간으로 바뀌며, 각 항목을 펼쳐 세밀하게 조정할 수 있습니다.',
     presentationTitle: '차단된 게시물 표시 방식',
     presentationDesc:
-      '완전히 숨기기는 빈자리 없이 제거하고, 한 줄로 접기는 사유 바를 남겨 펼쳐 보거나 허용할 수 있습니다.',
+      '한 줄로 접기는 사유 바를 남겨 펼쳐 보거나 허용할 수 있고, 완전히 숨기기는 빈자리 없이 제거합니다.',
     dimensionsHeading: '필터 항목',
     enabledCount: (active, total) => `${active} / ${total}개 켜짐`,
     enableRule: (title) => `${title} 활성화`,
@@ -646,7 +646,7 @@ export const ko: ExtensionMessages = {
     resetConfirmTitle: '필터 규칙을 초기화하시겠습니까?',
     resetConfirmBtn: '표준 규칙 복원',
     resetConfirmBody:
-      '균형 프리셋 기준치, 완전히 숨기기 모드, 상황별 예외, 커스텀 키워드 스위치를 기본값으로 되돌립니다.',
+      '균형 프리셋 기준치, 한 줄로 접기 모드, 상황별 예외, 커스텀 키워드 스위치를 기본값으로 되돌립니다.',
     resetConfirmBanner:
       '커스텀 키워드 항목, 언어, 차단/허용 목록, 동기화 설정, 서비스 주소, 로그와 통계는 유지됩니다.',
     resetSuccessMsg: '표준 필터 규칙이 복원되었으며 키워드와 목록은 그대로 유지되었습니다.',

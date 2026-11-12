@@ -82,7 +82,7 @@ export const en: ExtensionMessages = {
       'Switching presets updates thresholds below in real time, or expand any dimension to fine-tune.',
     presentationTitle: 'Filtered post display',
     presentationDesc:
-      'Hide cleanly removes posts without placeholders; Collapse bar keeps a single-line reason bar to expand or allowlist.',
+      'Collapse bar keeps a single-line reason bar to expand or allowlist; Hide cleanly removes posts without placeholders.',
     dimensionsHeading: 'Filter Dimensions',
     enabledCount: (active, total) => `${active} / ${total} enabled`,
     enableRule: (title) => `Enable ${title}`,
@@ -659,7 +659,7 @@ export const en: ExtensionMessages = {
     resetConfirmTitle: 'Reset filter rules?',
     resetConfirmBtn: 'Restore standard rules',
     resetConfirmBody:
-      'Restores Balanced thresholds, clean hide mode, scene exemptions, and custom keyword master switch.',
+      'Restores Balanced thresholds, collapse bar mode, scene exemptions, and custom keyword master switch.',
     resetConfirmBanner:
       'Preserves your custom keyword items, language, block/allow lists, sync preferences, endpoint, logs, and stats.',
     resetSuccessMsg:

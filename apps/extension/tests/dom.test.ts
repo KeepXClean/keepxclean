@@ -63,6 +63,7 @@ describe('content lifecycle', () => {
     article.style.opacity = '.8';
     const controller = new DomController('');
     const config = createDefaultConfig();
+    config.interceptionMode = 'strip';
     config.localBlocklistUids['42'] = {
       uid: '42',
       screenName: 'sample',
@@ -80,7 +81,7 @@ describe('content lifecycle', () => {
   it('does not duplicate bars, and removes obsolete hiding when a node is reused', () => {
     const article = fixture();
     const config = createDefaultConfig();
-    config.interceptionMode = 'collapse';
+    expect(config.interceptionMode).toBe('collapse');
     config.localBlocklistUids['42'] = {
       uid: '42',
       screenName: 'sample',

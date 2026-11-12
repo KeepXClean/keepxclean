@@ -16,7 +16,7 @@ export const fr: TranslationDictionary = {
     faq: 'FAQ',
     privacy: 'Confidentialité',
     github: 'GitHub',
-    downloadCta: 'Obtenir v0.1.0',
+    downloadCta: 'Obtenir v0.1.1',
     addToChrome: 'Ajouter à Chrome',
     cwsBadge: 'En cours d’examen sur Chrome Web Store',
     cwsReviewBadge: 'En cours d’examen sur Chrome Web Store',
@@ -32,8 +32,8 @@ export const fr: TranslationDictionary = {
     headlineHighlight: 'dans vos réponses et timeline sur X',
     subheadline:
       'Filtrage local déterministe directement appliqué sur les réponses GraphQL de X. Aucun identifiant de compte requis, exécution en < 1ms, règles ouvertes et défense collective contre les robots IA et arnaques.',
-    ctaDownload: 'Télécharger la version préliminaire (v0.1.0)',
-    ctaPrimary: 'Télécharger la version préliminaire (v0.1.0)',
+    ctaDownload: 'Télécharger la version préliminaire (v0.1.1)',
+    ctaPrimary: 'Télécharger la version préliminaire (v0.1.1)',
     ctaStore: 'Ajouter à Chrome',
     ctaSecondary: 'Voir le code sur GitHub',
     ctaGitHub: 'Voir le code sur GitHub',
@@ -83,7 +83,7 @@ export const fr: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.0 est disponible ! Architecture locale-first, évaluation en < 1ms, zéro fuite de jetons et support de 10 langues. Une expérience saine et pertinente sur X.',
+        'KeepXClean v0.1.1 est disponible ! Architecture locale-first, évaluation en < 1ms, zéro fuite de jetons et support de 10 langues. Une expérience saine et pertinente sur X.',
       time: '2h',
       replies: '142',
       reposts: '389',
@@ -235,10 +235,10 @@ export const fr: TranslationDictionary = {
     sectionDesc:
       'Télécharger l’archive ZIP · Extraire le dossier · Activer le mode développeur Chrome et charger.',
     copyTooltip: 'Copier chrome://extensions',
-    readyStatus: 'KeepXClean v0.1.0 · Prêt à nettoyer',
+    readyStatus: 'KeepXClean v0.1.1 · Prêt à nettoyer',
     step1Title: 'Étape 1 : Télécharger l’archive (.zip)',
     step1Desc:
-      'Téléchargez la dernière archive keepxclean (v0.1.0) depuis les versions GitHub et extrayez-la dans un dossier.',
+      'Téléchargez la dernière archive keepxclean (v0.1.1) depuis les versions GitHub et extrayez-la dans un dossier.',
     step1Action: 'Télécharger le fichier ZIP',
     step2Title: 'Étape 2 : Activer le mode développeur',
     step2Desc:
@@ -299,7 +299,7 @@ export const fr: TranslationDictionary = {
     install: 'Guide d’installation',
     faq: 'FAQ',
     githubRepo: 'Dépôt GitHub',
-    releaseZip: 'Version v0.1.0 (.zip)',
+    releaseZip: 'Version v0.1.1 (.zip)',
     statsApi: 'API Statistiques',
     issues: 'Suivi des Problèmes',
     privacyPolicy: 'Politique de Confidentialité (Bilingue)',

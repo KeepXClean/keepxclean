@@ -16,7 +16,7 @@ export const ko: TranslationDictionary = {
     faq: '자주 묻는 질문',
     privacy: '개인정보 처리방침',
     github: 'GitHub 소스코드',
-    downloadCta: 'v0.1.0 다운로드',
+    downloadCta: 'v0.1.1 다운로드',
     addToChrome: 'Chrome에 추가',
     cwsBadge: 'Chrome 웹 스토어 심사 중',
     cwsReviewBadge: 'Chrome 웹 스토어 심사 중',
@@ -32,8 +32,8 @@ export const ko: TranslationDictionary = {
     headlineHighlight: 'X 타임라인과 답글창 되찾기',
     subheadline:
       'X의 GraphQL 응답을 브라우저 로컬에서 직접 결정론적으로 처리합니다. 계정 자격 증명 제로, 1ms 미만의 즉각 실행, 투명한 규칙으로 AI 봇과 사기성 도배를 차단합니다.',
-    ctaDownload: 'GitHub 얼리 액세스 (v0.1.0) 다운로드',
-    ctaPrimary: 'GitHub 얼리 액세스 (v0.1.0) 다운로드',
+    ctaDownload: 'GitHub 얼리 액세스 (v0.1.1) 다운로드',
+    ctaPrimary: 'GitHub 얼리 액세스 (v0.1.1) 다운로드',
     ctaStore: 'Chrome에 추가',
     ctaSecondary: 'GitHub에서 소스 보기',
     ctaGitHub: 'GitHub에서 소스 보기',
@@ -83,7 +83,7 @@ export const ko: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.0이 출시되었습니다! 로컬 우선 아키텍처, 1ms 미만의 결정론적 평가, 토큰 유출 제로, 10개 언어 매트릭스. X에서 순수한 고신호 타임라인을 경험하세요.',
+        'KeepXClean v0.1.1이 출시되었습니다! 로컬 우선 아키텍처, 1ms 미만의 결정론적 평가, 토큰 유출 제로, 10개 언어 매트릭스. X에서 순수한 고신호 타임라인을 경험하세요.',
       time: '2시간 전',
       replies: '142',
       reposts: '389',
@@ -236,10 +236,10 @@ export const ko: TranslationDictionary = {
     sectionDesc:
       '릴리스 ZIP 다운로드 · 압축 해제 · Chrome 개발자 모드에서 압축해제된 확장 프로그램 로드.',
     copyTooltip: 'chrome://extensions 복사',
-    readyStatus: 'KeepXClean v0.1.0 · 사용 준비 완료',
+    readyStatus: 'KeepXClean v0.1.1 · 사용 준비 완료',
     step1Title: '1단계: 배포 패키지 (.zip) 다운로드',
     step1Desc:
-      'GitHub Releases에서 최신 keepxclean-v0.1.0.zip 파일을 다운로드하고 로컬 폴더에 압축을 풉니다.',
+      'GitHub Releases에서 최신 keepxclean-v0.1.1.zip 파일을 다운로드하고 로컬 폴더에 압축을 풉니다.',
     step1Action: '릴리스 ZIP 다운로드',
     step2Title: '2단계: 개발자 모드 활성화',
     step2Desc:
@@ -300,7 +300,7 @@ export const ko: TranslationDictionary = {
     install: '설치 가이드',
     faq: '자주 묻는 질문',
     githubRepo: 'GitHub 저장소',
-    releaseZip: '릴리스 v0.1.0 (.zip)',
+    releaseZip: '릴리스 v0.1.1 (.zip)',
     statsApi: '커뮤니티 통계 API',
     issues: '이슈 트래커',
     privacyPolicy: '개인정보 처리방침 (이중언어)',

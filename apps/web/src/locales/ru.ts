@@ -16,7 +16,7 @@ export const ru: TranslationDictionary = {
     faq: 'Вопросы и ответы',
     privacy: 'Конфиденциальность',
     github: 'GitHub',
-    downloadCta: 'Скачать v0.1.0',
+    downloadCta: 'Скачать v0.1.1',
     addToChrome: 'Добавить в Chrome',
     cwsBadge: 'На проверке в Chrome Web Store',
     cwsReviewBadge: 'На проверке в Chrome Web Store',
@@ -32,8 +32,8 @@ export const ru: TranslationDictionary = {
     headlineHighlight: 'ленту и ветки ответов в X',
     subheadline:
       'Детерминированная локальная фильтрация непосредственно на основе ответов GraphQL от X. Без передачи паролей, выполнение за < 1 мс, открытые правила и коллективная защита от ИИ-ботов и мошенников.',
-    ctaDownload: 'Скачать релиз (v0.1.0)',
-    ctaPrimary: 'Скачать релиз (v0.1.0)',
+    ctaDownload: 'Скачать релиз (v0.1.1)',
+    ctaPrimary: 'Скачать релиз (v0.1.1)',
     ctaStore: 'Добавить в Chrome',
     ctaSecondary: 'Исходный код на GitHub',
     ctaGitHub: 'Исходный код на GitHub',
@@ -83,7 +83,7 @@ export const ru: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.0 запущен! Архитектура local-first, оценка за < 1 мс, нулевая утечка токенов и поддержка 10 языков. Наслаждайтесь чистой лентой в X.',
+        'KeepXClean v0.1.1 запущен! Архитектура local-first, оценка за < 1 мс, нулевая утечка токенов и поддержка 10 языков. Наслаждайтесь чистой лентой в X.',
       time: '2 ч',
       replies: '142',
       reposts: '389',
@@ -235,10 +235,10 @@ export const ru: TranslationDictionary = {
     sectionDesc:
       'Скачать архив ZIP · Распаковать · Включить режим разработчика в Chrome и загрузить.',
     copyTooltip: 'Копировать chrome://extensions',
-    readyStatus: 'KeepXClean v0.1.0 · Готов к очистке',
+    readyStatus: 'KeepXClean v0.1.1 · Готов к очистке',
     step1Title: 'Шаг 1: Скачать архив (.zip)',
     step1Desc:
-      'Скачайте свежий архив keepxclean (v0.1.0) на странице GitHub Releases и распакуйте в удобную папку.',
+      'Скачайте свежий архив keepxclean (v0.1.1) на странице GitHub Releases и распакуйте в удобную папку.',
     step1Action: 'Скачать архив ZIP',
     step2Title: 'Шаг 2: Включить режим разработчика',
     step2Desc:
@@ -299,7 +299,7 @@ export const ru: TranslationDictionary = {
     install: 'Установка',
     faq: 'Вопросы и ответы',
     githubRepo: 'Репозиторий GitHub',
-    releaseZip: 'Релиз v0.1.0 (.zip)',
+    releaseZip: 'Релиз v0.1.1 (.zip)',
     statsApi: 'API статистики',
     issues: 'Трекер проблем',
     privacyPolicy: 'Политика конфиденциальности (Двуязычная)',

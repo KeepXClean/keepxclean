@@ -16,7 +16,7 @@ export const ja: TranslationDictionary = {
     faq: 'よくある質問',
     privacy: 'プライバシーポリシー',
     github: 'GitHub ソース',
-    downloadCta: 'v0.1.0 を入手',
+    downloadCta: 'v0.1.1 を入手',
     addToChrome: 'Chrome に追加',
     cwsBadge: 'Chrome Web Store 審査中',
     cwsReviewBadge: 'Chrome Web Store 審査中',
@@ -32,8 +32,8 @@ export const ja: TranslationDictionary = {
     headlineHighlight: 'X のタイムラインとリプライ欄を取り戻す',
     subheadline:
       'X の GraphQL レスポンスをブラウザ内で直接決定論的に処理。認証情報不要、1ms 未満の超高速判定、完全公開ルールで AI ボットや詐欺アカウントを排除します。',
-    ctaDownload: 'GitHub 先行版 (v0.1.0) をダウンロード',
-    ctaPrimary: 'GitHub 先行版 (v0.1.0) をダウンロード',
+    ctaDownload: 'GitHub 先行版 (v0.1.1) をダウンロード',
+    ctaPrimary: 'GitHub 先行版 (v0.1.1) をダウンロード',
     ctaStore: 'Chrome に追加',
     ctaSecondary: 'GitHub でソースを見る',
     ctaGitHub: 'GitHub でソースを見る',
@@ -83,7 +83,7 @@ export const ja: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.0 をリリースしました！完全ローカルファースト、1ms 未満の決定論的エンジン、トークン漏洩ゼロ、10言語対応。本来のクリーンな X 体験を。',
+        'KeepXClean v0.1.1 をリリースしました！完全ローカルファースト、1ms 未満の決定論的エンジン、トークン漏洩ゼロ、10言語対応。本来のクリーンな X 体験を。',
       time: '2時間前',
       replies: '142',
       reposts: '389',
@@ -235,10 +235,10 @@ export const ja: TranslationDictionary = {
     sectionDesc:
       'リリース ZIP を入手 · 解凍 · Chrome 拡張機能管理画面でデベロッパーモード有効化。',
     copyTooltip: 'chrome://extensions をコピー',
-    readyStatus: 'KeepXClean v0.1.0 · 準備完了',
+    readyStatus: 'KeepXClean v0.1.1 · 準備完了',
     step1Title: 'ステップ 1: 配布パッケージ (.zip) をダウンロード',
     step1Desc:
-      'GitHub Releases から最新の keepxclean-v0.1.0.zip をダウンロードし、任意のフォルダに解凍します。',
+      'GitHub Releases から最新の keepxclean-v0.1.1.zip をダウンロードし、任意のフォルダに解凍します。',
     step1Action: 'リリース版 ZIP を入手',
     step2Title: 'ステップ 2: デベロッパーモードを有効化',
     step2Desc:
@@ -299,7 +299,7 @@ export const ja: TranslationDictionary = {
     install: 'インストールガイド',
     faq: 'よくある質問',
     githubRepo: 'GitHub リポジトリ',
-    releaseZip: '最新リリース v0.1.0 (.zip)',
+    releaseZip: '最新リリース v0.1.1 (.zip)',
     statsApi: 'コミュニティ統計 API',
     issues: '問題報告・Issue',
     privacyPolicy: 'プライバシーポリシー（日英）',

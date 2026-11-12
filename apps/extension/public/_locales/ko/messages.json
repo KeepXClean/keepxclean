@@ -1,9 +1,9 @@
 {
   "extName": {
-    "message": "KeepXClean - X 노이즈 차단 필터"
+    "message": "KeepXClean - X (트위터) 스팸 답글·봇·광고 차단"
   },
   "extDescription": {
-    "message": "X (Twitter)를 깔끔하게: 답글 도배·사칭 계정·고빈도 봇·유도성 스팸·프로모션 광고를 자동으로 필터링합니다."
+    "message": "무료 오픈소스 X (트위터) 클리너: 스팸 답글, 봇, 사칭 계정, 프로모션 광고를 기기에서 안전하게 접거나 숨깁니다. 공식 사이트 keepxclean.com"
   },
   "extActionTitle": {
     "message": "KeepXClean 제어판"

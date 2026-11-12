@@ -82,7 +82,7 @@ export const zhTW: ExtensionMessages = {
       '切換預設將即時更新下方各維度的攔截門檻，也可展開任意維度單獨微調。',
     presentationTitle: '過濾後呈現方式',
     presentationDesc:
-      '直接隱藏不留佔位；摺疊提示保留單行原因條，可隨時展開核對或一鍵加白。',
+      '摺疊提示保留單行原因條，可隨時展開核對或一鍵加白；直接隱藏不留佔位。',
     dimensionsHeading: '過濾維度',
     enabledCount: (active, total) => `已啟用 ${active} / ${total} 項`,
     enableRule: (title) => `啟用${title}`,
@@ -634,7 +634,7 @@ export const zhTW: ExtensionMessages = {
     resetConfirmTitle: '重設過濾設定？',
     resetConfirmBtn: '恢復標準規則',
     resetConfirmBody:
-      '恢復標準規則參數、直接隱藏模式、場景豁免和自訂詞庫總開關。',
+      '恢復標準規則參數、摺疊提示模式、場景豁免和自訂詞庫總開關。',
     resetConfirmBanner:
       '保留關鍵字條目、介面語言、總啟停、黑白名單、同步與共享偏好、服務位址、記錄和統計。',
     resetSuccessMsg: '已恢復標準過濾規則，關鍵字條目與名單均已保留。',

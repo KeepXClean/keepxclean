@@ -39,12 +39,12 @@ describe('configuration contracts', () => {
       queue(async () => {
         config = applyConfigCommand(config, {
           type: 'config.patch',
-          patch: { interceptionMode: 'collapse' },
+          patch: { interceptionMode: 'strip' },
         });
       }),
     ]);
     expect(config.enabled).toBe(false);
-    expect(config.interceptionMode).toBe('collapse');
+    expect(config.interceptionMode).toBe('strip');
   });
   it('keeps the queue usable after a failed write', async () => {
     const queue = serialQueue();
@@ -57,6 +57,7 @@ describe('configuration contracts', () => {
   });
   it('preserves lists, custom words, locale and privacy when resetting rules', () => {
     const config = createDefaultConfig('strict');
+    config.interceptionMode = 'strip';
     config.locale = 'ja';
     config.enabled = false;
     config.syncNativeXBlock = false;
@@ -75,7 +76,7 @@ describe('configuration contracts', () => {
       expected: digest(config),
     });
     expect(next.preset).toBe('standard');
-    expect(next.interceptionMode).toBe('strip');
+    expect(next.interceptionMode).toBe('collapse');
     expect(next.locale).toBe('ja');
     expect(next.enabled).toBe(false);
     expect(next.localBlocklistUids).toEqual(config.localBlocklistUids);

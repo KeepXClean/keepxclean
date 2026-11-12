@@ -82,7 +82,7 @@ export const es: ExtensionMessages = {
       'Cambiar de ajuste actualiza los umbrales en tiempo real, o despliega cualquier dimensión para afinarla.',
     presentationTitle: 'Visualización de publicaciones filtradas',
     presentationDesc:
-      'Ocultar limpio elimina sin dejar huecos; Barra plegada deja una línea con el motivo para expandir o permitir.',
+      'Barra plegada deja una línea con el motivo para expandir o permitir; Ocultar limpio elimina sin dejar huecos.',
     dimensionsHeading: 'Dimensiones de filtrado',
     enabledCount: (active, total) => `${active} / ${total} activas`,
     enableRule: (title) => `Activar ${title}`,
@@ -656,7 +656,7 @@ export const es: ExtensionMessages = {
     resetConfirmTitle: '¿Restablecer reglas de filtro?',
     resetConfirmBtn: 'Restaurar reglas estándar',
     resetConfirmBody:
-      'Restaura los umbrales Equilibrados, ocultación limpia, exenciones y el interruptor de palabras propias.',
+      'Restaura los umbrales Equilibrados, modo Barra plegada, exenciones y el interruptor de palabras propias.',
     resetConfirmBanner:
       'Conserva tus palabras clave propias, idioma, listas, preferencias de sincronización, servidor, registros y estadísticas.',
     resetSuccessMsg:

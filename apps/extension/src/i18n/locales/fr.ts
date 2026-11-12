@@ -82,7 +82,7 @@ export const fr: ExtensionMessages = {
       'Changer de profil met à jour les seuils en temps réel, ou dépliez chaque dimension pour l’affiner.',
     presentationTitle: 'Affichage des posts filtrés',
     presentationDesc:
-      'Masquer net supprime sans laisser de trace ; Barre repliée laisse une ligne indiquant le motif pour déplier ou autoriser.',
+      'Barre repliée laisse une ligne indiquant le motif pour déplier ou autoriser ; Masquer net supprime sans laisser de trace.',
     dimensionsHeading: 'Dimensions de filtrage',
     enabledCount: (active, total) => `${active} / ${total} actives`,
     enableRule: (title) => `Activer ${title}`,
@@ -656,7 +656,7 @@ export const fr: ExtensionMessages = {
     resetConfirmTitle: 'Réinitialiser les règles de filtre ?',
     resetConfirmBtn: 'Rétablir les règles standards',
     resetConfirmBody:
-      'Rétablit les seuils Équilibrés, le masquage net, les exemptions et l’interrupteur des mots-clés personnels.',
+      'Rétablit les seuils Équilibrés, le mode Barre repliée, les exemptions et l’interrupteur des mots-clés personnels.',
     resetConfirmBanner:
       'Préserve vos mots-clés personnels, la langue, les listes, la synchro, le serveur, les journaux et les statistiques.',
     resetSuccessMsg:

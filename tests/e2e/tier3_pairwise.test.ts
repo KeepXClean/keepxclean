@@ -820,7 +820,7 @@ describe('Tier 3: Cross-Feature Combinations (Pairwise Coverage)', () => {
   it('T3-29: Public Repository Accessibility & Unauthenticated Release Asset Download', () => {
     expect(GITHUB_REPO_URL).toBe('https://github.com/KeepXClean/keepxclean');
     expect(GITHUB_RELEASE_URL).toContain('/releases/latest');
-    const zipPath = path.join(ROOT_DIR, 'apps/extension/.output/keepxcleanextension-0.1.0-chrome.zip');
+    const zipPath = path.join(ROOT_DIR, 'apps/extension/.output/keepxcleanextension-0.1.1-chrome.zip');
     expect(fs.existsSync(zipPath) || GITHUB_RELEASE_URL.length > 0).toBe(true);
   });
 

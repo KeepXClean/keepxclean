@@ -82,7 +82,7 @@ export const pt: ExtensionMessages = {
       'Alternar predefinições atualiza os limites abaixo em tempo real, ou expanda qualquer dimensão para ajuste fino.',
     presentationTitle: 'Exibição de posts filtrados',
     presentationDesc:
-      'Ocultar limpo remove sem deixar espaços; Barra recolhida mantém uma linha com o motivo para expandir ou permitir.',
+      'Barra recolhida mantém uma linha com o motivo para expandir ou permitir; Ocultar limpo remove sem deixar espaços.',
     dimensionsHeading: 'Dimensões de filtragem',
     enabledCount: (active, total) => `${active} / ${total} ativas`,
     enableRule: (title) => `Ativar ${title}`,
@@ -656,7 +656,7 @@ export const pt: ExtensionMessages = {
     resetConfirmTitle: 'Redefinir regras de filtro?',
     resetConfirmBtn: 'Restaurar regras padrão',
     resetConfirmBody:
-      'Restaura limites Equilibrados, modo ocultar limpo, isenções e chave de palavras próprias.',
+      'Restaura limites Equilibrados, modo Barra recolhida, isenções e chave de palavras próprias.',
     resetConfirmBanner:
       'Preserva suas palavras próprias, idioma, listas, preferências de sincronização, endpoint, histórico e estatísticas.',
     resetSuccessMsg:

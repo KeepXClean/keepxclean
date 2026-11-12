@@ -48,7 +48,7 @@ describe('Feature 23: CTA Configuration & CWS Reservation', () => {
     expect(PRIVACY_EMAIL).toBe('privacy@keepxclean.com');
     expect(AUTHOR_X_URL).toBe('https://x.com/linheitu');
     expect(AUTHOR_30STO_URL).toBe('https://30s.to/@linmo');
-    expect(CURRENT_VERSION).toBe('v0.1.0');
+    expect(CURRENT_VERSION).toBe('v0.1.1');
   });
 
   it('getActiveCtaConfig returns Chrome Web Store URL by default when CWS_LIVE is true', () => {
