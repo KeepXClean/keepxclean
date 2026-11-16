@@ -601,11 +601,18 @@ export const en: ExtensionMessages = {
   preferences: {
     pageTitle: 'Preferences',
     pageDesc: 'Manage language, sync, service endpoints, and local backups.',
-    languagePanelTitle: 'Interface Language',
+    languagePanelTitle: 'Appearance & Language',
     languageTitle: 'Display language',
     languageDesc:
       'Follows your browser language by default (falls back to English if unsupported), or choose manually.',
     languageAuto: (resolvedLabel) => `Follow browser (${resolvedLabel})`,
+    themeTitle: 'Appearance',
+    themeDesc:
+      'Light by default. When set to System, X overlays match X’s active background while inline tweet/profile controls always blend into X.',
+    themeLight: 'Light',
+    themeDark: 'Dark',
+    themeSystem: 'System',
+    themeCycleAria: (label) => `Appearance: ${label} (click to switch)`,
     syncPanelTitle: 'Sync & Community Sharing',
     syncNativeTitle: 'Sync native X block',
     syncNativeDesc:
@@ -682,6 +689,7 @@ export const en: ExtensionMessages = {
         `${count} public rules individually disabled after import`,
       prefLabels: {
         locale: 'Interface language',
+        theme: 'Appearance',
         enabled: 'Filtering enabled',
         interceptionMode: 'Display mode',
         exemptFollowing: 'Exempt following',

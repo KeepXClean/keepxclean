@@ -9,6 +9,11 @@ import {
 import { DomController } from '../src/content/dom-controller';
 import { createMainBridge } from '../src/content/main-bridge';
 import {
+  detectXPageDark,
+  nextThemeSetting,
+  resolveThemeSetting,
+} from '../src/ui/theme';
+import {
   command,
   isExtensionContextValid,
   runtimeUrl,
@@ -54,6 +59,10 @@ function fixture() {
 }
 afterEach(() => {
   document.body.innerHTML = '';
+  document.body.removeAttribute('style');
+  document.documentElement.removeAttribute('style');
+  document.documentElement.removeAttribute('data-theme');
+  document.documentElement.removeAttribute('data-kxc-x-dark');
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
@@ -299,5 +308,69 @@ describe('content lifecycle', () => {
     await expect(command({ type: 'state.get' })).rejects.toThrow(
       'Extension was just updated'
     );
+  });
+
+  it('adapts inline X Shadow DOM containers to X light, Dim, and Lights-out themes live', async () => {
+    fixture();
+    document.body.style.backgroundColor = 'rgb(255, 255, 255)';
+    expect(detectXPageDark()).toBe(false);
+
+    const controller = new DomController('');
+    const config = createDefaultConfig();
+    config.interceptionMode = 'collapse';
+    config.localBlocklistUids['42'] = {
+      uid: '42',
+      screenName: 'sample',
+      addedAt: 1,
+    };
+    controller.update(config, createDefaultCrowdSnapshot());
+    controller.ingest({ '111': { tweet } }, {});
+    controller.start();
+
+    const collapseItem = controller
+      .getSnapshot()
+      .find((x) => x.kind === 'collapse')!;
+    expect(collapseItem.container.dataset.theme).toBe('light');
+    expect(controller.isPageDark()).toBe(false);
+    expect(document.documentElement.dataset.kxcXDark).toBe('false');
+
+    const themeEvents: boolean[] = [];
+    const offTheme = controller.subscribeTheme(() =>
+      themeEvents.push(controller.isPageDark())
+    );
+
+    // Switch X background live to Dim (#15202b -> rgb(21, 32, 43))
+    document.body.style.backgroundColor = 'rgb(21, 32, 43)';
+    await Promise.resolve();
+    expect(detectXPageDark()).toBe(true);
+    expect(controller.isPageDark()).toBe(true);
+    expect(collapseItem.container.dataset.theme).toBe('dark');
+    expect(document.documentElement.dataset.kxcXDark).toBe('true');
+    expect(themeEvents).toContain(true);
+
+    // Switch X background live to Lights out (#000000 -> rgb(0, 0, 0))
+    document.body.style.backgroundColor = 'rgb(0, 0, 0)';
+    await Promise.resolve();
+    expect(controller.isPageDark()).toBe(true);
+    expect(collapseItem.container.dataset.theme).toBe('dark');
+
+    // Switch back to Default Light
+    document.body.style.backgroundColor = 'rgb(255, 255, 255)';
+    await Promise.resolve();
+    expect(controller.isPageDark()).toBe(false);
+    expect(collapseItem.container.dataset.theme).toBe('light');
+
+    // Verify theme resolution & cycle helpers
+    expect(resolveThemeSetting('light', true)).toBe('light');
+    expect(resolveThemeSetting('dark', false)).toBe('dark');
+    expect(resolveThemeSetting('system', true)).toBe('dark');
+    expect(resolveThemeSetting('system', false)).toBe('light');
+    expect(nextThemeSetting('light')).toBe('dark');
+    expect(nextThemeSetting('dark')).toBe('system');
+    expect(nextThemeSetting('system')).toBe('light');
+
+    offTheme();
+    controller.dispose();
+    expect(document.documentElement.hasAttribute('data-kxc-x-dark')).toBe(false);
   });
 });

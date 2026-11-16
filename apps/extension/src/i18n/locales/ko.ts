@@ -588,11 +588,18 @@ export const ko: ExtensionMessages = {
   preferences: {
     pageTitle: '환경설정',
     pageDesc: '언어, 동기화 및 공유, 서비스 엔드포인트, 로컬 백업을 관리합니다.',
-    languagePanelTitle: '인터페이스 언어',
+    languagePanelTitle: '화면 테마 및 언어',
     languageTitle: '표시 언어',
     languageDesc:
       '기본적으로 브라우저 언어를 따르며(미지원 언어는 영어로 표시), 직접 선택할 수도 있습니다.',
     languageAuto: (resolvedLabel) => `브라우저 언어 따르기 (${resolvedLabel})`,
+    themeTitle: '화면 테마',
+    themeDesc:
+      '기본값은 라이트 테마입니다. "시스템" 선택 시 시스템 또는 X 배경 테마를 따르며, 타임라인 인라인 요소는 항상 X 밝기에 맞춰 자연스럽게 어우러집니다.',
+    themeLight: '라이트',
+    themeDark: '다크',
+    themeSystem: '시스템',
+    themeCycleAria: (label) => `화면 테마: ${label} (클릭하여 전환)`,
     syncPanelTitle: '동기화 및 커뮤니티 공유',
     syncNativeTitle: 'X 기본 차단 동기화',
     syncNativeDesc:
@@ -668,6 +675,7 @@ export const ko: ExtensionMessages = {
         `가져오기 후 개별 비활성화되는 공용 규칙 ${count}개`,
       prefLabels: {
         locale: '인터페이스 언어',
+        theme: '화면 테마',
         enabled: '정화 활성화',
         interceptionMode: '표시 방식',
         exemptFollowing: '팔로잉 예외',

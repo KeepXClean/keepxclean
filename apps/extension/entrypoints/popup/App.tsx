@@ -12,16 +12,18 @@ import {
   SaveStatus,
   Switch,
 } from '../../src/ui/components';
+import { useDocumentTheme } from '../../src/ui/theme';
 import { QuickControls } from '../../src/features/quick-controls/QuickControls';
 import { SyncStatus } from '../../src/features/preferences/PreferencesPage';
 
 export function App() {
   const state = useApp();
   const { m, locale } = useI18n();
+  const theme = useDocumentTheme(state.data?.config.theme);
   useDocumentLocale(m.meta.popupTitle, locale);
   const enabled = state.data?.config.enabled ?? true;
   return (
-    <div className="kxc-root">
+    <div className="kxc-root" data-theme={theme}>
       <div className="popup">
         <header className="popup-header row between">
           <div className="row" style={{ gap: 10 }}>

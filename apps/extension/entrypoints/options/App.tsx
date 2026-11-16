@@ -10,7 +10,9 @@ import {
   SaveError,
   SaveStatus,
   Switch,
+  ThemeCycleButton,
 } from '../../src/ui/components';
+import { useDocumentTheme } from '../../src/ui/theme';
 import { RulesPage } from '../../src/features/rules/RulesPage';
 import { KeywordsPage } from '../../src/features/keywords/KeywordsPage';
 import { AccountsPage } from '../../src/features/accounts/AccountsPage';
@@ -43,10 +45,11 @@ export function App() {
     title: m.nav[r.id],
   }));
   const active = routes.find((x) => x.id === route) || routes[0];
+  const theme = useDocumentTheme(state.data?.config.theme);
   useDocumentLocale(m.meta.optionsTitle(active.title), locale);
 
   return (
-    <div className="kxc-root">
+    <div className="kxc-root" data-theme={theme}>
       <div className="app-shell">
         <aside className="sidebar">
           <Brand />
@@ -79,6 +82,7 @@ export function App() {
             {state.data && (
               <div className="row" style={{ gap: 10 }}>
                 <SaveStatus />
+                <ThemeCycleButton />
                 <span
                   className="status-pill"
                   data-enabled={String(state.data.config.enabled)}

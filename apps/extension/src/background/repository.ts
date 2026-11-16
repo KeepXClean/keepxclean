@@ -2,6 +2,7 @@ import {
   createDefaultConfig,
   createDefaultCrowdSnapshot,
   isUILocaleSetting,
+  isUIThemeSetting,
   STORAGE_KEYS,
   type FilterConfig,
   type InterceptionLogEntry,
@@ -45,10 +46,15 @@ export async function recoverConfig(expected: string) {
   if (
     rawConfig &&
     typeof rawConfig === 'object' &&
-    !Array.isArray(rawConfig) &&
-    isUILocaleSetting((rawConfig as Record<string, unknown>).locale)
+    !Array.isArray(rawConfig)
   ) {
-    fresh.locale = (rawConfig as { locale: typeof fresh.locale }).locale;
+    const raw = rawConfig as Record<string, unknown>;
+    if (isUILocaleSetting(raw.locale)) {
+      fresh.locale = raw.locale;
+    }
+    if (isUIThemeSetting(raw.theme)) {
+      fresh.theme = raw.theme;
+    }
   }
   setActiveLocaleSetting(fresh.locale);
   await chrome.storage.local.set({

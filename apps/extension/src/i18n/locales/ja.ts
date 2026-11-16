@@ -592,11 +592,18 @@ export const ja: ExtensionMessages = {
   preferences: {
     pageTitle: '環境設定',
     pageDesc: '表示言語、同期・共有、接続先サービス、設定バックアップを管理します。',
-    languagePanelTitle: '表示言語',
+    languagePanelTitle: '外観と言語',
     languageTitle: 'インターフェース言語',
     languageDesc:
       '既定ではブラウザの言語に従い（未対応言語は英語にフォールバック）、手動で固定することもできます。',
     languageAuto: (resolvedLabel) => `ブラウザに従う（${resolvedLabel}）`,
+    themeTitle: '外観テーマ',
+    themeDesc:
+      '既定はライト表示です。「システム」を選ぶとシステム設定や X の背景テーマに連動し、タイムライン内要素は常に X の明暗になじみます。',
+    themeLight: 'ライト',
+    themeDark: 'ダーク',
+    themeSystem: 'システム',
+    themeCycleAria: (label) => `外観テーマ：${label}（クリックして切替）`,
     syncPanelTitle: '同期・コミュニティ連携',
     syncNativeTitle: 'X 本体のブロックも同期する',
     syncNativeDesc:
@@ -672,6 +679,7 @@ export const ja: ExtensionMessages = {
         `インポート後に個別オフとなる公開ルール：${count} 件`,
       prefLabels: {
         locale: '表示言語',
+        theme: '外観テーマ',
         enabled: '浄化メインスイッチ',
         interceptionMode: '表示モード',
         exemptFollowing: 'フォロー中を除外',

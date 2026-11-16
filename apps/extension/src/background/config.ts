@@ -26,6 +26,7 @@ export function applyConfigCommand(
       const { rules, ...fields } = command.patch;
       const allowed = [
         'locale',
+        'theme',
         'enabled',
         'interceptionMode',
         'exemptFollowing',

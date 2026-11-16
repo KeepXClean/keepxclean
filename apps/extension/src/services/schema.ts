@@ -1,6 +1,7 @@
 import {
   createDefaultConfig,
   isUILocaleSetting,
+  isUIThemeSetting,
   mergeCloudKeywords,
   RESERVED_X_PATHS,
   TWEET_LANGUAGE_CODES,
@@ -32,6 +33,7 @@ export type ValidationErrors = Pick<
   | 'serviceCleanUrlOnly'
   | 'unsupportedConfigVersion'
   | 'invalidLocale'
+  | 'invalidTheme'
   | 'invalidPreset'
   | 'invalidInterceptionMode'
   | 'invalidLanguageMode'
@@ -65,6 +67,7 @@ export const SILENT_VALIDATION_ERRORS: ValidationErrors = {
   serviceCleanUrlOnly: 'Clean URL required',
   unsupportedConfigVersion: 'Unsupported config version',
   invalidLocale: 'Invalid locale',
+  invalidTheme: 'Invalid theme',
   invalidPreset: 'Invalid preset',
   invalidInterceptionMode: 'Invalid interception mode',
   invalidLanguageMode: 'Invalid language mode',
@@ -289,6 +292,10 @@ export function validateConfigWithErrors(
   if (x.locale !== undefined) {
     assert(isUILocaleSetting(x.locale), e.invalidLocale);
     out.locale = x.locale;
+  }
+  if (x.theme !== undefined) {
+    assert(isUIThemeSetting(x.theme), e.invalidTheme);
+    out.theme = x.theme;
   }
   for (const key of [
     'enabled',

@@ -59,6 +59,7 @@ describe('configuration contracts', () => {
     const config = createDefaultConfig('strict');
     config.interceptionMode = 'strip';
     config.locale = 'ja';
+    config.theme = 'dark';
     config.enabled = false;
     config.syncNativeXBlock = false;
     config.enableCrowdReport = false;
@@ -78,6 +79,7 @@ describe('configuration contracts', () => {
     expect(next.preset).toBe('standard');
     expect(next.interceptionMode).toBe('collapse');
     expect(next.locale).toBe('ja');
+    expect(next.theme).toBe('dark');
     expect(next.enabled).toBe(false);
     expect(next.localBlocklistUids).toEqual(config.localBlocklistUids);
     expect(next.rules.keywords.items).toEqual(config.rules.keywords.items);
@@ -231,6 +233,9 @@ describe('configuration contracts', () => {
       validateConfig({ ...createDefaultConfig(), locale: 'klingon' })
     ).toThrow('language');
     expect(() =>
+      validateConfig({ ...createDefaultConfig(), theme: 'neon' })
+    ).toThrow('theme');
+    expect(() =>
       validateConfig({
         ...createDefaultConfig(),
         localBlocklistUids: {
@@ -245,10 +250,12 @@ describe('configuration contracts', () => {
     const old = JSON.parse(JSON.stringify(config));
     delete old.enableCloudKeywords;
     delete old.locale;
+    delete old.theme;
     delete old.rules.highFrequency.slidingWindowHours;
     expect(validateConfig(old).rules.highFrequency.maxDailyTweets).toBe(9999);
     expect(validateConfig(old).enableCloudKeywords).toBe(true);
     expect(validateConfig(old).locale).toBe('auto');
+    expect(validateConfig(old).theme).toBe('light');
   });
   it('enforces disjoint lists and precise service origins', () => {
     const c = createDefaultConfig();
@@ -353,6 +360,7 @@ describe('configuration contracts', () => {
     const corrupted = {
       version: 1,
       locale: 'ja',
+      theme: 'system',
       rules: 'corrupted-not-an-object',
     };
     const mock = mockChrome({ [STORAGE_KEYS.CONFIG]: corrupted });
@@ -363,6 +371,7 @@ describe('configuration contracts', () => {
     >;
     expect(recovered.version).toBe(1);
     expect(recovered.locale).toBe('ja');
+    expect(recovered.theme).toBe('system');
     expect(recovered.preset).toBe('standard');
     expect(
       (mock.values[UI_KEYS.backup] as { config: unknown }).config
@@ -371,8 +380,12 @@ describe('configuration contracts', () => {
   it('keeps silent schema validators in strict parity with localized validators', () => {
     const cfg = createDefaultConfig('strict');
     cfg.locale = 'es';
+    cfg.theme = 'dark';
     cfg.disabledCloudKeywordIds = ['cloud-nsfw-bio-1'];
     expect(validateConfigSilent(cfg)).toEqual(validateConfig(cfg));
+    expect(() =>
+      validateConfigSilent({ ...cfg, theme: 'invalid' })
+    ).toThrow();
     expect(() =>
       validateConfigSilent({ ...cfg, version: 99 })
     ).toThrow();

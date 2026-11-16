@@ -105,6 +105,7 @@ export type ConfigPatch = Partial<
   Pick<
     FilterConfig,
     | 'locale'
+    | 'theme'
     | 'enabled'
     | 'interceptionMode'
     | 'exemptFollowing'

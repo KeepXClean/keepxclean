@@ -598,11 +598,18 @@ export const ru: ExtensionMessages = {
   preferences: {
     pageTitle: 'Параметры',
     pageDesc: 'Язык интерфейса, синхронизация, сервер API и резервные копии.',
-    languagePanelTitle: 'Язык интерфейса',
+    languagePanelTitle: 'Оформление и язык',
     languageTitle: 'Язык отображения',
     languageDesc:
       'По умолчанию следует языку браузера (или английскому, если язык не поддерживается), либо выбирается вручную.',
     languageAuto: (resolvedLabel) => `Как в браузере (${resolvedLabel})`,
+    themeTitle: 'Тема оформления',
+    themeDesc:
+      'По умолчанию светлая. В режиме «Системная» окна следуют теме системы или X, а встроенные в ленту элементы всегда подстраиваются под X.',
+    themeLight: 'Светлая',
+    themeDark: 'Тёмная',
+    themeSystem: 'Системная',
+    themeCycleAria: (label) => `Тема: ${label} (нажмите для смены)`,
     syncPanelTitle: 'Синхронизация и сообщество',
     syncNativeTitle: 'Синхронизировать блокировку с X',
     syncNativeDesc:
@@ -679,6 +686,7 @@ export const ru: ExtensionMessages = {
         `Отключено отдельных общих правил после импорта: ${count}`,
       prefLabels: {
         locale: 'Язык интерфейса',
+        theme: 'Тема оформления',
         enabled: 'Фильтрация включена',
         interceptionMode: 'Режим отображения',
         exemptFollowing: 'Исключать подписки',

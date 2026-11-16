@@ -4,7 +4,18 @@ import type {
   KeywordRuleItem,
   SupportedLocale,
   UILocaleSetting,
+  UIThemeSetting,
 } from './types';
+
+export const UI_THEME_SETTINGS: readonly UIThemeSetting[] = [
+  'light',
+  'dark',
+  'system',
+] as const;
+
+export function isUIThemeSetting(value: unknown): value is UIThemeSetting {
+  return value === 'light' || value === 'dark' || value === 'system';
+}
 
 export const SUPPORTED_LOCALES: readonly SupportedLocale[] = [
   'en',

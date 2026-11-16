@@ -6,6 +6,7 @@ import {
   resolveLocale,
   type FilterConfig,
   type UILocaleSetting,
+  type UIThemeSetting,
 } from '@keepxclean/shared';
 import { formatCount, formatDateTime, useI18n } from '../../i18n';
 import { authorizeService } from '../../services/client';
@@ -23,6 +24,7 @@ import {
   Panel,
   perform,
   Pill,
+  Segmented,
   Setting,
   Switch,
 } from '../../ui/components';
@@ -198,6 +200,11 @@ function ImportConfigDialog({
         String(value)
       );
     }
+    if (key === 'theme') {
+      if (value === 'dark') return m.preferences.themeDark;
+      if (value === 'system') return m.preferences.themeSystem;
+      return m.preferences.themeLight;
+    }
     if (typeof value === 'boolean') {
       return value ? m.common.on : m.common.off;
     }
@@ -353,6 +360,26 @@ export function PreferencesPage() {
         </Banner>
       )}
       <Panel title={m.preferences.languagePanelTitle}>
+        <Setting
+          title={m.preferences.themeTitle}
+          description={m.preferences.themeDesc}
+        >
+          <Segmented<UIThemeSetting>
+            label={m.preferences.themeTitle}
+            value={config.theme}
+            options={[
+              { value: 'light', label: m.preferences.themeLight },
+              { value: 'dark', label: m.preferences.themeDark },
+              { value: 'system', label: m.preferences.themeSystem },
+            ]}
+            onChange={(theme) =>
+              perform({
+                type: 'config.patch',
+                patch: { theme },
+              })
+            }
+          />
+        </Setting>
         <Setting
           title={m.preferences.languageTitle}
           description={m.preferences.languageDesc}

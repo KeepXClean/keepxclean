@@ -16,8 +16,11 @@ import {
   Inbox,
   Info,
   Loader2,
+  Monitor,
+  Moon,
   RefreshCw,
   Search,
+  Sun,
   X,
 } from 'lucide-react';
 import { STORAGE_KEYS } from '@keepxclean/shared';
@@ -35,6 +38,7 @@ import {
 } from '../services/client';
 import { digest, type Command } from '../services/model';
 import { clearSaveError, mutate, reload, useApp } from '../state/store';
+import { nextThemeSetting } from './theme';
 
 export function BrandIcon({ size = 32 }: { size?: number }) {
   const resource =
@@ -505,6 +509,7 @@ export function NumberField({
 export function Modal({
   title,
   description,
+  headerAction,
   children,
   footer,
   onClose,
@@ -512,6 +517,7 @@ export function Modal({
 }: {
   title: string;
   description?: string;
+  headerAction?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
   onClose: () => void;
@@ -565,13 +571,50 @@ export function Modal({
           <h2 id={id}>{title}</h2>
           {description && <p className="small muted">{description}</p>}
         </div>
-        <Button variant="ghost icon" aria-label={m.common.close} onClick={onClose}>
-          <X size={18} />
-        </Button>
+        <div className="row" style={{ gap: 4 }}>
+          {headerAction}
+          <Button
+            variant="ghost icon"
+            aria-label={m.common.close}
+            onClick={onClose}
+          >
+            <X size={18} />
+          </Button>
+        </div>
       </div>
       <div className="dialog-body">{children}</div>
       {footer && <div className="dialog-foot">{footer}</div>}
     </dialog>
+  );
+}
+export function ThemeCycleButton() {
+  const { data } = useApp();
+  const { m } = useI18n();
+  if (!data) return null;
+  const current = data.config.theme;
+  const label =
+    current === 'dark'
+      ? m.preferences.themeDark
+      : current === 'system'
+        ? m.preferences.themeSystem
+        : m.preferences.themeLight;
+  const Icon =
+    current === 'dark' ? Moon : current === 'system' ? Monitor : Sun;
+  const aria = m.preferences.themeCycleAria(label);
+  return (
+    <Button
+      variant="ghost icon sm"
+      aria-label={aria}
+      title={aria}
+      onClick={() =>
+        perform({
+          type: 'config.patch',
+          patch: { theme: nextThemeSetting(current) },
+        })
+      }
+    >
+      <Icon size={15} />
+    </Button>
   );
 }
 export function Confirm({

@@ -54,6 +54,7 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     unsupportedConfigVersion:
       'Unsupported config version: only version 1 is supported',
     invalidLocale: 'Invalid interface language code',
+    invalidTheme: 'Invalid theme setting',
     invalidPreset: 'Invalid preset',
     invalidInterceptionMode: 'Invalid display mode',
     invalidLanguageMode: 'Invalid language filter mode',
@@ -156,6 +157,7 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     serviceCleanUrlOnly: '服务地址不能包含账号、密码、查询参数或片段',
     unsupportedConfigVersion: '配置版本不支持：仅支持 version 1',
     invalidLocale: '无效的界面语言设置',
+    invalidTheme: '无效的外观主题设置',
     invalidPreset: '无效预设',
     invalidInterceptionMode: '无效呈现方式',
     invalidLanguageMode: '语种过滤模式无效',
@@ -242,6 +244,7 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     serviceCleanUrlOnly: '服務位址不能包含帳號、密碼、查詢參數或片段',
     unsupportedConfigVersion: '設定版本不支援：僅支援 version 1',
     invalidLocale: '無效的介面語言設定',
+    invalidTheme: '無效的外觀主題設定',
     invalidPreset: '無效預設',
     invalidInterceptionMode: '無效呈現方式',
     invalidLanguageMode: '語種過濾模式無效',
@@ -339,6 +342,7 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     unsupportedConfigVersion:
       '未対応の設定バージョンです（version 1 のみ対応）',
     invalidLocale: '無効な表示言語コードです',
+    invalidTheme: '無効なテーマ設定です',
     invalidPreset: '無効なプリセット強度です',
     invalidInterceptionMode: '無効な表示モードです',
     invalidLanguageMode: '無効な言語フィルターモードです',
@@ -451,6 +455,7 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     unsupportedConfigVersion:
       '지원하지 않는 설정 버전입니다 (버전 1만 지원)',
     invalidLocale: '유효하지 않은 인터페이스 언어 코드입니다',
+    invalidTheme: '유효하지 않은 테마 설정입니다',
     invalidPreset: '유효하지 않은 프리셋 값입니다',
     invalidInterceptionMode: '유효하지 않은 표시 방식입니다',
     invalidLanguageMode: '유효하지 않은 언어 필터 모드입니다',
@@ -563,6 +568,7 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     unsupportedConfigVersion:
       'Versión de configuración no soportada: solo se admite la versión 1',
     invalidLocale: 'Código de idioma no válido',
+    invalidTheme: 'Ajuste de tema no válido',
     invalidPreset: 'Ajuste predefinido no válido',
     invalidInterceptionMode: 'Modo de visualización no válido',
     invalidLanguageMode: 'Modo de filtro de idioma no válido',
@@ -676,6 +682,7 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     unsupportedConfigVersion:
       'Versão de configuração não suportada: apenas versão 1 é aceita',
     invalidLocale: 'Código de idioma inválido',
+    invalidTheme: 'Configuração de tema inválida',
     invalidPreset: 'Predefinição inválida',
     invalidInterceptionMode: 'Modo de exibição inválido',
     invalidLanguageMode: 'Modo de filtro de idioma inválido',
@@ -789,6 +796,7 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     unsupportedConfigVersion:
       'Version de configuration non prise en charge : seule la version 1 est acceptée',
     invalidLocale: 'Code de langue invalide',
+    invalidTheme: 'Paramètre de thème invalide',
     invalidPreset: 'Profil prédéfini invalide',
     invalidInterceptionMode: 'Mode d’affichage invalide',
     invalidLanguageMode: 'Mode de filtre de langue invalide',
@@ -902,6 +910,7 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     unsupportedConfigVersion:
       'Nicht unterstützte Konfigurationsversion: nur Version 1 wird unterstützt',
     invalidLocale: 'Ungültiger Sprachcode',
+    invalidTheme: 'Ungültige Design-Einstellung',
     invalidPreset: 'Ungültige Filterstärke',
     invalidInterceptionMode: 'Ungültiger Darstellungsmodus',
     invalidLanguageMode: 'Ungültiger Sprachfiltermodus',
@@ -1015,6 +1024,7 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     unsupportedConfigVersion:
       'Неподдерживаемая версия конфигурации: поддерживается только версия 1',
     invalidLocale: 'Недопустимый код языка интерфейса',
+    invalidTheme: 'Недопустимая настройка темы',
     invalidPreset: 'Недопустимый профиль интенсивности',
     invalidInterceptionMode: 'Недопустимый режим отображения',
     invalidLanguageMode: 'Недопустимый режим языкового фильтра',

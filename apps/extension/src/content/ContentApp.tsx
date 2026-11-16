@@ -25,7 +25,9 @@ import {
   SaveError,
   SaveStatus,
   Switch,
+  ThemeCycleButton,
 } from '../ui/components';
+import { resolveThemeSetting } from '../ui/theme';
 import { QuickControls } from '../features/quick-controls/QuickControls';
 import { ImportWizard } from '../features/accounts/ImportWizard';
 import { OperationToasts } from '../features/history/Operations';
@@ -395,11 +397,23 @@ export function ContentApp({ controller }: { controller: DomController }) {
     controller.subscribe,
     controller.getSnapshot
   );
+  const xPageDark = useSyncExternalStore(
+    controller.subscribeTheme,
+    controller.isPageDark
+  );
+  const surfaceTheme = resolveThemeSetting(
+    state.data?.config.theme,
+    xPageDark
+  );
   const [drawer, setDrawer] = useState(false),
     [importing, setImporting] = useState(false);
   return (
     <>
-      <div className="kxc-root" style={{ background: 'transparent' }}>
+      <div
+        className="kxc-root"
+        data-theme={surfaceTheme}
+        style={{ background: 'transparent' }}
+      >
         {items.map((item) =>
           createPortal(
             <Inline item={item} open={() => setDrawer(true)} />,
@@ -417,6 +431,7 @@ export function ContentApp({ controller }: { controller: DomController }) {
           <Modal
             title={m.content.drawerTitle}
             description={m.content.drawerDesc}
+            headerAction={<ThemeCycleButton />}
             drawer
             onClose={() => setDrawer(false)}
             footer={

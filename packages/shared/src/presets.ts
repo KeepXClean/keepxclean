@@ -426,6 +426,7 @@ export function createDefaultConfig(
     version: 1,
     enabled: true,
     locale: 'auto',
+    theme: 'light',
     preset,
     interceptionMode: 'collapse',
     exemptFollowing: true,

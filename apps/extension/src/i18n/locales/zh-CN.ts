@@ -581,10 +581,17 @@ export const zhCN: ExtensionMessages = {
   preferences: {
     pageTitle: '偏好设置',
     pageDesc: '管理界面语言、同步、数据来源与你的本地备份。',
-    languagePanelTitle: '界面语言',
+    languagePanelTitle: '外观与语言',
     languageTitle: '显示语言',
     languageDesc: '默认跟随浏览器语言（非支持语种自动回退 English），也可手动切换。',
     languageAuto: (resolvedLabel) => `跟随浏览器语言（${resolvedLabel}）`,
+    themeTitle: '外观主题',
+    themeDesc:
+      '默认采用浅色界面；选择「跟随系统」时浮层自动跟随系统或 X 当前背景，推文内联组件始终贴合 X 明暗度。',
+    themeLight: '浅色',
+    themeDark: '深色',
+    themeSystem: '跟随系统',
+    themeCycleAria: (label) => `外观主题：${label}（点击切换）`,
     syncPanelTitle: '同步与共享',
     syncNativeTitle: '同步 X 原生拉黑',
     syncNativeDesc: '快捷净空的撤销窗口结束后尝试同步到 X，结果单独显示。',
@@ -655,6 +662,7 @@ export const zhCN: ExtensionMessages = {
       disabledCloudDetail: (count) => `导入后单独停用 ${count} 条公共规则`,
       prefLabels: {
         locale: '界面语言',
+        theme: '外观主题',
         enabled: '启用净空',
         interceptionMode: '呈现方式',
         exemptFollowing: '豁免已关注账号',

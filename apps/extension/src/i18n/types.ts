@@ -473,6 +473,12 @@ export interface ExtensionMessages {
     languageTitle: string;
     languageDesc: string;
     languageAuto: (resolvedLabel: string) => string;
+    themeTitle: string;
+    themeDesc: string;
+    themeLight: string;
+    themeDark: string;
+    themeSystem: string;
+    themeCycleAria: (label: string) => string;
     syncPanelTitle: string;
     syncNativeTitle: string;
     syncNativeDesc: string;
@@ -537,6 +543,7 @@ export interface ExtensionMessages {
       disabledCloudDetail: (count: number) => string;
       prefLabels: Record<
         | 'locale'
+        | 'theme'
         | 'enabled'
         | 'interceptionMode'
         | 'exemptFollowing'
@@ -626,6 +633,7 @@ export interface ExtensionMessages {
     serviceCleanUrlOnly: string;
     unsupportedConfigVersion: string;
     invalidLocale: string;
+    invalidTheme: string;
     invalidPreset: string;
     invalidInterceptionMode: string;
     invalidLanguageMode: string;

@@ -14,6 +14,8 @@ export type SupportedLocale =
 
 export type UILocaleSetting = 'auto' | SupportedLocale;
 
+export type UIThemeSetting = 'light' | 'dark' | 'system';
+
 export type InterceptionMode = 'strip' | 'collapse';
 
 export type TweetScene = 'timeline' | 'reply' | 'search' | 'profile';
@@ -153,6 +155,7 @@ export interface FilterConfig {
   version: number;
   enabled: boolean;
   locale: UILocaleSetting;
+  theme: UIThemeSetting;
   preset: FilterPresetId;
   interceptionMode: InterceptionMode;
   /**

@@ -4,6 +4,7 @@ import { setActiveLocaleSetting } from '../i18n/state';
 import { command, isExtensionContextValid } from '../services/client';
 import { UI_KEYS, localDate, type AppState } from '../services/model';
 import { validateConfig, validateSnapshot } from '../services/validation';
+import { cacheThemeSetting } from '../ui/theme';
 
 interface Store {
   data?: AppState;
@@ -22,6 +23,9 @@ function emit(patch: Partial<Store>) {
   current = { ...current, ...patch };
   if (current.data?.config?.locale) {
     setActiveLocaleSetting(current.data.config.locale);
+  }
+  if (current.data?.config?.theme) {
+    cacheThemeSetting(current.data.config.theme);
   }
   listeners.forEach((fn) => fn());
 }

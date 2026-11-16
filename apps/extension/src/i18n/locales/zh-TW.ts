@@ -581,10 +581,17 @@ export const zhTW: ExtensionMessages = {
   preferences: {
     pageTitle: '偏好設定',
     pageDesc: '管理介面語言、同步、資料來源與你的本地備份。',
-    languagePanelTitle: '介面語言',
+    languagePanelTitle: '外觀與語言',
     languageTitle: '顯示語言',
     languageDesc: '預設跟隨瀏覽器語言（非支援語種自動回退 English），也可手動切換。',
     languageAuto: (resolvedLabel) => `跟隨瀏覽器語言（${resolvedLabel}）`,
+    themeTitle: '外觀主題',
+    themeDesc:
+      '預設採用淺色介面；選擇「跟隨系統」時浮層自動跟隨系統或 X 目前背景，推文內聯元件始終貼合 X 明暗度。',
+    themeLight: '淺色',
+    themeDark: '深色',
+    themeSystem: '跟隨系統',
+    themeCycleAria: (label) => `外觀主題：${label}（點擊切換）`,
     syncPanelTitle: '同步與共享',
     syncNativeTitle: '同步 X 原生封鎖',
     syncNativeDesc: '快捷淨空的復原視窗結束後嘗試同步到 X，結果單獨顯示。',
@@ -655,6 +662,7 @@ export const zhTW: ExtensionMessages = {
       disabledCloudDetail: (count) => `匯入後單獨停用 ${count} 條公共規則`,
       prefLabels: {
         locale: '介面語言',
+        theme: '外觀主題',
         enabled: '啟用淨空',
         interceptionMode: '呈現方式',
         exemptFollowing: '豁免已跟隨帳號',

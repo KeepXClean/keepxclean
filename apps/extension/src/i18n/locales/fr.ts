@@ -598,11 +598,18 @@ export const fr: ExtensionMessages = {
   preferences: {
     pageTitle: 'Préférences',
     pageDesc: 'Gérez la langue, la synchronisation, le serveur et les sauvegardes locales.',
-    languagePanelTitle: 'Langue de l’interface',
+    languagePanelTitle: 'Apparence et langue',
     languageTitle: 'Langue d’affichage',
     languageDesc:
       'Suit la langue du navigateur par défaut (anglais si non prise en charge), ou choisissez manuellement.',
     languageAuto: (resolvedLabel) => `Suivre le navigateur (${resolvedLabel})`,
+    themeTitle: 'Apparence',
+    themeDesc:
+      'Clair par défaut. Sur « Système », les panneaux suivent le système ou le thème de X, et les éléments intégrés s’adaptent toujours à X.',
+    themeLight: 'Clair',
+    themeDark: 'Sombre',
+    themeSystem: 'Système',
+    themeCycleAria: (label) => `Apparence : ${label} (cliquer pour changer)`,
     syncPanelTitle: 'Synchronisation et partage communautaire',
     syncNativeTitle: 'Synchroniser le blocage natif X',
     syncNativeDesc:
@@ -679,6 +686,7 @@ export const fr: ExtensionMessages = {
         `${count} règles publiques désactivées individuellement après import`,
       prefLabels: {
         locale: 'Langue d’interface',
+        theme: 'Apparence',
         enabled: 'Filtrage activé',
         interceptionMode: 'Mode d’affichage',
         exemptFollowing: 'Exempter suivis',

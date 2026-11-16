@@ -10,6 +10,7 @@ import {
   type FilterConfig,
   type InterceptionDecision,
 } from '@keepxclean/shared';
+import { detectXPageDark } from '../ui/theme';
 
 export interface InlineItem {
   id: string;
@@ -86,6 +87,9 @@ export class DomController {
   private nav?: InlineItem;
   private navResize?: ResizeObserver;
   private navAppearanceObserver?: MutationObserver;
+  private themeObserver?: MutationObserver;
+  private themeListeners = new Set<() => void>();
+  private pageDark = false;
   private profile?: InlineItem;
   private path = location.pathname;
   private style = document.createElement('style');
@@ -100,11 +104,37 @@ export class DomController {
       '@media (hover:none){article[data-testid="tweet"] kxc-inline[data-kxc-kind="quick"]{opacity:.85;pointer-events:auto}}',
       'article[data-testid="tweet"][data-kxc-expanded="true"]{background-color:#f4f7f5!important;box-shadow:inset 3px 0 0 #b8cbc0!important;transition:background-color .15s ease}',
       'article[data-testid="tweet"][data-kxc-expanded="true"]:hover{background-color:#eef3f0!important}',
-      'html[style*="color-scheme: dark"] article[data-testid="tweet"][data-kxc-expanded="true"]{background-color:rgba(184,203,192,.08)!important;box-shadow:inset 3px 0 0 #4f6b5c!important}',
-      'html[style*="color-scheme: dark"] article[data-testid="tweet"][data-kxc-expanded="true"]:hover{background-color:rgba(184,203,192,.12)!important}',
+      'html[style*="color-scheme: dark"] article[data-testid="tweet"][data-kxc-expanded="true"],html[data-kxc-x-dark="true"] article[data-testid="tweet"][data-kxc-expanded="true"]{background-color:rgba(184,203,192,.08)!important;box-shadow:inset 3px 0 0 #4f6b5c!important}',
+      'html[style*="color-scheme: dark"] article[data-testid="tweet"][data-kxc-expanded="true"]:hover,html[data-kxc-x-dark="true"] article[data-testid="tweet"][data-kxc-expanded="true"]:hover{background-color:rgba(184,203,192,.12)!important}',
     ].join('\n');
     document.documentElement.append(this.style);
+    this.syncPageTheme(true);
   }
+  subscribeTheme = (fn: () => void) => {
+    this.themeListeners.add(fn);
+    return () => {
+      this.themeListeners.delete(fn);
+    };
+  };
+  isPageDark = () => this.pageDark;
+  private syncPageTheme = (force = false) => {
+    if (this.isAlive && !this.isAlive()) return;
+    const nextDark = detectXPageDark();
+    const changed = force || nextDark !== this.pageDark;
+    this.pageDark = nextDark;
+    document.documentElement.dataset.kxcXDark = String(nextDark);
+    const themeAttr = nextDark ? 'dark' : 'light';
+    for (const record of this.articles.values()) {
+      if (record.quick) record.quick.container.dataset.theme = themeAttr;
+      if (record.collapse) record.collapse.container.dataset.theme = themeAttr;
+    }
+    if (this.nav) this.nav.container.dataset.theme = themeAttr;
+    if (this.profile) this.profile.container.dataset.theme = themeAttr;
+    if (changed) {
+      this.syncNavAppearance();
+      this.themeListeners.forEach((fn) => fn());
+    }
+  };
   setViewer(uid?: string) {
     if (uid && uid !== this.viewerUid) {
       this.viewerUid = uid;
@@ -138,6 +168,7 @@ export class DomController {
     style.textContent = this.css;
     const container = document.createElement('div');
     container.className = 'kxc-root';
+    container.dataset.theme = this.pageDark ? 'dark' : 'light';
     container.style.background = 'transparent';
     shadow.append(style, container);
     parent.insertBefore(host, before || null);
@@ -488,6 +519,7 @@ export class DomController {
   };
   scan = () => {
     if (this.isAlive && !this.isAlive()) return;
+    this.syncPageTheme();
     for (const [article, record] of this.articles)
       if (!article.isConnected) {
         this.restore(record);
@@ -503,6 +535,17 @@ export class DomController {
   start() {
     this.scan();
     window.addEventListener('resize', this.syncNavAppearance);
+    this.themeObserver = new MutationObserver(() => this.syncPageTheme());
+    this.themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style', 'class', 'data-theme'],
+    });
+    if (document.body) {
+      this.themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['style', 'class', 'data-theme'],
+      });
+    }
     this.observer = new MutationObserver((records) => {
       if (this.isAlive && !this.isAlive()) return;
       for (const mutation of records) {
@@ -558,6 +601,7 @@ export class DomController {
     this.observer?.disconnect();
     this.navResize?.disconnect();
     this.navAppearanceObserver?.disconnect();
+    this.themeObserver?.disconnect();
     window.removeEventListener('resize', this.syncNavAppearance);
     cancelAnimationFrame(this.frame);
     for (const record of this.articles.values()) {
@@ -567,7 +611,9 @@ export class DomController {
     this.remove(this.nav);
     this.remove(this.profile);
     this.style.remove();
+    document.documentElement.removeAttribute('data-kxc-x-dark');
     this.articles.clear();
     this.listeners.clear();
+    this.themeListeners.clear();
   }
 }

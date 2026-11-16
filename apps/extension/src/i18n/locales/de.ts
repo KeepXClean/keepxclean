@@ -598,11 +598,18 @@ export const de: ExtensionMessages = {
   preferences: {
     pageTitle: 'Einstellungen',
     pageDesc: 'Sprache, Synchronisierung, Dienst-Endpunkt und lokale Backups verwalten.',
-    languagePanelTitle: 'Oberflächensprache',
+    languagePanelTitle: 'Darstellung & Sprache',
     languageTitle: 'Anzeigesprache',
     languageDesc:
       'Folgt standardmäßig der Browsersprache (Englisch als Fallback) oder kann manuell festgelegt werden.',
     languageAuto: (resolvedLabel) => `Browser folgen (${resolvedLabel})`,
+    themeTitle: 'Design',
+    themeDesc:
+      'Standardmäßig hell. Bei „System“ folgen Dialoge dem System oder dem X-Hintergrund; eingebettete Elemente passen sich immer an X an.',
+    themeLight: 'Hell',
+    themeDark: 'Dunkel',
+    themeSystem: 'System',
+    themeCycleAria: (label) => `Design: ${label} (zum Wechseln klicken)`,
     syncPanelTitle: 'Synchronisierung & Community',
     syncNativeTitle: 'Nativen X-Block synchronisieren',
     syncNativeDesc:
@@ -679,6 +686,7 @@ export const de: ExtensionMessages = {
         `${count} öffentliche Regeln nach Import einzeln deaktiviert`,
       prefLabels: {
         locale: 'Oberflächensprache',
+        theme: 'Design',
         enabled: 'Filter aktiv',
         interceptionMode: 'Darstellungsmodus',
         exemptFollowing: 'Gefolgte ausnehmen',

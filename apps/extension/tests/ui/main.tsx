@@ -5,6 +5,7 @@ import {
   createDefaultConfig,
   createDefaultCrowdSnapshot,
   isUILocaleSetting,
+  isUIThemeSetting,
   STORAGE_KEYS,
   type ExtractedTweet,
   type InterceptionLogEntry,
@@ -44,10 +45,16 @@ import css from '../../src/ui/ui.css?inline';
 const params = new URLSearchParams(location.search),
   scenario = params.get('state') || 'normal',
   surface = params.get('surface') || 'options',
-  langParam = params.get('lang');
+  langParam = params.get('lang'),
+  themeParam = params.get('theme');
 const config = createDefaultConfig();
 if (langParam && isUILocaleSetting(langParam)) {
   config.locale = langParam;
+}
+if (surface !== 'x' && themeParam && isUIThemeSetting(themeParam)) {
+  config.theme = themeParam;
+} else if (surface === 'x' && params.get('uiTheme') && isUIThemeSetting(params.get('uiTheme'))) {
+  config.theme = params.get('uiTheme') as typeof config.theme;
 }
 config.syncNativeXBlock = false;
 config.enableCrowdReport = false;
