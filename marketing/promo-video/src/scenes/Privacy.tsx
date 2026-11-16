@@ -4,8 +4,8 @@ import { Background, C, Check, Kicker } from '../brand';
 import { BEAT, beatPulse, pop, ramp } from '../timing';
 
 const ROWS: { text: React.ReactNode; at: number; accent?: boolean }[] = [
-  { text: <>Zero login.</>, at: 0 },
-  { text: <>Zero cookies.</>, at: BEAT * 2 },
+  { text: <>No sign-up.</>, at: 0 },
+  { text: <>Local filtering.</>, at: BEAT * 2 },
   { text: <>Zero tracking.</>, at: BEAT * 4 },
   { text: <>100% open source.</>, at: BEAT * 6, accent: true },
 ];
@@ -19,7 +19,7 @@ export const PrivacyScene: React.FC = () => {
       <Background />
       <AbsoluteFill style={{ alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18, width: 1180 }}>
-          <Kicker style={{ opacity: ramp(frame, 0, 5), marginBottom: 18 }}>Private by design · runs 100% on-device</Kicker>
+          <Kicker style={{ opacity: ramp(frame, 0, 5), marginBottom: 18 }}>Private by design · local-first filtering</Kicker>
           {ROWS.map((r, i) => {
             if (frame < r.at) return <div key={i} style={{ height: 132 }} />;
             const p = pop(frame, r.at, { damping: 12, stiffness: 300 });

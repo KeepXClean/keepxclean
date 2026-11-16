@@ -31,7 +31,7 @@ export const fr: TranslationDictionary = {
     headlinePrefix: 'Retrouvez un fil d’actualité propre et pertinent',
     headlineHighlight: 'dans vos réponses et timeline sur X',
     subheadline:
-      'Filtrage local déterministe directement appliqué sur les réponses GraphQL de X. Aucun identifiant de compte requis, exécution en < 1ms, règles ouvertes et défense collective contre les robots IA et arnaques.',
+      'Filtrage local déterministe directement appliqué sur les réponses GraphQL de X. Aucune inscription supplémentaire, exécution en < 1ms, règles ouvertes et défense collective contre les robots IA et arnaques.',
     ctaDownload: 'Télécharger la version préliminaire (v0.1.1)',
     ctaPrimary: 'Télécharger la version préliminaire (v0.1.1)',
     ctaStore: 'Ajouter à Chrome',
@@ -83,7 +83,7 @@ export const fr: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.1 est disponible ! Architecture locale-first, évaluation en < 1ms, zéro fuite de jetons et support de 10 langues. Une expérience saine et pertinente sur X.',
+        'KeepXClean v0.1.1 est disponible ! Architecture locale-first, évaluation en < 1ms, filtrage local et support de 10 langues. Une expérience saine et pertinente sur X.',
       time: '2h',
       replies: '142',
       reposts: '389',
@@ -124,7 +124,7 @@ export const fr: TranslationDictionary = {
       step1: 'Phase 1 : Enregistrement local',
       step1Desc: 'Stocké instantanément dans le cache de l’extension (< 1ms).',
       step2: 'Phase 2 : Blocage natif sur X',
-      step2Desc: 'Synchronisation directe sur l’onglet ouvert sans transmettre vos identifiants.',
+      step2Desc: 'Synchronisation dans X ; les identifiants ne sont pas transmis à KeepXClean.',
       step3: 'Phase 3 : Vote communautaire',
       step3Desc: 'Vote sécurisé par hachage SHA-256 avec sel (1 compte = 1 vote) pour éviter la manipulation.',
       undoActive: 'Fenêtre d’annulation de 4,5s active',
@@ -200,7 +200,7 @@ export const fr: TranslationDictionary = {
       'Replie ou supprime le bruit avec des transitions CSS de hauteur particulièrement douces.',
     step4Title: '4. Défense collective anonyme par hachage',
     step4Desc:
-      'Lors du signalement d’un compte nuisible, seul un hash SHA-256 avec sel est envoyé. Aucun mot de passe ni cookie ne quitte votre machine.',
+      'Les signalements facultatifs incluent les données publiques du compte signalé, le motif, un identifiant SHA-256 du déclarant et l’ancienneté du compte. Aucun cookie de session ou valeur d’autorisation X n’est envoyé à KeepXClean.',
     assuranceTitle: 'Engagements de sécurité Zero-Trust',
     assurance1: 'Aucune création de compte ni connexion',
     assurance1Desc: 'Ne demande ni adresse e-mail, ni numéro de téléphone, ni mot de passe, ni OAuth.',
@@ -259,7 +259,7 @@ export const fr: TranslationDictionary = {
     items: [
       {
         q: 'KeepXClean accède-t-il à mes mots de passe, jetons ou messages privés sur X ?',
-        a: 'Jamais. KeepXClean s’exécute uniquement dans votre navigateur et n’analyse que les données publiques de tweets déjà transmises par X à votre écran. Il n’accède jamais à vos mots de passe, cookies, jetons ou messages privés (DMs).',
+        a: 'KeepXClean ne demande ni mots de passe ni messages privés. Il lit localement les cookies de X pour identifier le compte et effectuer les opérations demandées par l’utilisateur. Les cookies de session et valeurs d’autorisation servent uniquement aux échanges avec X, jamais avec les serveurs KeepXClean. Consultez la politique de confidentialité pour les signalements communautaires facultatifs.',
       },
       {
         q: 'KeepXClean ralentira-t-il mon navigateur ou le défilement de mon fil ?',

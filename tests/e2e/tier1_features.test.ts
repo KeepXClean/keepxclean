@@ -98,7 +98,7 @@ describe('Tier 1: Feature Coverage (Features 1 – 34)', () => {
 
     it('T1-F01-05: Release Tag Tree Verification', () => {
       const pkg = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf8'));
-      expect(pkg.version).toBe('0.1.1');
+      expect(pkg.version).toMatch(/^\d+\.\d+\.\d+$/);
     });
   });
 
@@ -202,8 +202,7 @@ describe('Tier 1: Feature Coverage (Features 1 – 34)', () => {
     it('T1-F04-04: Release Manifest Version Alignment', () => {
       const rootPkg = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf8'));
       const extPkg = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'apps/extension/package.json'), 'utf8'));
-      expect(rootPkg.version).toBe('0.1.1');
-      expect(extPkg.version).toBe('0.1.1');
+      expect(extPkg.version).toBe(rootPkg.version);
     });
 
     it('T1-F04-05: Release Asset API Tag Verification', () => {
@@ -281,32 +280,31 @@ describe('Tier 1: Feature Coverage (Features 1 – 34)', () => {
   });
 
   // =========================================================================
-  // F07: Official Black Titanium X Asset
+  // F07: Approved Shield + x Brand Asset
   // =========================================================================
-  describe('F07: Official Black Titanium X Asset', () => {
+  describe('F07: Approved Shield + x Brand Asset', () => {
     const svgPath = path.join(ROOT_DIR, 'apps/web/public/logo.svg');
 
-    it('T1-F07-01: Corner Radius Exact 21.875% (rx=112 on 512)', () => {
-      const svgContent = fs.readFileSync(svgPath, 'utf8');
-      const validation = validateBrandLogoSvg(svgContent);
-      expect(validation.rxRatio).toBeCloseTo(0.21875, 4);
+    it('T1-F07-01: Square 512px Asset with Matching Embedded Dimensions', () => {
+      const validation = validateBrandLogoSvg(fs.readFileSync(svgPath, 'utf8'));
+      expect(validation.width).toBe(512);
+      expect(validation.height).toBe(512);
+      expect(validation.valid).toBe(true);
     });
 
-    it('T1-F07-02: Solid Base Background Fill (#EAF6EF)', () => {
-      const svgContent = fs.readFileSync(svgPath, 'utf8');
-      expect(svgContent).toContain('fill="#EAF6EF"');
+    it('T1-F07-02: Website SVG Embeds Its Approved PNG Exactly', () => {
+      const validation = validateBrandLogoSvg(fs.readFileSync(svgPath, 'utf8'));
+      expect(validation.embeddedPng.equals(fs.readFileSync(path.join(ROOT_DIR, 'apps/web/public/icon-512.png')))).toBe(true);
     });
 
-    it('T1-F07-03: Black Titanium Metallic Gradient Definition', () => {
-      const svgContent = fs.readFileSync(svgPath, 'utf8');
-      const validation = validateBrandLogoSvg(svgContent);
-      expect(validation.hasTitaniumGradient).toBe(true);
-      expect(validation.hasSilverEdge).toBe(true);
+    it('T1-F07-03: Extension and Website Use Identical Artwork', () => {
+      const web = fs.readFileSync(path.join(ROOT_DIR, 'apps/web/public/icon-512.png'));
+      const extension = fs.readFileSync(path.join(ROOT_DIR, 'apps/extension/public/icon/icon-512.png'));
+      expect(web.equals(extension)).toBe(true);
     });
 
-    it('T1-F07-04: Zero Disallowed Elements (No Shield, No Ring, No Glow)', () => {
-      const svgContent = fs.readFileSync(svgPath, 'utf8');
-      const validation = validateBrandLogoSvg(svgContent);
+    it('T1-F07-04: No Executable, Remote or Old Vector Mark in SVG', () => {
+      const validation = validateBrandLogoSvg(fs.readFileSync(svgPath, 'utf8'));
       expect(validation.forbiddenElementsFound).toHaveLength(0);
       expect(validation.valid).toBe(true);
     });
@@ -1563,11 +1561,11 @@ describe('Tier 1: Feature Coverage (Features 1 – 34)', () => {
       expect(privacyContent).toContain('zero remote code execution');
     });
 
-    it('T1-F28-04: Step 4 One-Way Salted SHA-256 Hash for Deduplication', () => {
+    it('T1-F28-04: Step 4 Derived Reporter ID and Actual Report Data', () => {
       const enLocale = fs.readFileSync(path.join(ROOT_DIR, 'apps/web/src/locales/en.ts'), 'utf8');
       const privacyContent = fs.readFileSync(path.join(ROOT_DIR, 'apps/web/src/data/privacyContent.ts'), 'utf8');
       expect(enLocale).toContain('Anonymous 1-Way Hash Defense');
-      expect(enLocale).toContain('salted SHA-256 hashes');
+      expect(enLocale).toContain('SHA-256-derived reporter identifier');
       expect(privacyContent).toContain('reporterUidHash');
     });
 

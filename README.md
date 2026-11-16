@@ -28,7 +28,7 @@
 
 ---
 
-**KeepXClean** filters spam, reply bots, lookalike impersonators, engagement bait, crypto shilling, and promoted ads on X (`x.com`) in under **1 ms** — directly inside your browser without reading your account credentials or slowing down timeline scrolling.
+**KeepXClean** filters spam, reply bots, lookalike impersonators, engagement bait, crypto shilling, and promoted ads on X (`x.com`) in under **1 ms** — directly inside your browser with local filtering and optional X account actions.
 
 <div align="center">
 
@@ -61,7 +61,7 @@ Install in 1 click from the [**Chrome Web Store**](https://chromewebstore.google
 
 ## Privacy & Security
 
-- **Zero Credentials**: Never reads passwords, cookies, auth tokens, email addresses, or direct messages (DMs).
+- KeepXClean does not request passwords or DMs. It reads X account cookies locally for account identification and user-triggered X operations. Session cookies and web-client authorization values are used only with X, never sent to KeepXClean servers. Optional community reporting is described in the privacy policy.
 - **Zero Telemetry**: No third-party analytics SDKs, ad trackers, or remote code execution.
 - **Anonymous Community Sync**: Optional snapshot downloads (`credentials: 'omit'`) and one-way salted `SHA-256` reporter hashes for vote deduplication.
 - Read the full bilingual [**Privacy Policy**](https://keepxclean.com/privacy/).

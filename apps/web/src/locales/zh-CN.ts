@@ -31,7 +31,7 @@ export const zhCN: TranslationDictionary = {
     headlinePrefix: '重获清爽、高信噪比的',
     headlineHighlight: 'X 时间线与评论区',
     subheadline:
-      '直接解析 X 自身 GraphQL 响应，在浏览器本地执行确定性过滤。零账号凭证、<1ms 匹配、透明规则，全网协同防范 AI 水军、杀猪盘与恶意引流。',
+      '直接解析 X 自身 GraphQL 响应，在浏览器本地执行确定性过滤。无需额外注册、<1ms 匹配、透明规则，全网协同防范 AI 水军、杀猪盘与恶意引流。',
     ctaDownload: '下载 GitHub 抢先版 (v0.1.1)',
     ctaPrimary: '下载 GitHub 抢先版 (v0.1.1)',
     ctaStore: '添加至 Chrome',
@@ -83,7 +83,7 @@ export const zhCN: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.1 正式发布！采用本地优先架构，<1ms 确定性规则匹配，零账号泄露风险，支持 10 种语言。还你纯净高信噪比的 X 体验。',
+        'KeepXClean v0.1.1 正式发布！采用本地优先架构，<1ms 确定性规则匹配，本地过滤，支持 10 种语言。还你纯净高信噪比的 X 体验。',
       time: '2小时前',
       replies: '142',
       reposts: '389',
@@ -92,7 +92,7 @@ export const zhCN: TranslationDictionary = {
   },
   bento: {
     badge: '核心能力',
-    title: '深度掌控推文生态，绝不触碰个人凭据',
+    title: '深度掌控推文生态，本地处理账号会话',
     sub: '四大本地优先架构支柱，无需信任黑盒云端，还你干净推特。',
     sectionTitle: '核心能力展示',
     sectionDesc:
@@ -124,7 +124,7 @@ export const zhCN: TranslationDictionary = {
       step1: '阶段 1：本地已保存',
       step1Desc: '立即写入扩展本地存储（<1ms 生效）。',
       step2: '阶段 2：X 原生拉黑',
-      step2Desc: '在当前 X 标签页同源执行，绝不代理或截获登录凭证。',
+      step2Desc: '在当前 X 标签页使用既有会话，凭据不发送至 KeepXClean。',
       step3: '阶段 3：社区去重计票',
       step3Desc: '单向加盐 SHA-256 计票（1 账号 = 1 票），防止虚假刷榜。',
       undoActive: '4.5 秒撤销保护期生效中',
@@ -200,7 +200,7 @@ export const zhCN: TranslationDictionary = {
       '根据您的显示偏好无缝折叠或抹除噪音元素，配合丝滑平稳的 CSS 高度过渡动效。',
     step4Title: '4. 单向加盐哈希匿名公共防线',
     step4Desc:
-      '举报违规账号时仅提交加盐单向 SHA-256 哈希值，账号密码、Cookie、Token 绝不离端。',
+      '可选举报包含被举报账号的公开资料、原因，以及提交者的 SHA-256 派生标识和账号年龄；X 会话 Cookie 与授权值不发送至 KeepXClean 服务器。',
     assuranceTitle: '零信任安全设计承诺',
     assurance1: '零账号注册与登录',
     assurance1Desc: '不需要邮箱、手机号、密码或第三方授权。',
@@ -259,7 +259,7 @@ export const zhCN: TranslationDictionary = {
     items: [
       {
         q: 'KeepXClean 会读取我的推特密码、Token 或私信吗？',
-        a: '绝不读取。KeepXClean 完全运行在您本地浏览器中，仅解析推特已经发送到页面的公开推文数据，绝不触碰您的账号密码、Cookie、登录凭据、邮箱或私信（DM）。',
+        a: 'KeepXClean 不索取密码或私信。扩展会在本地读取 X 账号 Cookie，用于账号识别及用户触发的 X 操作；会话 Cookie 和网页客户端授权值仅用于与 X 通信，不会发送至 KeepXClean 服务器。可选社区举报的数据范围见隐私政策。',
       },
       {
         q: '运行 KeepXClean 会导致浏览器卡顿或刷推掉帧吗？',

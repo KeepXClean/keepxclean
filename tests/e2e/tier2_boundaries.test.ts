@@ -427,9 +427,9 @@ describe('Tier 2: Boundary & Corner Cases (Features 1 – 34)', () => {
       expect(hasScriptTag).toBe(false);
     });
 
-    it('T2-F07-05: Zero Deprecated Shields Check in Web Assets', () => {
+    it('T2-F07-05: Selected Shield Label and No Added Effects in Web Assets', () => {
       const svgContent = fs.readFileSync(svgPath, 'utf8');
-      expect(svgContent.toLowerCase()).not.toContain('shield');
+      expect(svgContent).toContain('KeepXClean shield and x');
       expect(svgContent.toLowerCase()).not.toContain('halo');
       expect(svgContent.toLowerCase()).not.toContain('glow');
     });

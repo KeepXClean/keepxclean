@@ -1,0 +1,156 @@
+<!doctype html>
+<html>
+  <meta charset="utf-8" /><title>KeepXClean promotional artwork</title
+  ><style>
+    * {
+      box-sizing: border-box;
+    }
+    html,
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #edf7f0;
+      color: #142b22;
+      font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    }
+    .canvas {
+      position: relative;
+      width: 440px;
+      height: 280px;
+      padding: 24px 28px;
+      background: radial-gradient(
+        ellipse at 100% 0,
+        #c6e8d3 0,
+        transparent 55%
+      );
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 21px;
+      font-weight: 750;
+      letter-spacing: -0.6px;
+    }
+    header img {
+      width: 42px;
+      height: 42px;
+    }
+    h1 {
+      font-size: 32px;
+      letter-spacing: -1px;
+      line-height: 1.17;
+      white-space: pre-line;
+      margin: 22px 0 10px;
+      font-weight: 780;
+    }
+    p {
+      font-size: 15px;
+      color: #4e6a59;
+      margin: 0;
+    }
+    .features {
+      display: none;
+    }
+    .hero-icon {
+      display: none;
+    }
+    .foot {
+      position: absolute;
+      bottom: 20px;
+      left: 28px;
+      right: 28px;
+      border-top: 1px solid #c7dfcf;
+      padding-top: 11px;
+      font-size: 10px;
+      letter-spacing: 1.4px;
+      color: #33754f;
+      font-weight: 650;
+    }
+    .large {
+      width: 1400px;
+      height: 560px;
+      padding: 48px 64px;
+      background: radial-gradient(
+        ellipse at 92% 45%,
+        #b8dfc7 0,
+        transparent 54%
+      );
+    }
+    .large header {
+      font-size: 28px;
+      gap: 12px;
+    }
+    .large header img {
+      width: 48px;
+      height: 48px;
+    }
+    .large h1 {
+      font-size: 66px;
+      line-height: 1.1;
+      max-width: 850px;
+      margin: 26px 0 20px;
+      letter-spacing: -2.3px;
+    }
+    .large p {
+      font-size: 25px;
+    }
+    .large .hero-icon {
+      display: block;
+      position: absolute;
+      width: 270px;
+      height: 270px;
+      right: 80px;
+      top: 137px;
+      filter: drop-shadow(0 20px 35px #143c2520);
+    }
+    .large .features {
+      display: flex;
+      gap: 12px;
+      margin-top: 27px;
+    }
+    .features span {
+      border: 1px solid #adcdb9;
+      background: #f6fbf6b0;
+      border-radius: 30px;
+      padding: 10px 19px;
+      font-size: 15px;
+      color: #265a3d;
+    }
+    .large .foot {
+      left: 64px;
+      right: 64px;
+      bottom: 24px;
+      font-size: 12px;
+      padding-top: 14px;
+    }
+  </style>
+  <div class="canvas">
+    <header><img src="/icon/icon-128.png" /><span>KeepXClean</span></header>
+    <h1></h1>
+    <p></p>
+    <div class="features"></div>
+    <img class="hero-icon" src="/icon/icon-512.png" />
+    <div class="foot">KEEPXCLEAN.COM</div>
+  </div>
+  <script type="module">
+    import catalog from "../../../../release/chrome-web-store/creative/catalog.json";
+    const query = new URLSearchParams(location.search),
+      lang = query.get("lang") || "en",
+      large = query.get("size") === "large";
+    const copy = catalog[lang].promo;
+    document.documentElement.lang = lang;
+    if (large) document.querySelector(".canvas").classList.add("large");
+    document.querySelector("h1").textContent = copy.title;
+    document.querySelector("p").textContent = copy.subtitle;
+    for (const feature of copy.features.split("|")) {
+      const el = document.createElement("span");
+      el.textContent = feature;
+      document.querySelector(".features").append(el);
+    }
+    await document.fonts.ready;
+    await Promise.all([...document.images].map((img) => img.decode()));
+    window.assetReady = true;
+  </script>
+</html>

@@ -37,7 +37,7 @@ export interface PrivacyLocaleContent {
 export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
   en: {
     title: 'Privacy Policy',
-    effectiveDate: 'Effective Date: November 11, 2026',
+    effectiveDate: 'Effective Date: November 16, 2026',
     appliesTo:
       'Applies to the KeepXClean Browser Extension & keepxclean.com Cloud Snapshot Service',
     sec1Title: '1. Core Privacy Principles',
@@ -45,7 +45,7 @@ export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
       'KeepXClean is designed around local-first content filtering and zero account registration:',
     sec1Bullets: [
       'All timeline, search, and reply filtering runs locally in your browser against X (x.com / twitter.com) page responses.',
-      'KeepXClean never collects, reads, or transmits your browsing history outside X, direct messages (DMs), passwords, cookies, session tokens, email addresses, or private tweets.',
+      'KeepXClean does not request your passwords or direct messages (DMs), and does not collect browsing history outside X. Filtering processes posts delivered to your X page locally. For account identification it reads the X twid cookie; user-triggered X account operations also use the ct0 CSRF cookie and X web-client authorization header in the open X tab. These cookies and authorization values are not sent to KeepXClean servers.',
       'KeepXClean uses zero third-party analytics SDKs, zero advertising trackers, and zero remote code execution.',
     ],
     sec2Title: '2. Data Stored Locally on Your Device',
@@ -53,12 +53,12 @@ export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
       'KeepXClean uses your browser’s local extension storage (chrome.storage.local) and an on-origin fast-boot cache on x.com solely to store:',
     sec2Bullets: [
       'Your filter rules, preset selection, interface language, and display preferences;',
-      'Your custom keywords/regular expressions, local allowlist UIDs, and local blocklist UIDs;',
+      'Your custom keywords/regular expressions, local allowlist UIDs, local blocklist UIDs, and detected X account identifiers and derived reporter hashes used to bind account actions;',
       'Up to the 200 most recent interception log entries and daily/cumulative counter summaries so you can review or undo filter hits;',
       'The cached public community snapshot (snapshot.json) downloaded from keepxclean.com (or your self-hosted endpoint).',
     ],
     sec2Outro:
-      'All locally stored data remains on your device unless you explicitly export a JSON backup file. Uninstalling the extension removes its chrome.storage.local data.',
+      'Local filter settings and logs remain on your device unless you export a backup. Optional community reports send only the fields described below. Uninstalling the extension removes its chrome.storage.local data; the on-origin fast-boot cache can be removed by clearing X site data.',
     sec3Title: '3. Network Requests & Optional Community Sharing',
     sec3Intro:
       'KeepXClean communicates over HTTPS only in the following strictly scoped scenarios:',
@@ -70,13 +70,13 @@ export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
       'Only when Community Sharing (enableCrowdReport) is enabled and you explicitly block an account or choose to share imported X blocks, the extension submits:',
     sec3ReportBullets: [
       'Target account’s public numeric X targetUid, public @handle / display name, public follower count, and your chosen block reason tag (spam, nsfw, scam, ad, bot, or other);',
-      'A one-way salted SHA-256 hash (reporterUidHash) derived locally from your X numeric ID solely to deduplicate votes (1 account = 1 vote), plus your account’s approximate age in days (used only to enforce the ≥30-day anti-abuse threshold). Your raw X UID, handle, and credentials are never sent to KeepXClean servers.',
+      'A SHA-256-derived pseudonymous identifier (reporterUidHash) derived locally from your X numeric ID solely to deduplicate votes (1 account = 1 vote), plus your account’s approximate age in days (used only to enforce the ≥30-day anti-abuse threshold). Your raw X UID, handle, and credentials are never sent to KeepXClean servers.',
     ],
     sec3ReportNote:
       'Standard transient IP-based sliding-window rate-limiting is applied on the server solely to prevent automated abuse.',
     sec3NativeTitle: 'Optional Native X Block Sync:',
     sec3NativeDesc:
-      'When Sync Native X Block (syncNativeXBlock) is enabled, block and blocklist-read requests are executed directly between your open X tab and x.com using X’s own web client session. KeepXClean servers never receive or proxy your X credentials.',
+      'When you request account lookup, import your X blocklist, or enable Sync Native X Block (syncNativeXBlock), the requested operations run directly between your open X tab and x.com using the existing X session, including its CSRF cookie and web-client authorization header. KeepXClean servers never receive or proxy these cookies or authorization values.',
     sec4Title: '4. Browser Permissions Justification',
     sec4Headers: ['Permission', 'Single-Purpose Reason'],
     sec4Rows: [
@@ -109,6 +109,10 @@ export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
     sec5Title: '5. Data Sharing, Retention & Your Controls',
     sec5Bullets: [
       {
+        label: 'Limited Use:',
+        text: 'Our use of information received from Google APIs adheres to the Chrome Web Store User Data Policy, including the Limited Use requirements. Data is used only to provide the extension’s content-filtering features, never for personalized advertising, creditworthiness, or lending decisions.',
+      },
+      {
         label: 'No Sale or Brokerage:',
         text: 'We never sell, rent, or transfer user data to third parties, advertisers, or data brokers.',
       },
@@ -128,7 +132,7 @@ export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
   },
   'zh-CN': {
     title: '隐私政策（Privacy Policy）',
-    effectiveDate: '生效日期：2026 年 11 月 11 日',
+    effectiveDate: '生效日期：2026 年 11 月 16 日',
     appliesTo:
       '适用于 KeepXClean 浏览器扩展及 keepxclean.com 公共快照服务',
     sec1Title: '1. 核心隐私原则',
@@ -136,7 +140,7 @@ export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
       'KeepXClean 采用本地优先过滤与零账号注册登录架构：',
     sec1Bullets: [
       '所有推荐流、搜索页、评论区的规则匹配均在浏览器本地对 X（x.com / twitter.com）页面自身返回的数据完成。',
-      'KeepXClean 绝不收集、读取或上传您在 X 以外的浏览历史、私信（DM）、账号密码、Cookie、登录凭据、邮箱或非公开推文。',
+      'KeepXClean 不索取账号密码或私信（DM），不收集 X 以外的浏览历史；过滤在本地处理 X 页面已收到的帖子。扩展会读取 X 的 twid Cookie 识别当前账号，并在用户触发 X 账号操作时于 X 标签页内使用 ct0 CSRF Cookie 与 X 网页客户端的授权请求头。这些 Cookie 与授权值不会发送至 KeepXClean 服务器。',
       '扩展内不包含任何第三方统计分析 SDK、广告追踪器或远程动态执行代码（Remote Code）。',
     ],
     sec2Title: '2. 保存在您设备本地的数据',
@@ -144,12 +148,12 @@ export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
       '扩展仅使用浏览器本地存储（chrome.storage.local）及 x.com 同源启动缓存保存以下必要数据：',
     sec2Bullets: [
       '您的过滤规则开关、预设档位、界面语言及展示偏好；',
-      '您的自定义关键词/正则表达式、本地白名单 UID 与本地黑名单 UID；',
+      '您的自定义关键词/正则表达式、本地白名单 UID、本地黑名单 UID，以及用于绑定账号操作的当前 X 账号标识与派生举报哈希；',
       '最近最多 200 条本地拦截记录及今日/累计拦截计数，便于您核查命中原因或误拦加白；',
       '从 keepxclean.com（或您自建服务地址）拉取的公共社区快照缓存。',
     ],
     sec2Outro:
-      '除您主动导出 JSON 备份外，上述本地配置不会离开您的设备；卸载扩展时浏览器会自动清除对应的本地存储。',
+      '本地过滤配置与日志留在您的设备上，可由您主动导出备份；可选社区举报仅发送下文列出的字段。卸载扩展会移除 chrome.storage.local 数据；X 同源启动缓存可通过清除 X 网站数据移除。',
     sec3Title: '3. 网络通信与可选社区共享',
     sec3Intro: 'KeepXClean 仅在以下明确场景发起 HTTPS 请求：',
     sec3SyncTitle: '拉取公共快照（只读 GET）：',
@@ -160,13 +164,13 @@ export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
       '仅当您开启「社区共享」（enableCrowdReport）并主动点击快捷净空，或在导入 X 黑名单时勾选共享社区时，扩展才会提交：',
     sec3ReportBullets: [
       '被拉黑目标账号的公开数字 targetUid、公开 @handle / 昵称、公开粉丝数及原因分类标签；',
-      '在本地对您当前 X 数字 ID 计算的单向加盐 SHA-256 哈希（reporterUidHash，仅用于“一账号一票”去重）以及账号大致注册天数（仅用于校验 ≥30 天防刷门槛）。您的原始 X UID、用户名及登录凭据绝不会发送至 KeepXClean 服务器。',
+      '在本地根据您当前 X 数字 ID 计算的 SHA-256 派生标识（reporterUidHash，仅用于“一账号一票”去重）以及账号大致注册天数（仅用于校验 ≥30 天防刷门槛）。您的原始 X UID、用户名及登录凭据绝不会发送至 KeepXClean 服务器。',
     ],
     sec3ReportNote:
-      '服务端仅使用短期滑动窗口限流防止恶意刷票。',
+      '服务端仅使用请求 IP 进行短期滑动窗口限流，以防止恶意刷票；不请求设备定位。',
     sec3NativeTitle: '可选的同步 X 原生拉黑：',
     sec3NativeDesc:
-      '开启 syncNativeXBlock 时，拉黑与读取已有黑名单请求均在您的 X 标签页内直接发往 x.com 官方接口，KeepXClean 服务器从不接触或中转任何 X 登录凭据。',
+      '当您查询账号、导入 X 黑名单或开启 syncNativeXBlock 同步原生拉黑时，对应请求在您的 X 标签页内使用现有 X 会话（包括 CSRF Cookie 与网页客户端授权请求头）直接发往 x.com。KeepXClean 服务器不会接收或中转这些 Cookie 或授权值。',
     sec4Title: '4. 浏览器权限用途说明',
     sec4Headers: ['权限名称', '单一用途说明'],
     sec4Rows: [
@@ -197,6 +201,10 @@ export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
     ],
     sec5Title: '5. 数据共享、留存与用户控制权',
     sec5Bullets: [
+      {
+        label: '限制用途：',
+        text: '我们对通过 Google API 获得的信息的使用遵守 Chrome Web Store 用户数据政策及其限制用途要求。数据仅用于提供扩展的内容过滤功能，不用于个性化广告、信用评估或借贷决策。',
+      },
       {
         label: '绝不出售或交易数据：',
         text: '我们绝不向任何第三方、广告商或数据经纪商出售、出租或转让用户数据。',

@@ -31,7 +31,7 @@ export const ja: TranslationDictionary = {
     headlinePrefix: '快適で高シグナルな',
     headlineHighlight: 'X のタイムラインとリプライ欄を取り戻す',
     subheadline:
-      'X の GraphQL レスポンスをブラウザ内で直接決定論的に処理。認証情報不要、1ms 未満の超高速判定、完全公開ルールで AI ボットや詐欺アカウントを排除します。',
+      'X の GraphQL レスポンスをブラウザ内で直接決定論的に処理。追加登録不要、1ms 未満の超高速判定、完全公開ルールで AI ボットや詐欺アカウントを排除します。',
     ctaDownload: 'GitHub 先行版 (v0.1.1) をダウンロード',
     ctaPrimary: 'GitHub 先行版 (v0.1.1) をダウンロード',
     ctaStore: 'Chrome に追加',
@@ -83,7 +83,7 @@ export const ja: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.1 をリリースしました！完全ローカルファースト、1ms 未満の決定論的エンジン、トークン漏洩ゼロ、10言語対応。本来のクリーンな X 体験を。',
+        'KeepXClean v0.1.1 をリリースしました！完全ローカルファースト、1ms 未満の決定論的エンジン、ローカル処理、10言語対応。本来のクリーンな X 体験を。',
       time: '2時間前',
       replies: '142',
       reposts: '389',
@@ -124,7 +124,7 @@ export const ja: TranslationDictionary = {
       step1: 'フェーズ 1：端末内保存',
       step1Desc: 'ブラウザの拡張機能ストレージに瞬時に書き込み（1ms未満）。',
       step2: 'フェーズ 2：X ネイティブブロック',
-      step2Desc: '開いている X タブ内で直接実行。パスワードやトークンは一切送信されません。',
+      step2Desc: 'X タブの既存セッションで直接実行。認証値は KeepXClean に送信しません。',
       step3: 'フェーズ 3：コミュニティ集計',
       step3Desc: 'ソルト付き SHA-256 ハッシュで集計（1アカウント＝1票）し、組織票を防止。',
       undoActive: '4.5秒の復元猶予期間',
@@ -200,7 +200,7 @@ export const ja: TranslationDictionary = {
       '設定に応じてスムーズな CSS アニメーションで折りたたみ、または完全消去します。',
     step4Title: '4. 匿名一方向ハッシュによる防衛',
     step4Desc:
-      'スパム報告時はソルト付き SHA-256 ハッシュのみ送信。パスワードや Cookie は端末外に出ません。',
+      '任意の報告には対象アカウントの公開情報、理由、報告者の SHA-256 派生 ID とアカウント経過日数が含まれます。X のセッション Cookie や認証値は KeepXClean サーバーに送信しません。',
     assuranceTitle: 'ゼロトラスト設計の約束',
     assurance1: 'アカウント登録・ログイン不要',
     assurance1Desc: 'メールアドレスやパスワード、SNS 連携は一切要求しません。',
@@ -259,7 +259,7 @@ export const ja: TranslationDictionary = {
     items: [
       {
         q: 'X のパスワード、認証トークン、DM にアクセスされますか？',
-        a: '一切アクセスしません。KeepXClean はブラウザ内でのみ動作し、すでに画面上に届いた公開ポスト情報のみを解析します。パスワード、Cookie、DM、個人情報には触れません。',
+        a: 'KeepXClean はパスワードや DM を要求しません。アカウント識別とユーザーが実行する X 操作のため、X の Cookie を端末内で読み取ります。セッション Cookie と Web クライアントの認証値は X との通信にのみ使用し、KeepXClean サーバーには送信しません。任意のコミュニティ報告についてはプライバシーポリシーをご覧ください。',
       },
       {
         q: 'ブラウザが重くなったり、スクロールがカクついたりしませんか？',

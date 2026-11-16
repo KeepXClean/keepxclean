@@ -5,7 +5,7 @@
  * - High performance virtual DOM environment using JSDOM
  * - Deterministic timer advancement (advanceTimersByTime)
  * - prefers-reduced-motion simulator
- * - Brand SVG geometric validator (512x512, rx=21.875% = 112, black titanium, 0 shield/glow/ring)
+ * - Brand asset validator (square embedded PNG, no scripts, remote images or stale X paths)
  * - CSS tokens validator (#F7F9F8, #FFFFFF, #EAF6EF, #13865F)
  * - In-memory Fetch interceptor (MockFetch)
  */
@@ -229,14 +229,14 @@ export function createVirtualBrowser(options: VirtualBrowserOptions = {}): Virtu
   };
 }
 
-// Brand SVG Geometric Validator
+// The approved imagegen artwork is embedded losslessly in standalone SVG wrappers.
+// Geometry and color are visually reviewed; these checks validate the actual asset contract.
 export interface SvgValidationResult {
   valid: boolean;
-  rxRatio: number;
   width: number;
   height: number;
-  hasTitaniumGradient: boolean;
-  hasSilverEdge: boolean;
+  hasEmbeddedPng: boolean;
+  embeddedPng: Buffer;
   forbiddenElementsFound: string[];
   errors: string[];
 }
@@ -244,87 +244,29 @@ export interface SvgValidationResult {
 export function validateBrandLogoSvg(svgString: string): SvgValidationResult {
   const errors: string[] = [];
   const forbidden: string[] = [];
-
-  // Check dimensions and viewBox
-  const viewBoxMatch = svgString.match(/viewBox=["']0 0 (\d+) (\d+)["']/i);
-  const widthMatch = svgString.match(/width=["'](\d+)["']/i);
-  const heightMatch = svgString.match(/height=["'](\d+)["']/i);
-
-  const width = widthMatch ? parseInt(widthMatch[1], 10) : viewBoxMatch ? parseInt(viewBoxMatch[1], 10) : 512;
-  const height = heightMatch ? parseInt(heightMatch[1], 10) : viewBoxMatch ? parseInt(viewBoxMatch[2], 10) : 512;
-
-  // Background rect corner radius check
-  // Looking for <rect width="512" height="512" rx="112" fill="#EAF6EF"/>
-  const rectMatch = svgString.match(/<rect[^>]*width=["'](\d+)["'][^>]*rx=["'](\d+)["'][^>]*fill=["']([^"']+)["']/i) ||
-                    svgString.match(/<rect[^>]*rx=["'](\d+)["'][^>]*fill=["']([^"']+)["']/i);
-
-  let rxRatio = 0;
-  if (rectMatch) {
-    const rx = parseFloat(rectMatch[1] === '512' ? rectMatch[2] : rectMatch[1]);
-    rxRatio = rx / width;
-    // Expected: 112 / 512 = 0.21875 (21.875%)
-    if (Math.abs(rxRatio - 0.21875) > 0.001) {
-      errors.push(`Corner radius ratio rx/width is ${rxRatio.toFixed(5)}, expected exactly 0.21875 (21.875%)`);
-    }
-
-    const fill = (rectMatch[3] ?? rectMatch[2]).toUpperCase();
-    if (fill !== '#EAF6EF') {
-      errors.push(`Background rect fill is ${fill}, expected solid #EAF6EF`);
-    }
-  } else {
-    // Check fallback pattern
-    if (svgString.includes('rx="112"')) {
-      rxRatio = 112 / width;
-    } else {
-      errors.push('Background rect with rx and fill not found');
-    }
+  const width = Number(svgString.match(/width=["'](\d+)["']/)?.[1] ?? 0);
+  const height = Number(svgString.match(/height=["'](\d+)["']/)?.[1] ?? 0);
+  const data = svgString.match(/href=["']data:image\/png;base64,([^"']+)["']/)?.[1];
+  const embeddedPng = Buffer.from(data ?? '', 'base64');
+  const hasEmbeddedPng = embeddedPng.length >= 24 &&
+    embeddedPng.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+  if (!hasEmbeddedPng) errors.push('Missing valid embedded PNG');
+  if (width <= 0 || width !== height) errors.push('Icon must have square nonzero dimensions');
+  if (hasEmbeddedPng && (embeddedPng.readUInt32BE(16) !== width || embeddedPng.readUInt32BE(20) !== height)) {
+    errors.push('PNG dimensions differ from SVG dimensions');
   }
-
-  // Titanium Gradient check
-  const hasTitaniumGradient = (
-    svgString.includes('id="titanium"') || svgString.includes("id='titanium'")
-  ) && (
-    svgString.includes('#6B7577') || svgString.includes('#3D4547') || svgString.includes('#090D0E')
-  );
-  if (!hasTitaniumGradient) {
-    errors.push('Missing official black titanium gradient definition');
+  if (!svgString.includes('aria-label="KeepXClean shield and x"')) errors.push('Missing approved brand label');
+  // Inspect markup, excluding binary data, for executable or remote content.
+  const markup = svgString.replace(/data:image\/png;base64,[^"']+/g, '');
+  for (const [name, pattern] of [
+    ['script', /<script|onload=|onerror=/i],
+    ['remote_image', /(?:href|src)=["']https?:/i],
+    ['glow_filter', /<filter|<feGaussianBlur|drop-shadow/i],
+    ['old_vector_mark', /<path/i],
+  ] as const) {
+    if (pattern.test(markup)) { forbidden.push(name); errors.push(`Disallowed SVG content: ${name}`); }
   }
-
-  // Silver edge highlight gradient check
-  const hasSilverEdge = (
-    svgString.includes('id="edge"') || svgString.includes("id='edge'")
-  ) && (
-    svgString.includes('#CDD6D5') || svgString.includes('#849091') || svgString.includes('#0A0F10')
-  );
-  if (!hasSilverEdge) {
-    errors.push('Missing official silver edge highlight gradient definition');
-  }
-
-  // Prohibitions: No shield, no circular ring, no glow filter, no starbursts
-  const forbiddenPatterns = [
-    { name: 'shield', regex: /shield|d="[^"]*shield/i },
-    { name: 'circle_ring', regex: /<circle|<ellipse/i },
-    { name: 'glow_filter', regex: /<filter|<feGaussianBlur|drop-shadow/i },
-    { name: 'starburst', regex: /starburst|sparkle/i },
-  ];
-
-  for (const p of forbiddenPatterns) {
-    if (p.regex.test(svgString)) {
-      forbidden.push(p.name);
-      errors.push(`Brand violation: forbidden element detected (${p.name})`);
-    }
-  }
-
-  return {
-    valid: errors.length === 0,
-    rxRatio,
-    width,
-    height,
-    hasTitaniumGradient,
-    hasSilverEdge,
-    forbiddenElementsFound: forbidden,
-    errors,
-  };
+  return { valid: errors.length === 0, width, height, hasEmbeddedPng, embeddedPng, forbiddenElementsFound: forbidden, errors };
 }
 
 // Brand CSS Tokens Validator

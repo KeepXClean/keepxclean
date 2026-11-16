@@ -31,7 +31,7 @@ export const en: TranslationDictionary = {
     headlinePrefix: 'Reclaim a Clean, High-Signal',
     headlineHighlight: 'Timeline & Replies on X',
     subheadline:
-      'Deterministic local filtering directly against X GraphQL responses. Zero account credentials, < 1ms execution, transparent rules, and community defense against AI bots, scams, and clout chasers.',
+      'Deterministic local filtering directly against X GraphQL responses. No separate registration, < 1ms execution, transparent rules, and community defense against AI bots, scams, and clout chasers.',
     ctaDownload: 'Download Release (v0.1.1)',
     ctaPrimary: 'Download Release (v0.1.1)',
     ctaStore: 'Add to Chrome',
@@ -83,7 +83,7 @@ export const en: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.1 is live! Local-first architecture, <1ms deterministic evaluation, zero token leaks, 10-language matrix. Pure high-signal timeline on X.',
+        'KeepXClean v0.1.1 is live! Local-first architecture, <1ms deterministic evaluation, local filtering, 10-language matrix. Pure high-signal timeline on X.',
       time: '2h',
       replies: '142',
       reposts: '389',
@@ -200,7 +200,7 @@ export const en: TranslationDictionary = {
       'Seamlessly folds or removes noise elements according to your preferences with smooth CSS layout transitions.',
     step4Title: '4. Anonymous 1-Way Hash Defense',
     step4Desc:
-      'When reporting spam, only salted SHA-256 hashes are submitted. No handles, cookies, or user tokens ever touch the server.',
+      'Optional reports include public details of the reported account, a reason, and a SHA-256-derived reporter identifier with account age. X session cookies and authorization values are not sent to KeepXClean servers.',
     assuranceTitle: 'Zero-Trust Engineering Assurances',
     assurance1: 'Zero Account Login / Registration',
     assurance1Desc: 'No email, no phone, no password, no OAuth required.',
@@ -259,7 +259,7 @@ export const en: TranslationDictionary = {
     items: [
       {
         q: 'Does KeepXClean access my X account passwords, tokens, or private messages?',
-        a: 'Never. KeepXClean runs completely client-side in your browser. It only parses the public tweet data that X already sends to your browser window. It never accesses your password, cookies, auth tokens, email address, or direct messages (DMs).',
+        a: 'KeepXClean does not request passwords or DMs. It reads X account cookies locally for account identification and user-triggered X operations. Session cookies and web-client authorization values are used only with X, never sent to KeepXClean servers. Optional community reporting is described in the privacy policy.',
       },
       {
         q: 'Will running KeepXClean slow down my browser or timeline scrolling?',

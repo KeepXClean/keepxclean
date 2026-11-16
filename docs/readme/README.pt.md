@@ -28,7 +28,7 @@
 
 ---
 
-**KeepXClean** filtra spam, bots de respostas, perfis falsos que imitam o autor, iscas de engajamento, golpes cripto e anúncios promovidos no X (`x.com`) em menos de **1 ms** diretamente no navegador, sem acessar credenciais e mantendo rolagem fluida a 60/120 FPS.
+**KeepXClean** filtra spam, bots de respostas, perfis falsos que imitam o autor, iscas de engajamento, golpes cripto e anúncios promovidos no X (`x.com`) em menos de **1 ms** diretamente no navegador, com operações opcionais na conta X e mantendo rolagem fluida a 60/120 FPS.
 
 <div align="center">
 
@@ -58,7 +58,7 @@ Instale em 1 clique pela [**Chrome Web Store**](https://chromewebstore.google.co
 
 ## Privacidade e Segurança
 
-- **Zero Credenciais**: Nunca lê senhas, cookies, tokens de autenticação, e-mails ou mensagens diretas (DMs).
+- O KeepXClean não solicita senhas nem mensagens privadas. Lê cookies do X localmente para identificar a conta e executar operações solicitadas pelo usuário. Cookies de sessão e valores de autorização são usados apenas com o X, nunca enviados aos servidores do KeepXClean. Consulte a política de privacidade sobre denúncias comunitárias opcionais.
 - **Zero Telemetria**: Sem SDKs de análise de terceiros ou rastreadores de anúncios.
 - Leia a [**Política de Privacidade**](https://keepxclean.com/privacy/) completa.
 

@@ -17,7 +17,7 @@ export function ArchitectureFlow() {
       input: 'X Web GraphQL response (TimelineAddEntries / UserTweets)',
       processing: 'Deep instruction tree parsing prior to DOM mounting',
       output: 'Normalized ExtractedTweet and Author entities',
-      privacy: '100% client-side memory; zero network relays or credentials touched',
+      privacy: 'Page responses processed in local browser memory',
     },
     {
       num: 2,
@@ -47,7 +47,7 @@ export function ArchitectureFlow() {
       input: 'User manual block confirmation (after 4.5s window)',
       processing: 'One-way cryptographic hash: sha256Hex("kxc_v1_" + authorId)',
       output: 'Anonymous reputation counter increment (1 account = 1 vote)',
-      privacy: 'No tokens, cookies, or user identifiers transmitted; zero tracking',
+      privacy: 'Public target details and a derived reporter ID; no X session credentials',
     },
   ];
 

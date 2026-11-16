@@ -31,7 +31,7 @@ export const zhTW: TranslationDictionary = {
     headlinePrefix: '重獲清爽、高信噪比的',
     headlineHighlight: 'X 時間軸與留言區',
     subheadline:
-      '直接解析 X 自身 GraphQL 回應，在瀏覽器本地執行確定性過濾。零帳號憑證、<1ms 比對、透明規則，全網協同防範 AI 水軍、殺豬盤與惡意導流。',
+      '直接解析 X 自身 GraphQL 回應，在瀏覽器本地執行確定性過濾。無需額外註冊、<1ms 比對、透明規則，全網協同防範 AI 水軍、殺豬盤與惡意導流。',
     ctaDownload: '下載 GitHub 搶先版 (v0.1.1)',
     ctaPrimary: '下載 GitHub 搶先版 (v0.1.1)',
     ctaStore: '新增至 Chrome',
@@ -83,7 +83,7 @@ export const zhTW: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.1 正式發布！採用本地優先架構，<1ms 確定性規則比對，零帳號外洩風險，支援 10 種語言。還你純淨高信噪比的 X 體驗。',
+        'KeepXClean v0.1.1 正式發布！採用本地優先架構，<1ms 確定性規則比對，本機過濾，支援 10 種語言。還你純淨高信噪比的 X 體驗。',
       time: '2小時前',
       replies: '142',
       reposts: '389',
@@ -124,7 +124,7 @@ export const zhTW: TranslationDictionary = {
       step1: '階段 1：本地已儲存',
       step1Desc: '立即寫入擴充功能本地儲存（<1ms 生效）。',
       step2: '階段 2：X 原生封鎖',
-      step2Desc: '在目前 X 分頁同源執行，絕不代理或截獲登入憑證。',
+      step2Desc: '在目前 X 分頁使用既有工作階段，憑證不傳送至 KeepXClean。',
       step3: '階段 3：社群去重計票',
       step3Desc: '單向加鹽 SHA-256 計票（1 帳號 = 1 票），防止虛假洗榜。',
       undoActive: '4.5 秒復原保護期生效中',
@@ -200,7 +200,7 @@ export const zhTW: TranslationDictionary = {
       '根據您的顯示偏好無縫折疊或抹除噪音元素，配合絲滑平穩的 CSS 高度過渡動效。',
     step4Title: '4. 單向加鹽雜湊匿名公共防線',
     step4Desc:
-      '回報違規帳號時僅提交加鹽單向 SHA-256 雜湊值，帳號密碼、Cookie、Token 絕不離端。',
+      '可選回報包含被回報帳號的公開資料、原因，以及提交者的 SHA-256 衍生識別碼與帳號年齡；X 工作階段 Cookie 與授權值不會傳送至 KeepXClean 伺服器。',
     assuranceTitle: '零信任安全設計承諾',
     assurance1: '零帳號註冊與登入',
     assurance1Desc: '不需要電子郵件、手機號碼、密碼或第三方授權。',
@@ -259,7 +259,7 @@ export const zhTW: TranslationDictionary = {
     items: [
       {
         q: 'KeepXClean 會讀取我的推特密碼、Token 或私訊嗎？',
-        a: '絕不讀取。KeepXClean 完全在您本地瀏覽器中運作，僅解析推特已經發送到頁面的公開推文資料，絕不觸碰您的帳號密碼、Cookie、登入憑證、電子郵件或私訊（DM）。',
+        a: 'KeepXClean 不索取密碼或私訊。擴充功能會在本機讀取 X 帳號 Cookie，用於帳號識別及使用者觸發的 X 操作；工作階段 Cookie 與網頁客戶端授權值僅用於與 X 通訊，不會傳送至 KeepXClean 伺服器。可選社群回報的資料範圍請見隱私權政策。',
       },
       {
         q: '運作 KeepXClean 會導致瀏覽器卡頓或滑推掉幀嗎？',

@@ -3,7 +3,7 @@
     "message": "KeepXClean - 屏蔽 X (Twitter) 垃圾评论、水军与广告"
   },
   "extDescription": {
-    "message": "免费开源的 X (Twitter) 净化插件：自动折叠或屏蔽垃圾评论、水军机器人、高仿骗子、引流刷屏与推广广告，本地运行不读隐私。官网 keepxclean.com"
+    "message": "免费开源的 X (Twitter) 净化插件：自动折叠或屏蔽垃圾评论、水军机器人、高仿骗子、引流刷屏与推广广告，本地过滤，规则可调。官网 keepxclean.com"
   },
   "extActionTitle": {
     "message": "KeepXClean 快捷设置"

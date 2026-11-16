@@ -3,7 +3,7 @@
 A 30-second, beat-synced promo video built with [Remotion](https://www.remotion.dev/) (React → MP4). The soundtrack is synthesized from code, so there are no music licensing issues.
 
 - **Tempo**: 120 BPM, A minor. 1 bar = 2 s = 60 frames at 30 fps. Every cut and pop lands on the beat grid in `src/timing.ts`.
-- **Style**: light canvas, brand green `#13865F`, official black-titanium icon (follows `AGENTS.md`).
+- **Style**: light canvas, brand green `#13865F`, original black-titanium shield + x icon (follows `AGENTS.md`).
 
 ## Storyboard
 
@@ -13,7 +13,7 @@ A 30-second, beat-synced promo video built with [Remotion](https://www.remotion.
 | 2 | 4–6 s | Reveal | Impact, logo slam, *KeepXClean: the local-first spam filter for X.* |
 | 3–6 | 6–14 s | Demo | Simulated x.com thread. Spam is flagged, folded, then hidden; the extension badge counts up. |
 | 7–8 | 14–18 s | Speed | **<1 ms** per post. No extra API calls, no scroll lag. |
-| 9–10 | 18–22 s | Privacy | Zero login · Zero cookies · Zero tracking · 100% open source |
+| 9–10 | 18–22 s | Privacy | No sign-up · Local filtering · Zero tracking · 100% open source |
 | 11–12 | 22–26 s | Features | 8 feature tiles, one per beat |
 | 13–14 | 26–30 s | Outro | Logo + "Take back your timeline." + Add to Chrome CTA |
 
@@ -52,3 +52,7 @@ GitHub won't play an MP4 committed to the repo. Use either:
 2. A video with sound: drag `keepxclean-promo-1080p.mp4` into the README editor on github.com. GitHub uploads it to `user-attachments` and plays it inline.
 
 > Note: all accounts and posts in the video are fictional sample content. Remotion is free for individuals and companies with up to 3 employees; see remotion.dev/license.
+
+### 2026-11-16 brand refresh
+
+The current website MP4, WebM and poster were rendered from this source with the approved transparent shield + x artwork. For this run, the Remotion bundle was served locally and captured in Ego at 1920 × 1080, 30 fps (900 frames), then encoded with ffmpeg. This preserves the user's Ego-only browser preference. The SVG mask from the retired X mark has been removed. The icon's rounded exterior is transparent before compositing, so the reveal and outro no longer have a white square frame.

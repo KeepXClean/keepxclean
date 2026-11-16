@@ -31,7 +31,7 @@ export const de: TranslationDictionary = {
     headlinePrefix: 'Gewinnen Sie eine saubere, hochwertige',
     headlineHighlight: 'Timeline und Antworten auf X zurück',
     subheadline:
-      'Deterministische lokale Filterung direkt auf GraphQL-Antworten von X. Keine Anmeldedaten, < 1ms Ausführung, transparente Regeln und gemeinschaftlicher Schutz gegen KI-Bots und Betrug.',
+      'Deterministische lokale Filterung direkt auf GraphQL-Antworten von X. Keine separate Registrierung, < 1ms Ausführung, transparente Regeln und gemeinschaftlicher Schutz gegen KI-Bots und Betrug.',
     ctaDownload: 'Release herunterladen (v0.1.1)',
     ctaPrimary: 'Release herunterladen (v0.1.1)',
     ctaStore: 'Zu Chrome hinzufügen',
@@ -83,7 +83,7 @@ export const de: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.1 ist live! Local-First Architektur, < 1ms Auswertung, keine Token-Lecks und Matrix in 10 Sprachen. Erleben Sie wieder eine saubere Timeline auf X.',
+        'KeepXClean v0.1.1 ist live! Local-First Architektur, < 1ms Auswertung, lokale Filterung und Matrix in 10 Sprachen. Erleben Sie wieder eine saubere Timeline auf X.',
       time: '2 Std.',
       replies: '142',
       reposts: '389',
@@ -124,7 +124,7 @@ export const de: TranslationDictionary = {
       step1: 'Phase 1: Lokal gespeichert',
       step1Desc: 'Sofort im Speicher der Erweiterung gesichert (< 1ms).',
       step2: 'Phase 2: Nativer X-Block',
-      step2Desc: 'Synchronisation im geöffneten Tab ohne Übertragung von Zugangsdaten.',
+      step2Desc: 'Direkt im X-Tab; Sitzungsdaten gehen nicht an KeepXClean.',
       step3: 'Phase 3: Community-Zählung',
       step3Desc: 'Gesalzener SHA-256-Hash (1 Konto = 1 Stimme) verhindert Manipulationen.',
       undoActive: '4,5s Rückgängig-Fenster aktiv',
@@ -200,7 +200,7 @@ export const de: TranslationDictionary = {
       'Klappt Lärm sanft ein oder entfernt ihn nahtlos mit weichen CSS-Höhenübergängen.',
     step4Title: '4. Anonymer Einweg-Hash-Schutz',
     step4Desc:
-      'Beim Melden von Spam wird lediglich ein gesalzener SHA-256-Hash übermittelt. Passwörter und Cookies verlassen nie Ihr Gerät.',
+      'Optionale Meldungen enthalten öffentliche Daten des gemeldeten Kontos, den Grund sowie eine SHA-256-Kennung und das Kontoalter des Meldenden. X-Sitzungscookies und Autorisierungswerte werden nicht an KeepXClean gesendet.',
     assuranceTitle: 'Zero-Trust Sicherheitsversprechen',
     assurance1: 'Keine Registrierung oder Anmeldung erforderlich',
     assurance1Desc: 'Benötigt weder E-Mail, Telefonnummer, Passwort noch OAuth-Genehmigungen.',
@@ -259,7 +259,7 @@ export const de: TranslationDictionary = {
     items: [
       {
         q: 'Greift KeepXClean auf meine X-Passwörter, Token oder Direktnachrichten zu?',
-        a: 'Niemals. KeepXClean arbeitet ausschließlich lokal in Ihrem Browser und liest nur die öffentlichen Tweet-Daten, die X bereits an Ihren Bildschirm gesendet hat. Es berührt zu keinem Zeitpunkt Passwörter, Cookies, Tokens oder Direktnachrichten (DMs).',
+        a: 'KeepXClean fordert keine Passwörter oder Direktnachrichten an. X-Cookies werden lokal zur Kontoerkennung und für vom Nutzer ausgelöste X-Aktionen gelesen. Sitzungscookies und Autorisierungswerte werden nur gegenüber X verwendet und nie an KeepXClean-Server gesendet. Optionale Community-Meldungen sind in der Datenschutzerklärung beschrieben.',
       },
       {
         q: 'Verlangsamt KeepXClean meinen Browser oder das Scrollen in der Timeline?',

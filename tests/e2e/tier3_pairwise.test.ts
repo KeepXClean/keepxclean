@@ -796,7 +796,7 @@ describe('Tier 3: Cross-Feature Combinations (Pairwise Coverage)', () => {
     const res = validateBrandLogoSvg(svg);
 
     expect(res.valid).toBe(true);
-    expect(res.rxRatio).toBeCloseTo(0.21875, 4);
+    expect(res.hasEmbeddedPng).toBe(true);
     expect(res.forbiddenElementsFound).toHaveLength(0);
   });
 

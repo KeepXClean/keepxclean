@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><title>KeepXClean store artwork</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    html,
+    body {
+      width: 1280px;
+      height: 800px;
+      overflow: hidden;
+      margin: 0;
+      background: #f4f9f6;
+      color: #142b22;
+      font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    }
+    body {
+      padding: 32px 56px;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 720;
+      font-size: 23px;
+      letter-spacing: -0.5px;
+    }
+    header img {
+      width: 40px;
+      height: 40px;
+      border-radius: 22%;
+    }
+    header small {
+      margin-left: auto;
+      letter-spacing: 1.1px;
+      font-size: 12px;
+      color: #39765b;
+    }
+    h1 {
+      font-size: 49px;
+      line-height: 1.12;
+      letter-spacing: -1.5px;
+      margin: 25px 0 12px;
+      max-width: 1168px;
+      height: 110px;
+      display: flex;
+      align-items: center;
+      font-weight: 760;
+    }
+    p {
+      position: absolute;
+      top: 205px;
+      left: 56px;
+      width: 1150px;
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.5;
+      color: #52685d;
+    }
+    .window {
+      position: absolute;
+      left: 56px;
+      top: 264px;
+      width: 1168px;
+      height: 488px;
+      border: 1px solid #d5e4db;
+      border-radius: 18px;
+      overflow: hidden;
+      background: white;
+      box-shadow: 0 14px 30px #174c2e0c;
+    }
+    .windowbar {
+      height: 28px;
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      padding-left: 14px;
+      border-bottom: 1px solid #e1e9e4;
+      background: #fbfdfb;
+    }
+    .windowbar b {
+      height: 6px;
+      width: 6px;
+      border-radius: 50%;
+      background: #c6d8ce;
+    }
+    .windowbar span {
+      margin-left: 10px;
+      font-size: 10px;
+      color: #77887d;
+    }
+    iframe {
+      display: block;
+      border: 0;
+      width: 1460px;
+      height: 575px;
+      transform: scale(0.8);
+      transform-origin: 0 0;
+      background: white;
+    }
+    footer {
+      position: absolute;
+      bottom: 18px;
+      left: 56px;
+      right: 56px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #6c8175;
+    }
+    .num {
+      font-weight: 650;
+      letter-spacing: 2px;
+    }
+  </style>
+  <header>
+    <img src="/icon/icon-128.png" alt="" /><span>KeepXClean</span
+    ><small id="tag"></small>
+  </header>
+  <h1></h1>
+  <p></p>
+  <div class="window">
+    <div class="windowbar"><b></b><b></b><b></b><span>KeepXClean</span></div>
+    <iframe title="Actual extension interface"></iframe>
+  </div>
+  <footer><span id="note"></span><span class="num"></span></footer>
+  <script type="module">
+    import catalog from "../../../../release/chrome-web-store/creative/catalog.json";
+    const query = new URLSearchParams(location.search),
+      lang = query.get("lang") || "en",
+      shot = Number(query.get("shot") || 1),
+      copy = catalog[lang];
+    document.documentElement.lang = lang;
+    document.querySelector("#tag").textContent = copy.tag;
+    document.querySelector("h1").textContent = copy.shots[shot - 1][0];
+    document.querySelector("p").textContent = copy.shots[shot - 1][1];
+    document.querySelector("#note").textContent = copy.note;
+    document.querySelector(".num").textContent =
+      String(shot).padStart(2, "0") + " / 05";
+    const route = ["rules", "keywords", "", "accounts", "preferences"][
+        shot - 1
+      ],
+      frame = document.querySelector("iframe");
+    frame.src =
+      "/?surface=" +
+      (shot === 3 ? "x" : "options") +
+      "&lang=" +
+      lang +
+      "&theme=light" +
+      (route ? "#/" + route : "");
+    const wait = async (predicate) => {
+      for (let i = 0; i < 200; i++) {
+        if (predicate()) return;
+        await new Promise((r) => setTimeout(r, 50));
+      }
+      throw Error("Store artwork UI not ready");
+    };
+    await wait(() =>
+      frame.contentDocument?.querySelector(
+        shot === 3 ? "#content-root" : ".status-pill",
+      ),
+    );
+    const doc = frame.contentDocument;
+    if (shot === 2) {
+      await wait(() => doc.querySelectorAll("[role=tab]").length >= 2);
+      doc.querySelectorAll("[role=tab]")[1].click();
+      await wait(() => doc.querySelector("tbody tr"));
+    }
+    if (shot === 3) {
+      const allRoots = () => [
+        doc,
+        ...[...doc.querySelectorAll("*")]
+          .map((e) => e.shadowRoot)
+          .filter(Boolean),
+      ];
+      await wait(() =>
+        allRoots().some((r) => r.querySelector(".collapse-bar")),
+      );
+      const fixture = copy.fixture;
+      doc.querySelector(".fixture-sidebar h2").textContent = fixture.timeline;
+      doc.querySelector("main h2").textContent = fixture.forYou;
+      doc
+        .querySelectorAll(".fixture-sidebar nav > a span")
+        .forEach((e, i) => (e.textContent = fixture.nav.split("|")[i]));
+      doc.querySelector(".fixture-post").textContent = fixture.post;
+      doc
+        .querySelectorAll('[data-testid="User-Name"] strong')
+        .forEach(
+          (e, i) => (e.textContent = ["Alex", "Daily updates", "Sam"][i]),
+        );
+      doc
+        .querySelectorAll('[data-testid="User-Name"] time')
+        .forEach((e) => (e.textContent = "2 min"));
+      doc
+        .querySelectorAll("article p")
+        .forEach(
+          (e, i) =>
+            (e.textContent = i === 2 ? fixture.reading : fixture.sample),
+        );
+      allRoots()
+        .find((r) => r.querySelector(".collapse-trigger"))
+        ?.querySelector(".collapse-trigger")
+        .click();
+      await wait(() =>
+        allRoots().some((r) => r.querySelector('[data-expanded="true"]')),
+      );
+    }
+    await doc.fonts.ready;
+    await document.fonts.ready;
+    if (shot === 2 || shot === 5) {
+      frame.contentWindow.scrollTo(0, shot === 2 ? 180 : 140);
+      await new Promise((r) => frame.contentWindow.requestAnimationFrame(r));
+    }
+    if (document.querySelector("h1").scrollHeight > 110)
+      document.querySelector("h1").style.fontSize = "43px";
+    window.assetReady = true;
+  </script>
+</html>

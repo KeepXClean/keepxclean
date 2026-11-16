@@ -63,7 +63,7 @@ describe('Privacy Policy Content Specification', () => {
     }
   });
 
-  it('guarantees salted SHA-256 hash explanation and anti-abuse thresholds in section 3', () => {
+  it('includes derived SHA-256 identifier explanation and anti-abuse thresholds in section 3', () => {
     expect(PRIVACY_CONTENT.en.sec3ReportBullets[1]).toContain('reporterUidHash');
     expect(PRIVACY_CONTENT.en.sec3ReportBullets[1]).toContain('≥30-day');
     expect(PRIVACY_CONTENT['zh-CN'].sec3ReportBullets[1]).toContain('reporterUidHash');

@@ -1,0 +1,392 @@
+{
+  "en": {
+    "tag": "LESS NOISE. MORE CONTROL.",
+    "note": "Actual extension interface · Sample data",
+    "shots": [
+      [
+        "Make room for better posts.",
+        "Filter spam replies, impersonators and promoted ads. Start with one of three presets."
+      ],
+      [
+        "Your feed. Your rules.",
+        "24 public keyword rules, custom keywords and regex. Choose what gets filtered."
+      ],
+      [
+        "Clean up without losing context.",
+        "Collapse unwanted posts, inspect the reason and expand them whenever you want."
+      ],
+      [
+        "Keep the people you trust.",
+        "Manage block and allow lists by permanent account ID. Import your existing X blocklist."
+      ],
+      [
+        "Local filtering. Clear choices.",
+        "Choose your language and theme. X block sync and community reporting are optional."
+      ]
+    ],
+    "fixture": {
+      "timeline": "Timeline",
+      "forYou": "For you",
+      "nav": "Home|Explore|Notifications|Profile|More",
+      "post": "Post",
+      "reading": "Today’s reading: fewer distractions, more time for ideas worth thinking about.",
+      "sample": "This sample post can be expanded to inspect the original content."
+    },
+    "promo": {
+      "title": "Less noise.\nMore good posts.",
+      "subtitle": "Your local filter for X.",
+      "features": "Spam replies|Custom rules|Your choice"
+    }
+  },
+  "zh-CN": {
+    "tag": "少一点噪音，多一点掌控。",
+    "note": "真实扩展界面 · 示例数据",
+    "shots": [
+      [
+        "把注意力留给值得读的内容",
+        "过滤垃圾回复、高仿账号与推广广告。三档强度，按你的习惯选择。"
+      ],
+      [
+        "你的信息流，你来定规则",
+        "内置 24 条公共词库规则，支持自定义关键词与正则，逐条决定过滤范围。"
+      ],
+      [
+        "收起噪音，也保留上下文",
+        "折叠不想看的帖子，查看拦截原因；需要时，随时展开原文。"
+      ],
+      [
+        "屏蔽骚扰，留住值得关注的人",
+        "用永久账号 ID 管理黑白名单，也能导入你已有的 X 黑名单。"
+      ],
+      [
+        "本地过滤，每项选择都清楚",
+        "界面支持 10 种语言与明暗主题；同步 X 拉黑、社区举报均可自行选择。"
+      ]
+    ],
+    "fixture": {
+      "timeline": "时间线",
+      "forYou": "为你推荐",
+      "nav": "首页|探索|通知|个人资料|更多",
+      "post": "发布",
+      "reading": "今天的阅读笔记：少一点干扰，给值得思考的内容多留一点时间。",
+      "sample": "这是一条已折叠的示例帖子，随时展开即可核对原文。"
+    },
+    "promo": {
+      "title": "少一点噪音\n多一点好内容",
+      "subtitle": "让 X 回到你喜欢的样子",
+      "features": "垃圾回复过滤|自定义规则|随时查看原文"
+    }
+  },
+  "zh-TW": {
+    "tag": "少一點雜訊，多一點掌控。",
+    "note": "實際擴充功能介面 · 範例資料",
+    "shots": [
+      [
+        "把注意力留給值得讀的內容",
+        "過濾垃圾回覆、仿冒帳號與推廣廣告。三種強度，依照你的習慣選擇。"
+      ],
+      [
+        "你的動態，由你訂規則",
+        "內建 24 條公共詞庫規則，支援自訂關鍵字與正規表示式，逐條決定過濾範圍。"
+      ],
+      [
+        "收起雜訊，也保留上下文",
+        "摺疊不想看的貼文，查看攔截原因；需要時，隨時展開原文。"
+      ],
+      [
+        "封鎖騷擾，保留值得關注的人",
+        "用永久帳號 ID 管理黑白名單，也能匯入既有的 X 封鎖名單。"
+      ],
+      [
+        "本機過濾，每項選擇都清楚",
+        "介面支援 10 種語言與明暗主題；同步 X 封鎖、社群回報皆可自行選擇。"
+      ]
+    ],
+    "fixture": {
+      "timeline": "時間軸",
+      "forYou": "為你推薦",
+      "nav": "首頁|探索|通知|個人資料|更多",
+      "post": "發佈",
+      "reading": "今天的閱讀筆記：少一點干擾，給值得思考的內容多留一點時間。",
+      "sample": "這是一則已摺疊的範例貼文，隨時展開即可核對原文。"
+    },
+    "promo": {
+      "title": "少一點雜訊\n多一點好內容",
+      "subtitle": "讓 X 回到你喜歡的樣子",
+      "features": "垃圾回覆過濾|自訂規則|隨時查看原文"
+    }
+  },
+  "ja": {
+    "tag": "ノイズを減らし、自分らしい閲覧を。",
+    "note": "実際の拡張機能画面 · サンプルデータ",
+    "shots": [
+      [
+        "読みたい投稿に、もっと集中。",
+        "スパム返信、なりすまし、広告をフィルター。3 段階から好みの強度を選べます。"
+      ],
+      [
+        "タイムラインのルールは、自分で。",
+        "24 の公開キーワードルールに加え、独自キーワードと正規表現で細かく設定。"
+      ],
+      [
+        "ノイズを畳んで、文脈は残す。",
+        "不要な投稿を折り畳み、理由を確認。読みたいときは、いつでも展開できます。"
+      ],
+      [
+        "信頼する人の投稿を大切に。",
+        "永続的なアカウント ID で許可・ブロックリストを管理。X の既存リストも取り込み。"
+      ],
+      [
+        "ローカル処理。選択は明確に。",
+        "10 言語とライト・ダークテーマ。X ブロック同期とコミュニティ報告は任意です。"
+      ]
+    ],
+    "fixture": {
+      "timeline": "タイムライン",
+      "forYou": "おすすめ",
+      "nav": "ホーム|話題を検索|通知|プロフィール|もっと見る",
+      "post": "ポストする",
+      "reading": "今日の読書メモ：気が散るものを減らして、考える価値のあるアイデアに時間を。",
+      "sample": "このサンプル投稿は折り畳まれています。展開すると元の内容を確認できます。"
+    },
+    "promo": {
+      "title": "ノイズを減らし、\n良い投稿をもっと。",
+      "subtitle": "X を、あなたらしく。",
+      "features": "スパムを除外|独自のルール|いつでも展開"
+    }
+  },
+  "ko": {
+    "tag": "잡음은 줄이고, 선택은 더 자유롭게.",
+    "note": "실제 확장 프로그램 화면 · 예시 데이터",
+    "shots": [
+      [
+        "읽을 가치가 있는 게시물에 집중하세요",
+        "스팸 답글, 사칭 계정, 광고를 필터링하세요. 세 가지 강도 중 원하는 설정으로 시작하세요."
+      ],
+      [
+        "내 피드의 규칙은 내가 정해요",
+        "공개 키워드 규칙 24개와 사용자 키워드, 정규식으로 필터링 대상을 직접 선택하세요."
+      ],
+      [
+        "잡음은 접고, 맥락은 남겨요",
+        "원치 않는 게시물을 접고 필터링 이유를 확인하세요. 원문은 언제든 펼칠 수 있어요."
+      ],
+      [
+        "믿고 읽는 사람들의 글은 그대로",
+        "영구 계정 ID로 차단·허용 목록을 관리하고 기존 X 차단 목록도 가져오세요."
+      ],
+      [
+        "로컬 필터링, 명확한 선택",
+        "10개 언어와 밝은·어두운 테마를 지원해요. X 차단 동기화와 커뮤니티 신고는 선택 사항이에요."
+      ]
+    ],
+    "fixture": {
+      "timeline": "타임라인",
+      "forYou": "추천",
+      "nav": "홈|탐색|알림|프로필|더 보기",
+      "post": "게시하기",
+      "reading": "오늘의 독서 기록: 방해는 줄이고 생각할 가치가 있는 아이디어에 더 많은 시간을.",
+      "sample": "접힌 예시 게시물입니다. 언제든 펼쳐서 원문을 확인할 수 있어요."
+    },
+    "promo": {
+      "title": "잡음은 줄이고\n좋은 글은 더 많이",
+      "subtitle": "내가 원하는 X를 만나세요",
+      "features": "스팸 필터링|사용자 규칙|언제든 펼치기"
+    }
+  },
+  "de": {
+    "tag": "WENIGER LÄRM. MEHR KONTROLLE.",
+    "note": "Echte Erweiterungsoberfläche · Beispieldaten",
+    "shots": [
+      [
+        "Mehr Platz für gute Beiträge.",
+        "Spam-Antworten, falsche Profile und Werbung filtern. Drei Filterstufen für deinen Alltag."
+      ],
+      [
+        "Dein Feed. Deine Regeln.",
+        "24 öffentliche Stichwortregeln, eigene Begriffe und Regex. Du bestimmst, was gefiltert wird."
+      ],
+      [
+        "Weniger Störungen. Mehr Kontext.",
+        "Unerwünschte Beiträge einklappen, den Grund prüfen und bei Bedarf wieder öffnen."
+      ],
+      [
+        "Behalte die Menschen, denen du vertraust.",
+        "Sperr- und Freigabelisten mit dauerhaften Konto-IDs. Importiere deine vorhandene X-Sperrliste."
+      ],
+      [
+        "Lokal filtern. Bewusst entscheiden.",
+        "10 Sprachen und helle oder dunkle Designs. X-Sperrsynchronisierung und Community-Meldungen sind optional."
+      ]
+    ],
+    "fixture": {
+      "timeline": "Timeline",
+      "forYou": "Für dich",
+      "nav": "Startseite|Entdecken|Mitteilungen|Profil|Mehr",
+      "post": "Posten",
+      "reading": "Notizen zur heutigen Lektüre: weniger Ablenkung, mehr Zeit für gute Gedanken.",
+      "sample": "Diesen Beispielbeitrag kannst du aufklappen und den Originaltext prüfen."
+    },
+    "promo": {
+      "title": "Weniger Lärm.\nMehr gute Posts.",
+      "subtitle": "Dein lokaler Filter für X.",
+      "features": "Spam filtern|Eigene Regeln|Deine Wahl"
+    }
+  },
+  "es": {
+    "tag": "MENOS RUIDO. MÁS CONTROL.",
+    "note": "Interfaz real de la extensión · Datos de ejemplo",
+    "shots": [
+      [
+        "Más espacio para lo que merece leerse.",
+        "Filtra spam, suplantadores y anuncios. Empieza con uno de los tres niveles de filtrado."
+      ],
+      [
+        "Tu feed. Tus reglas.",
+        "24 reglas públicas, palabras clave propias y expresiones regulares. Tú eliges qué filtrar."
+      ],
+      [
+        "Menos ruido, sin perder el contexto.",
+        "Contrae publicaciones, revisa el motivo del filtro y vuelve a abrirlas cuando quieras."
+      ],
+      [
+        "Conserva a las personas en quienes confías.",
+        "Gestiona listas con IDs permanentes e importa tu lista de cuentas bloqueadas en X."
+      ],
+      [
+        "Filtrado local. Opciones claras.",
+        "10 idiomas y temas claro y oscuro. Sincronizar bloqueos con X y enviar informes es opcional."
+      ]
+    ],
+    "fixture": {
+      "timeline": "Cronología",
+      "forYou": "Para ti",
+      "nav": "Inicio|Explorar|Notificaciones|Perfil|Más",
+      "post": "Publicar",
+      "reading": "Notas de lectura: menos distracciones y más tiempo para las ideas que merecen atención.",
+      "sample": "Esta publicación de ejemplo se puede expandir para consultar el contenido original."
+    },
+    "promo": {
+      "title": "Menos ruido.\nMás buenos posts.",
+      "subtitle": "Tu filtro local para X.",
+      "features": "Filtra spam|Tus reglas|Tú eliges"
+    }
+  },
+  "pt": {
+    "tag": "MENOS RUÍDO. MAIS CONTROLE.",
+    "note": "Interface real da extensão · Dados de exemplo",
+    "shots": [
+      [
+        "Mais espaço para o que vale a leitura.",
+        "Filtre spam, perfis falsos e anúncios. Comece com um dos três níveis de filtragem."
+      ],
+      [
+        "Seu feed. Suas regras.",
+        "24 regras públicas, palavras-chave próprias e expressões regulares. Você decide o que filtrar."
+      ],
+      [
+        "Menos ruído, sem perder o contexto.",
+        "Recolha publicações, confira o motivo do filtro e expanda o conteúdo quando quiser."
+      ],
+      [
+        "Preserve as pessoas em quem você confia.",
+        "Gerencie listas com IDs permanentes e importe sua lista de contas bloqueadas no X."
+      ],
+      [
+        "Filtragem local. Escolhas claras.",
+        "10 idiomas e temas claro e escuro. Sincronização de bloqueios e denúncias comunitárias são opcionais."
+      ]
+    ],
+    "fixture": {
+      "timeline": "Linha do tempo",
+      "forYou": "Para você",
+      "nav": "Página inicial|Explorar|Notificações|Perfil|Mais",
+      "post": "Publicar",
+      "reading": "Notas da leitura de hoje: menos distrações e mais tempo para ideias que merecem atenção.",
+      "sample": "Esta publicação de exemplo pode ser expandida para conferir o conteúdo original."
+    },
+    "promo": {
+      "title": "Menos ruído.\nMais bons posts.",
+      "subtitle": "Seu filtro local para o X.",
+      "features": "Filtre spam|Suas regras|Você escolhe"
+    }
+  },
+  "fr": {
+    "tag": "MOINS DE BRUIT. PLUS DE CONTRÔLE.",
+    "note": "Interface réelle de l’extension · Données d’exemple",
+    "shots": [
+      [
+        "Plus de place pour les bons contenus.",
+        "Filtrez le spam, les faux profils et les publicités. Trois niveaux pour trouver votre équilibre."
+      ],
+      [
+        "Votre fil. Vos règles.",
+        "24 règles publiques, vos mots-clés et expressions régulières. Choisissez ce qui est filtré."
+      ],
+      [
+        "Moins de bruit, sans perdre le contexte.",
+        "Repliez les publications, consultez le motif et affichez le contenu quand vous le souhaitez."
+      ],
+      [
+        "Gardez les personnes en qui vous avez confiance.",
+        "Gérez vos listes avec des identifiants permanents et importez votre liste de blocage X."
+      ],
+      [
+        "Filtrage local. Choix transparents.",
+        "10 langues et thèmes clair ou sombre. La synchronisation X et les signalements sont facultatifs."
+      ]
+    ],
+    "fixture": {
+      "timeline": "Fil d’actualité",
+      "forYou": "Pour vous",
+      "nav": "Accueil|Explorer|Notifications|Profil|Plus",
+      "post": "Publier",
+      "reading": "Notes de lecture : moins de distractions, plus de temps pour les idées qui comptent.",
+      "sample": "Cette publication d’exemple peut être dépliée pour consulter le texte original."
+    },
+    "promo": {
+      "title": "Moins de bruit.\nPlus de bons posts.",
+      "subtitle": "Votre filtre local pour X.",
+      "features": "Filtrer le spam|Vos règles|Votre choix"
+    }
+  },
+  "ru": {
+    "tag": "МЕНЬШЕ ШУМА. БОЛЬШЕ КОНТРОЛЯ.",
+    "note": "Реальный интерфейс расширения · Пример данных",
+    "shots": [
+      [
+        "Больше места для полезных постов.",
+        "Фильтруйте спам, поддельные аккаунты и рекламу. Начните с одного из трёх режимов."
+      ],
+      [
+        "Ваша лента. Ваши правила.",
+        "24 общедоступных правила, свои ключевые слова и регулярные выражения. Вы решаете, что скрыть."
+      ],
+      [
+        "Меньше шума, контекст остаётся.",
+        "Сворачивайте посты, проверяйте причину фильтрации и раскрывайте оригинал в любой момент."
+      ],
+      [
+        "Сохраните тех, кому доверяете.",
+        "Управляйте списками по постоянным ID и импортируйте список заблокированных аккаунтов X."
+      ],
+      [
+        "Локальная фильтрация. Ясный выбор.",
+        "10 языков, светлая и тёмная темы. Синхронизация блокировок X и отчёты сообщества — по желанию."
+      ]
+    ],
+    "fixture": {
+      "timeline": "Лента",
+      "forYou": "Для вас",
+      "nav": "Главная|Поиск|Уведомления|Профиль|Ещё",
+      "post": "Опубликовать",
+      "reading": "Заметки о прочитанном: меньше отвлечений, больше времени на интересные мысли.",
+      "sample": "Этот пример поста можно раскрыть, чтобы прочитать исходный текст."
+    },
+    "promo": {
+      "title": "Меньше шума.\nБольше смысла.",
+      "subtitle": "Ваш локальный фильтр для X.",
+      "features": "Без спама|Свои правила|Ваш выбор"
+    }
+  }
+}

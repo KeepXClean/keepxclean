@@ -1,0 +1,56 @@
+{
+  "verifiedAt": "2026-11-16T02:25:56.182Z",
+  "locales": [
+    {
+      "lang": "en",
+      "screenshots": 5,
+      "descriptionMatches": true
+    },
+    {
+      "lang": "zh-CN",
+      "screenshots": 5,
+      "descriptionMatches": true
+    },
+    {
+      "lang": "zh-TW",
+      "screenshots": 5,
+      "descriptionMatches": true
+    },
+    {
+      "lang": "ja",
+      "screenshots": 5,
+      "descriptionMatches": true
+    },
+    {
+      "lang": "ko",
+      "screenshots": 5,
+      "descriptionMatches": true
+    },
+    {
+      "lang": "de",
+      "screenshots": 5,
+      "descriptionMatches": true
+    },
+    {
+      "lang": "es",
+      "screenshots": 5,
+      "descriptionMatches": true
+    },
+    {
+      "lang": "pt",
+      "screenshots": 5,
+      "descriptionMatches": true
+    },
+    {
+      "lang": "fr",
+      "screenshots": 5,
+      "descriptionMatches": true
+    },
+    {
+      "lang": "ru",
+      "screenshots": 5,
+      "descriptionMatches": true
+    }
+  ],
+  "globalScreenshots": 5
+}

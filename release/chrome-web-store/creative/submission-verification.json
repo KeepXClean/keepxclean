@@ -1,0 +1,10 @@
+{
+  "verifiedAt": "2026-11-16T02:55:17.961Z",
+  "url": "https://chrome.google.com/u/1/webstore/devconsole/58be1080-a518-4def-972f-dda8f7db70a4/plngcinmibjmkjjpfjemhfabjfjjkhhd/edit/status",
+  "panels": [
+    "该草稿尚待审核。",
+    "该草稿已发布，且会公开显示。"
+  ],
+  "version": "0.1.2",
+  "autoPublishAfterApproval": true
+}

@@ -28,7 +28,7 @@
 
 ---
 
-**KeepXClean** filtert Spam, Antwort-Bots, Nachahmer-Konten, Engagement-Köder, Krypto-Shilling und gesponserte Anzeigen auf X (`x.com`) in unter **1 ms** direkt lokal im Browser — ohne Kontozugriff und bei flüssigen 60/120 FPS.
+**KeepXClean** filtert Spam, Antwort-Bots, Nachahmer-Konten, Engagement-Köder, Krypto-Shilling und gesponserte Anzeigen auf X (`x.com`) in unter **1 ms** direkt lokal im Browser — mit optionalen X-Kontoaktionen und bei flüssigen 60/120 FPS.
 
 <div align="center">
 
@@ -58,7 +58,7 @@ Mit 1 Klick über den [**Chrome Web Store**](https://chromewebstore.google.com/d
 
 ## Datenschutz & Sicherheit
 
-- **Null Zugangsdaten**: Kein Zugriff auf Passwörter, Cookies, Auth-Tokens, E-Mails oder Direktnachrichten (DMs).
+- KeepXClean fordert keine Passwörter oder Direktnachrichten an. X-Cookies werden lokal zur Kontoerkennung und für vom Nutzer ausgelöste X-Aktionen gelesen. Sitzungscookies und Autorisierungswerte werden nur gegenüber X verwendet und nie an KeepXClean-Server gesendet. Optionale Community-Meldungen sind in der Datenschutzerklärung beschrieben.
 - **Null Telemetrie**: Keine Drittanbieter-Analyse-SDKs oder Werbe-Tracker.
 - Vollständige [**Datenschutzerklärung**](https://keepxclean.com/privacy/).
 

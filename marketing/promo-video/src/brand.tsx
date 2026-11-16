@@ -24,29 +24,10 @@ export const C = {
 export const FONT = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "PingFang SC", sans-serif';
 export const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 
-/** Official brand icon (black-titanium X on #EAF6EF). Optional light sweep across the metal. */
-export const Logo: React.FC<{ size: number; shine?: number; style?: React.CSSProperties }> = ({ size, shine, style }) => {
-  const mask = `url(${staticFile('x-mask.svg')})`;
-  return (
-    <div style={{ position: 'relative', width: size, height: size, ...style }}>
-      <Img src={staticFile('logo.svg')} style={{ width: size, height: size, display: 'block' }} />
-      {shine !== undefined && shine > 0 && shine < 1 ? (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            WebkitMaskImage: mask,
-            maskImage: mask,
-            WebkitMaskSize: '100% 100%',
-            maskSize: '100% 100%',
-            background: `linear-gradient(115deg, transparent ${shine * 160 - 40}%, rgba(255,255,255,0.75) ${shine * 160 - 25}%, transparent ${shine * 160 - 10}%)`,
-            mixBlendMode: 'screen',
-          }}
-        />
-      ) : null}
-    </div>
-  );
-};
+/** Approved shield + geometric x brand, using the selected imagegen artwork. */
+export const Logo: React.FC<{ size: number; shine?: number; style?: React.CSSProperties }> = ({ size, style }) => (
+  <Img src={staticFile('logo.svg')} style={{ width: size, height: size, display: 'block', ...style }} />
+);
 
 /** Light canvas with a faint dot grid and a soft green glow that breathes with the kick. */
 export const Background: React.FC<{ pulse?: boolean; glow?: number; tint?: string }> = ({ pulse = true, glow = 1, tint = C.green }) => {

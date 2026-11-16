@@ -596,7 +596,7 @@ describe('Tier 4: Real-World Workloads & End-to-End User Journeys', () => {
 
     expect(tokenRes.valid).toBe(true);
     expect(svgRes.valid).toBe(true);
-    expect(svgRes.rxRatio).toBeCloseTo(0.21875, 4);
+    expect(svgRes.hasEmbeddedPng).toBe(true);
     expect(svgRes.forbiddenElementsFound).toHaveLength(0);
   });
 

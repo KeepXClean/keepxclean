@@ -28,7 +28,7 @@ export const zhCNSandboxData: LocalizedSandboxData = {
       bio: '浏览器本地优先的 X (Twitter) 纯净阅读引擎。零账号登录，<1ms 确定性拦截，开源可审计。',
     },
     content:
-      '🚀 KeepXClean v0.1.0 架构升级正式发布！\n\n基于本地优先（Local-First）确定性匹配引擎，直接复用浏览器既有 GraphQL 响应，实现低于 1ms 的零延迟净空。\n\n完全开源，零外部请求，零 Cookie 索取。让你的推特时间线与热门评论区重回清爽纯净。🧵👇',
+      '🚀 KeepXClean v0.1.0 架构升级正式发布！\n\n基于本地优先（Local-First）确定性匹配引擎，直接复用浏览器既有 GraphQL 响应，实现低于 1ms 的零延迟净空。\n\n完全开源，本地过滤，无需额外注册。让你的推特时间线与热门评论区重回清爽纯净。🧵👇',
     createdAt: '2小时前',
     metrics: { replies: 128, retweets: 486, likes: 2130, views: '142.5K' },
   },
@@ -216,7 +216,7 @@ export const zhTWSandboxData: LocalizedSandboxData = {
       bio: '瀏覽器本地優先的 X (Twitter) 純淨閱讀引擎。零帳號登入，<1ms 確定性攔截，開源可審計。',
     },
     content:
-      '🚀 KeepXClean v0.1.0 架構升級正式發佈！\n\n基於本地優先（Local-First）確定性匹配引擎，直接複用瀏覽器既有 GraphQL 響應，實現低於 1ms 的零延遲淨空。\n\n完全開源，零外部請求，零 Cookie 索取。讓你的推特時間線與熱門評論區重回清爽純淨。🧵👇',
+      '🚀 KeepXClean v0.1.0 架構升級正式發佈！\n\n基於本地優先（Local-First）確定性匹配引擎，直接複用瀏覽器既有 GraphQL 響應，實現低於 1ms 的零延遲淨空。\n\n完全開源，本機過濾，無需額外註冊。讓你的推特時間線與熱門評論區重回清爽純淨。🧵👇',
     createdAt: '2小時前',
     metrics: { replies: 128, retweets: 486, likes: 2130, views: '142.5K' },
   },
@@ -391,7 +391,7 @@ export const enSandboxData: LocalizedSandboxData = {
       bio: 'Local-first deterministic clean reading engine for X (Twitter). Zero login, <1ms interception, 100% open source & auditable.',
     },
     content:
-      '🚀 KeepXClean v0.1.0 is officially released!\n\nBuilt on a local-first deterministic engine running directly on existing GraphQL streams in your browser. Zero API polling, zero cookies required, and sub-millisecond execution.\n\nTake back control of your timeline and replies with honest, open-source cleanup. 🧵👇',
+      '🚀 KeepXClean v0.1.0 is officially released!\n\nBuilt on a local-first deterministic engine running directly on existing GraphQL streams in your browser. Local filtering, no separate registration required, and sub-millisecond execution.\n\nTake back control of your timeline and replies with honest, open-source cleanup. 🧵👇',
     createdAt: '2h ago',
     metrics: { replies: 128, retweets: 486, likes: 2130, views: '142.5K' },
   },

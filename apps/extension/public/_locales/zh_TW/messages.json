@@ -3,7 +3,7 @@
     "message": "KeepXClean - 封鎖 X (Twitter) 垃圾留言、水軍與廣告"
   },
   "extDescription": {
-    "message": "免費開源的 X (Twitter) 淨化外掛：自動摺疊或封鎖垃圾留言、水軍機器人、高仿騙子、引流洗版與推廣廣告，本地運行不讀隱私。官網 keepxclean.com"
+    "message": "免費開源的 X (Twitter) 淨化外掛：自動摺疊或封鎖垃圾留言、水軍機器人、高仿騙子、引流洗版與推廣廣告，本機過濾，規則可調。官網 keepxclean.com"
   },
   "extActionTitle": {
     "message": "KeepXClean 快捷設定"

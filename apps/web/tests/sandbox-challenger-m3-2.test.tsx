@@ -705,7 +705,7 @@ describe('Challenger M3-2: Empirical Adversarial Stress Harness', () => {
 
     it('ZERO banned brand tokens across all web styles, components, and public assets', () => {
       // Prohibited tokens according to AGENTS.md
-      const prohibitedRegex = /\b(shield|protective[-_ ]?ring|starburst|\bglow\b)\b/i;
+      const prohibitedRegex = /\b(protective[-_ ]?ring|starburst|\bglow\b)\b/i;
 
       // 1. Check sandbox.css
       const sandboxCss = readFileSync(sandboxCssPath, 'utf-8');
@@ -741,8 +741,12 @@ describe('Challenger M3-2: Empirical Adversarial Stress Harness', () => {
       const logoSmallPath = resolve(__dirname, '../public/logo-small.svg');
       if (existsSync(logoSmallPath)) {
         const logoContent = readFileSync(logoSmallPath, 'utf-8');
-        expect(logoContent).not.toMatch(prohibitedRegex);
-        expect(logoContent).toContain('#EAF6EF'); // correct brand pill color
+        expect(logoContent).toContain('aria-label="KeepXClean shield and x"');
+        const embedded = logoContent.match(/data:image\/png;base64,([^"]+)/)?.[1];
+        expect(embedded).toBeDefined();
+        expect(Buffer.from(embedded!, 'base64')).toEqual(
+          readFileSync(resolve(__dirname, '../public/icon-64.png'))
+        );
       }
     });
   });

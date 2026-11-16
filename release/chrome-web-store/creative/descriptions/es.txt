@@ -1,0 +1,30 @@
+KeepXClean es una extensión gratuita y de código abierto para reducir contenido no deseado en tu cronología, resultados de búsqueda y respuestas de X (Twitter).
+
+FUNCIONES
+
+• Más espacio para lo que merece leerse.
+Filtra spam, suplantadores y anuncios. Empieza con uno de los tres niveles de filtrado.
+
+• Tu feed. Tus reglas.
+24 reglas públicas, palabras clave propias y expresiones regulares. Tú eliges qué filtrar.
+
+• Menos ruido, sin perder el contexto.
+Contrae publicaciones, revisa el motivo del filtro y vuelve a abrirlas cuando quieras.
+
+• Conserva a las personas en quienes confías.
+Gestiona listas con IDs permanentes e importa tu lista de cuentas bloqueadas en X.
+
+• Filtrado local. Opciones claras.
+10 idiomas y temas claro y oscuro. Sincronizar bloqueos con X y enviar informes es opcional.
+
+PRIVACIDAD Y PROCESAMIENTO LOCAL
+
+KeepXClean no solicita contraseñas ni mensajes privados. Lee cookies de X localmente para identificar la cuenta y realizar operaciones solicitadas por el usuario. Las cookies de sesión y los valores de autorización se usan solo con X y nunca se envían a los servidores de KeepXClean. La política de privacidad detalla los informes comunitarios opcionales.
+
+Los informes opcionales incluyen datos públicos de la cuenta denunciada, el motivo, un identificador SHA-256 del informante y la antigüedad de su cuenta. No se envían cookies de sesión ni valores de autorización de X a KeepXClean.
+
+KeepXClean es un proyecto independiente. No está afiliado a X Corp. ni ha sido aprobado o producido por esa empresa.
+
+Sitio web y demo: https://keepxclean.com
+Política de privacidad: https://keepxclean.com/privacy/
+Código fuente (MIT): https://github.com/KeepXClean/keepxclean

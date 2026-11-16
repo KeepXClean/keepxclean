@@ -31,7 +31,7 @@ export const ko: TranslationDictionary = {
     headlinePrefix: '깨끗하고 가치 있는',
     headlineHighlight: 'X 타임라인과 답글창 되찾기',
     subheadline:
-      'X의 GraphQL 응답을 브라우저 로컬에서 직접 결정론적으로 처리합니다. 계정 자격 증명 제로, 1ms 미만의 즉각 실행, 투명한 규칙으로 AI 봇과 사기성 도배를 차단합니다.',
+      'X의 GraphQL 응답을 브라우저 로컬에서 직접 결정론적으로 처리합니다. 별도 가입 불필요, 1ms 미만의 즉각 실행, 투명한 규칙으로 AI 봇과 사기성 도배를 차단합니다.',
     ctaDownload: 'GitHub 얼리 액세스 (v0.1.1) 다운로드',
     ctaPrimary: 'GitHub 얼리 액세스 (v0.1.1) 다운로드',
     ctaStore: 'Chrome에 추가',
@@ -83,7 +83,7 @@ export const ko: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.1이 출시되었습니다! 로컬 우선 아키텍처, 1ms 미만의 결정론적 평가, 토큰 유출 제로, 10개 언어 매트릭스. X에서 순수한 고신호 타임라인을 경험하세요.',
+        'KeepXClean v0.1.1이 출시되었습니다! 로컬 우선 아키텍처, 1ms 미만의 결정론적 평가, 로컬 필터링, 10개 언어 매트릭스. X에서 순수한 고신호 타임라인을 경험하세요.',
       time: '2시간 전',
       replies: '142',
       reposts: '389',
@@ -124,7 +124,7 @@ export const ko: TranslationDictionary = {
       step1: '1단계: 로컬 저장 완료',
       step1Desc: '브라우저 확장 스토리지에 즉시 저장 (<1ms).',
       step2: '2단계: X 네이티브 차단',
-      step2Desc: '현재 열린 X 탭에서 직접 동기화하며 로그인 정보를 가로채지 않습니다.',
+      step2Desc: '열린 X 탭의 세션으로 동기화하며 인증 값은 KeepXClean에 보내지 않습니다.',
       step3: '3단계: 커뮤니티 집계',
       step3Desc: '솔트 단방향 SHA-256 해시로 1계정 = 1표 투표를 안전하게 제출합니다.',
       undoActive: '4.5초 취소 가능 대기 시간',
@@ -200,7 +200,7 @@ export const ko: TranslationDictionary = {
       '부드러운 CSS 높이 전환 애니메이션으로 사용자 설정에 맞춰 노이즈를 숨기거나 접습니다.',
     step4Title: '4. 익명 단방향 해시 공공 방어망',
     step4Desc:
-      '스팸 신고 시 솔트 SHA-256 해시만 제출되며, 비밀번호나 쿠키는 절대 외부로 전송되지 않습니다.',
+      '선택적 신고에는 대상 계정의 공개 정보와 사유, 신고자의 SHA-256 파생 식별자와 계정 나이가 포함됩니다. X 세션 쿠키와 인증 값은 KeepXClean 서버로 전송하지 않습니다.',
     assuranceTitle: '제로 트러스트 엔지니어링 약속',
     assurance1: '계정 가입 및 로그인 불필요',
     assurance1Desc: '이메일, 전화번호, 비밀번호, 소셜 로그인을 요구하지 않습니다.',
@@ -260,7 +260,7 @@ export const ko: TranslationDictionary = {
     items: [
       {
         q: 'KeepXClean이 내 X 계정 비밀번호나 토큰, 쪽지(DM)를 읽나요?',
-        a: '절대 읽지 않습니다. KeepXClean은 브라우저 로컬에서만 동작하며, 이미 화면에 전달된 공개 게시물 데이터만 분석합니다. 비밀번호, 쿠키, 로그인 토큰, 이메일, 쪽지에는 접근하지 않습니다.',
+        a: 'KeepXClean은 비밀번호나 DM을 요청하지 않습니다. 계정 식별과 사용자가 실행한 X 작업을 위해 X 쿠키를 로컬에서 읽습니다. 세션 쿠키와 웹 클라이언트 인증 값은 X와의 통신에만 사용하며 KeepXClean 서버로 전송하지 않습니다. 선택적 커뮤니티 신고 데이터는 개인정보 처리방침을 참고하세요.',
       },
       {
         q: 'KeepXClean을 실행하면 브라우저나 스크롤이 느려지나요?',
