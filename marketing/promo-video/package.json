@@ -7,7 +7,8 @@
     "music": "node scripts/make-music.mjs",
     "studio": "node scripts/make-music.mjs && remotion studio src/index.tsx",
     "render": "remotion render src/index.tsx Promo out/keepxclean-promo-1080p.mp4",
-    "export": "node scripts/export.mjs"
+    "export": "node scripts/export.mjs",
+    "encode:web": "node scripts/encode-web.mjs"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.543",

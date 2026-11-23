@@ -24,6 +24,8 @@ npm install
 npm run studio    # live preview / scrub in the browser
 npm run music     # regenerate public/music.wav (scripts/make-music.mjs)
 npm run export    # render master + every distribution format into out/
+npm run encode:web -- out/keepxclean-promo-1080p.mp4 out/web-fixed
+                  # encode an existing approved master without another browser render
 ```
 
 ## Outputs (`out/`)
@@ -31,7 +33,7 @@ npm run export    # render master + every distribution format into out/
 | File | Use |
 | --- | --- |
 | `keepxclean-promo-1080p.mp4` | X/Twitter, YouTube, Product Hunt. 1920×1080, H.264 High + AAC, faststart |
-| `keepxclean-promo-web.webm` / `.mp4` | Website hero: muted, 1280 px, about 2 MB, loopable |
+| `keepxclean-promo-web.webm` / `.mp4` | Website hero: muted, 1280 px, limited-range BT.709 / yuv420p, loopable |
 | `keepxclean-promo-poster.jpg` | `poster=` for the web video (the final end-card frame) |
 | `keepxclean-demo.gif` | README: the 8 s demo section, 960 px, 15 fps |
 
@@ -43,6 +45,26 @@ npm run export    # render master + every distribution format into out/
   <source src="/promo/keepxclean-promo-web.mp4" type="video/mp4" />
 </video>
 ```
+
+The production `PromoVideo` component explicitly switches to MP4 if WebM fails
+after source selection; a static `<source>` list alone does not recover from
+runtime decoder errors. Autoplay rejection exposes native playback controls,
+and reduced-motion mode remains manual even after a format change.
+
+### Encoding and release validation
+
+Both export paths use `scripts/encode-web.mjs`. It converts pixel range/matrix
+to limited-range BT.709, declares BT.709 primaries/transfer, verifies the actual
+output using ffprobe, and decodes every frame with ffmpeg. Do not replace this
+with metadata-only relabeling: JPEG-derived full-range BT.601 masters need an
+actual pixel conversion.
+
+Copy the validated WebM and MP4 to `apps/web/public/promo/`. Before publishing,
+check both formats in Ego, including playback advancing, looping, reduced-motion
+behavior, and WebM failure recovery. After deployment, verify the HTTPS page
+with hardware decoding: local playback and HTTP/hash checks alone missed the
+2026-11-16 macOS VP9 decoder regression. The 2026-11-23 fix re-encodes the approved
+shield + x master without changing its scenes or icon artwork.
 
 ### README embed
 

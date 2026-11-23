@@ -1,5 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '../locales';
+
+const WEBM_SOURCE = '/promo/keepxclean-promo-web.webm';
+const MP4_SOURCE = '/promo/keepxclean-promo-web.mp4';
 
 /**
  * 30-second promo video (source: marketing/promo-video).
@@ -9,24 +12,43 @@ export function PromoVideo() {
   const { t } = useI18n();
   const copy = t.promoVideo;
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [source, setSource] = useState(WEBM_SOURCE);
+  const [showControls, setShowControls] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || typeof window.matchMedia !== 'function') return;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (!video) return;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    let active = true;
+    let attempt = 0;
     const apply = () => {
-      if (reduce.matches) {
+      const currentAttempt = ++attempt;
+      video.autoplay = !reduce?.matches;
+      if (reduce?.matches) {
         video.pause();
-        video.controls = true;
+        setShowControls(true);
       } else {
-        video.controls = false;
-        void video.play?.()?.catch(() => undefined);
+        setShowControls(false);
+        void video.play()?.catch(() => {
+          // A rejected request from an old source/preference must not affect its replacement.
+          if (active && currentAttempt === attempt) setShowControls(true);
+        });
       }
     };
     apply();
-    reduce.addEventListener?.('change', apply);
-    return () => reduce.removeEventListener?.('change', apply);
-  }, []);
+    reduce?.addEventListener?.('change', apply);
+    return () => {
+      active = false;
+      reduce?.removeEventListener?.('change', apply);
+    };
+  }, [source]);
+
+  const handleMediaError = () => {
+    // <source> alternatives do not recover from a decoder error after selection.
+    // Try the independent H.264 encode once; never loop between failing sources.
+    setShowControls(true);
+    if (source === WEBM_SOURCE) setSource(MP4_SOURCE);
+  };
 
   return (
     <div className="promo-video">
@@ -39,7 +61,9 @@ export function PromoVideo() {
         <video
           ref={videoRef}
           className="promo-video-media"
-          autoPlay
+          src={source}
+          controls={showControls}
+          onError={handleMediaError}
           muted
           loop
           playsInline
@@ -48,10 +72,7 @@ export function PromoVideo() {
           aria-label={copy.ariaLabel}
           width={1280}
           height={720}
-        >
-          <source src="/promo/keepxclean-promo-web.webm" type="video/webm" />
-          <source src="/promo/keepxclean-promo-web.mp4" type="video/mp4" />
-        </video>
+        />
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 //   npm run export
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, statSync } from 'node:fs';
+import { encodeWebVideos } from './encode-web.mjs';
 
 const OUT = 'out';
 mkdirSync(OUT, { recursive: true });
@@ -20,8 +21,7 @@ ff('-i', `${OUT}/master.mp4`, '-c:v', 'libx264', '-profile:v', 'high', '-preset'
   '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-movflags', '+faststart', `${OUT}/keepxclean-promo-1080p.mp4`);
 
 // 2. Website hero: muted, small, loop-friendly (WebM VP9 + MP4 fallback) + poster
-ff('-i', `${OUT}/master.mp4`, '-an', '-vf', 'scale=1280:-2', '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', '36', '-row-mt', '1', '-deadline', 'good', '-cpu-used', '2', `${OUT}/keepxclean-promo-web.webm`);
-ff('-i', `${OUT}/master.mp4`, '-an', '-vf', 'scale=1280:-2', '-c:v', 'libx264', '-preset', 'slow', '-crf', '26', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', `${OUT}/keepxclean-promo-web.mp4`);
+encodeWebVideos(`${OUT}/master.mp4`, OUT);
 ff('-sseof', '-0.1', '-i', `${OUT}/master.mp4`, '-frames:v', '1', '-q:v', '2', `${OUT}/keepxclean-promo-poster.jpg`);
 
 // 3. README: GitHub only auto-plays GIFs from the repo — keep it light (demo + outro highlights)
