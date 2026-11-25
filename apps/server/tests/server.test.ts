@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Miniflare } from 'miniflare';
-import { app, type Env } from '../src/index';
+import { app, pruneExpiredRateLimits, type Env } from '../src/index';
 let mf: Miniflare, env: Env;
 beforeAll(async () => {
   mf = new Miniflare({
@@ -253,5 +253,188 @@ describe('D1 transactional community reporting', () => {
     expect(
       snap.cloudKeywords.some((k) => k.id === 'hotfix-retired-2')
     ).toBe(false);
+  });
+
+  it('blocks rotating reporterUidHash Sybil floods from a single IP via pure-IP rate limits', async () => {
+    const strictEnv: Env = {
+      ...env,
+      IP_REPORT_LIMIT_PER_HOUR: '3',
+      IP_BATCH_LIMIT_PER_HOUR: '2',
+    };
+    const reportIp = '198.51.100.201';
+    for (let i = 0; i < 3; i++) {
+      const res = await app.request(
+        '/v1/blocks/report',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'CF-Connecting-IP': reportIp,
+          },
+          body: JSON.stringify({
+            targetUid: '770001',
+            reporterUidHash: `rotating_hash_${i}_aaaa`,
+            reporterAccountAgeDays: 100,
+          }),
+        },
+        strictEnv
+      );
+      expect(res.status).toBe(200);
+    }
+    const blockedReport = await app.request(
+      '/v1/blocks/report',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'CF-Connecting-IP': reportIp,
+        },
+        body: JSON.stringify({
+          targetUid: '770001',
+          reporterUidHash: 'rotating_hash_3_bbbb',
+          reporterAccountAgeDays: 100,
+        }),
+      },
+      strictEnv
+    );
+    expect(blockedReport.status).toBe(429);
+
+    const batchIp = '198.51.100.202';
+    for (let i = 0; i < 2; i++) {
+      const res = await app.request(
+        '/v1/blocks/batch-import',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'CF-Connecting-IP': batchIp,
+          },
+          body: JSON.stringify({
+            targetUids: ['770002'],
+            reporterUidHash: `rotating_batch_${i}_aaaa`,
+            reporterAccountAgeDays: 100,
+          }),
+        },
+        strictEnv
+      );
+      expect(res.status).toBe(200);
+    }
+    const blockedBatch = await app.request(
+      '/v1/blocks/batch-import',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'CF-Connecting-IP': batchIp,
+        },
+        body: JSON.stringify({
+          targetUids: ['770002'],
+          reporterUidHash: 'rotating_batch_2_cccc',
+          reporterAccountAgeDays: 100,
+        }),
+      },
+      strictEnv
+    );
+    expect(blockedBatch.status).toBe(429);
+  });
+
+  it('prevents ?fresh=1&min=1 query params from lowering threshold or poisoning shared snapshot cache', async () => {
+    await post('/v1/blocks/report', {
+      targetUid: '770099',
+      reporterUidHash: 'single_vote_reporter',
+      reporterAccountAgeDays: 200,
+      tag: 'spam',
+    });
+
+    const poisonedAttempt = await app.request(
+      '/v1/snapshot.json?fresh=1&min=1',
+      { headers: { 'CF-Connecting-IP': '198.51.100.205' } },
+      env
+    );
+    expect(poisonedAttempt.status).toBe(200);
+    const snap = (await poisonedAttempt.json()) as {
+      counts: Record<string, { c: number }>;
+    };
+    expect(snap.counts['770099']).toBeUndefined();
+
+    const cachedAfter = await app.request('/v1/snapshot.json', {}, env);
+    const cachedSnap = (await cachedAfter.json()) as {
+      counts: Record<string, { c: number }>;
+    };
+    expect(cachedSnap.counts['770099']).toBeUndefined();
+  });
+
+  it('chunks large snapshots across D1 snapshot_cache rows and reassembles cleanly', async () => {
+    const chunkedEnv: Env = {
+      DB: env.DB,
+      MIN_SNAPSHOT_BLOCK_COUNT: '2',
+      D1_SNAPSHOT_CHUNK_SIZE: '500',
+    };
+    const builtRes = await app.request(
+      '/v1/snapshot.json?fresh=1',
+      { headers: { 'CF-Connecting-IP': '198.51.100.210' } },
+      chunkedEnv
+    );
+    expect(builtRes.status).toBe(200);
+    const builtSnap = (await builtRes.json()) as {
+      version: number;
+      counts: Record<string, { c: number }>;
+      cloudKeywords: unknown[];
+    };
+
+    const parts = await env.DB.prepare(
+      "SELECT COUNT(*) AS cnt FROM snapshot_cache WHERE cache_key LIKE 'v1/snapshot.json:part:%'"
+    ).first<{ cnt: number }>();
+    expect(Number(parts?.cnt ?? 0)).toBeGreaterThan(2);
+
+    const cachedRes = await app.request('/v1/snapshot.json', {}, chunkedEnv);
+    expect(cachedRes.status).toBe(200);
+    const cachedSnap = (await cachedRes.json()) as typeof builtSnap;
+    expect(cachedSnap.version).toBe(builtSnap.version);
+    expect(cachedSnap.counts).toEqual(builtSnap.counts);
+    expect(cachedSnap.cloudKeywords).toEqual(builtSnap.cloudKeywords);
+  });
+
+  it('excludes retracted zero-vote accounts from /v1/stats and prunes expired rate_limits rows', async () => {
+    // 888002 was reported and fully retracted in an earlier test (block_count = 0)
+    const zeroRows = await env.DB.prepare(
+      'SELECT COUNT(*) AS cnt FROM account_reputation WHERE block_count = 0'
+    ).first<{ cnt: number }>();
+    expect(Number(zeroRows?.cnt ?? 0)).toBeGreaterThanOrEqual(1);
+
+    const activeRows = await env.DB.prepare(
+      'SELECT COUNT(*) AS cnt FROM account_reputation WHERE block_count >= 1'
+    ).first<{ cnt: number }>();
+
+    const statsRes = await app.request('/v1/stats', {}, env);
+    expect(statsRes.status).toBe(200);
+    const stats = (await statsRes.json()) as { totalFlaggedAccounts: number };
+    expect(stats.totalFlaggedAccounts).toBe(Number(activeRows?.cnt ?? 0));
+
+    const now = Date.now();
+    await env.DB.batch([
+      env.DB.prepare(
+        'INSERT OR REPLACE INTO rate_limits (actor_key, window_start, request_count) VALUES (?, ?, 5)'
+      ).bind('expired_actor_key', now - 3 * 3600_000),
+      env.DB.prepare(
+        'INSERT OR REPLACE INTO rate_limits (actor_key, window_start, request_count) VALUES (?, ?, 2)'
+      ).bind('fresh_actor_key', now - 10_000),
+    ]);
+
+    const pruned = await pruneExpiredRateLimits(env.DB, now);
+    expect(pruned).toBeGreaterThanOrEqual(1);
+
+    const expiredRow = await env.DB.prepare(
+      'SELECT actor_key FROM rate_limits WHERE actor_key = ?'
+    )
+      .bind('expired_actor_key')
+      .first();
+    const freshRow = await env.DB.prepare(
+      'SELECT actor_key FROM rate_limits WHERE actor_key = ?'
+    )
+      .bind('fresh_actor_key')
+      .first();
+    expect(expiredRow).toBeNull();
+    expect(freshRow).toEqual({ actor_key: 'fresh_actor_key' });
   });
 });

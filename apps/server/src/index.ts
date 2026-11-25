@@ -21,6 +21,9 @@ export interface Env {
   SNAPSHOT_BUCKET?: R2Bucket;
   SITE_DOMAIN?: string;
   MIN_SNAPSHOT_BLOCK_COUNT?: string;
+  IP_REPORT_LIMIT_PER_HOUR?: string;
+  IP_BATCH_LIMIT_PER_HOUR?: string;
+  D1_SNAPSHOT_CHUNK_SIZE?: string;
 }
 
 const VALID_TAGS: BlockReasonTag[] = [
@@ -33,6 +36,14 @@ const VALID_TAGS: BlockReasonTag[] = [
 ];
 
 const SNAPSHOT_R2_KEY = 'v1/snapshot.json';
+const SNAPSHOT_CHUNK_PREFIX = 'v1/snapshot.json:part:';
+const DEFAULT_D1_SNAPSHOT_CHUNK_SIZE = 512_000;
+const RATE_LIMIT_WINDOW_MS = 3600_000;
+
+interface ChunkedSnapshotManifest {
+  __chunked: true;
+  chunks: number;
+}
 
 const initializedDatabases = new WeakSet<D1Database>();
 
@@ -107,10 +118,9 @@ async function ensureSchema(db: D1Database): Promise<void> {
 async function checkRateLimit(
   db: D1Database,
   actorKey: string,
-  maxPerHour: number
+  maxPerHour: number,
+  now = Date.now()
 ): Promise<boolean> {
-  const now = Date.now();
-  const windowMs = 3600_000;
   const existing = await db
     .prepare(
       'SELECT window_start, request_count FROM rate_limits WHERE actor_key = ?'
@@ -118,7 +128,7 @@ async function checkRateLimit(
     .bind(actorKey)
     .first<{ window_start: number; request_count: number }>();
 
-  if (!existing || now - existing.window_start > windowMs) {
+  if (!existing || now - existing.window_start > RATE_LIMIT_WINDOW_MS) {
     await db
       .prepare(
         'INSERT OR REPLACE INTO rate_limits (actor_key, window_start, request_count) VALUES (?, ?, 1)'
@@ -142,17 +152,104 @@ async function checkRateLimit(
 }
 
 /**
+ * Enforces both a pure-IP cap (prevents single-IP Sybil flooding via rotating
+ * client-supplied reporter hashes) and a per-(IP, actor) cap.
+ */
+async function checkDualRateLimit(
+  db: D1Database,
+  ipKey: string,
+  ipLimit: number,
+  actorKey: string,
+  actorLimit: number
+): Promise<boolean> {
+  const ipAllowed = await checkRateLimit(db, ipKey, ipLimit);
+  if (!ipAllowed) return false;
+  return checkRateLimit(db, actorKey, actorLimit);
+}
+
+/**
+ * Deletes stale rate-limit windows older than 2 hours so D1 does not grow unbounded.
+ */
+export async function pruneExpiredRateLimits(
+  db: D1Database,
+  now = Date.now()
+): Promise<number> {
+  await ensureSchema(db);
+  const cutoff = now - RATE_LIMIT_WINDOW_MS * 2;
+  const result = await db
+    .prepare('DELETE FROM rate_limits WHERE window_start < ?')
+    .bind(cutoff)
+    .run();
+  return result.meta?.changes ?? 0;
+}
+
+function parsePositiveInt(raw: string | undefined, fallback: number): number {
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : fallback;
+}
+
+async function writeSnapshotToD1(
+  db: D1Database,
+  serialized: string,
+  chunkSize: number
+): Promise<void> {
+  const now = Date.now();
+  if (serialized.length <= chunkSize) {
+    await db.batch([
+      db
+        .prepare(
+          'INSERT OR REPLACE INTO snapshot_cache (cache_key, payload, updated_at) VALUES (?, ?, ?)'
+        )
+        .bind(SNAPSHOT_R2_KEY, serialized, now),
+      db
+        .prepare('DELETE FROM snapshot_cache WHERE cache_key LIKE ?')
+        .bind(`${SNAPSHOT_CHUNK_PREFIX}%`),
+    ]);
+    return;
+  }
+
+  const parts: string[] = [];
+  for (let offset = 0; offset < serialized.length; offset += chunkSize) {
+    parts.push(serialized.slice(offset, offset + chunkSize));
+  }
+  const manifest: ChunkedSnapshotManifest = {
+    __chunked: true,
+    chunks: parts.length,
+  };
+  const statements = [
+    db
+      .prepare('DELETE FROM snapshot_cache WHERE cache_key LIKE ?')
+      .bind(`${SNAPSHOT_CHUNK_PREFIX}%`),
+    ...parts.map((part, index) =>
+      db
+        .prepare(
+          'INSERT OR REPLACE INTO snapshot_cache (cache_key, payload, updated_at) VALUES (?, ?, ?)'
+        )
+        .bind(`${SNAPSHOT_CHUNK_PREFIX}${index}`, part, now)
+    ),
+    db
+      .prepare(
+        'INSERT OR REPLACE INTO snapshot_cache (cache_key, payload, updated_at) VALUES (?, ?, ?)'
+      )
+      .bind(SNAPSHOT_R2_KEY, JSON.stringify(manifest), now),
+  ];
+  await db.batch(statements);
+}
+
+/**
  * Compiles the crowd-sourced blocklist from D1 into a compact CrowdBlockSnapshot
- * and stores it in Cloudflare R2 (`v1/snapshot.json`).
+ * and stores it in Cloudflare R2 (`v1/snapshot.json`) or chunk-safe D1 `snapshot_cache`.
  */
 export async function buildAndSaveSnapshot(
   env: Env,
   minBlockCountOverride?: number
 ): Promise<CrowdBlockSnapshot> {
   await ensureSchema(env.DB);
+  const defaultMinCount = parsePositiveInt(env.MIN_SNAPSHOT_BLOCK_COUNT, 2);
   const minCount =
-    minBlockCountOverride ??
-    Math.max(1, Number(env.MIN_SNAPSHOT_BLOCK_COUNT ?? 2));
+    minBlockCountOverride !== undefined
+      ? Math.max(1, Math.floor(minBlockCountOverride))
+      : defaultMinCount;
 
   const rows = await env.DB.prepare(
     `SELECT target_uid, followers_count, block_count, dominant_tag
@@ -244,20 +341,25 @@ export async function buildAndSaveSnapshot(
     cloudKeywords,
   };
 
-  const serialized = JSON.stringify(snapshot);
-  if (env.SNAPSHOT_BUCKET) {
-    await env.SNAPSHOT_BUCKET.put(SNAPSHOT_R2_KEY, serialized, {
-      httpMetadata: {
-        contentType: 'application/json; charset=utf-8',
-        cacheControl: 'public, max-age=300, s-maxage=600',
-      },
-    });
-  } else {
-    await env.DB.prepare(
-      'INSERT OR REPLACE INTO snapshot_cache (cache_key, payload, updated_at) VALUES (?, ?, ?)'
-    )
-      .bind(SNAPSHOT_R2_KEY, serialized, Date.now())
-      .run();
+  const shouldPersistCache =
+    minBlockCountOverride === undefined || minCount >= defaultMinCount;
+
+  if (shouldPersistCache) {
+    const serialized = JSON.stringify(snapshot);
+    if (env.SNAPSHOT_BUCKET) {
+      await env.SNAPSHOT_BUCKET.put(SNAPSHOT_R2_KEY, serialized, {
+        httpMetadata: {
+          contentType: 'application/json; charset=utf-8',
+          cacheControl: 'public, max-age=300, s-maxage=600',
+        },
+      });
+    } else {
+      const chunkSize = parsePositiveInt(
+        env.D1_SNAPSHOT_CHUNK_SIZE,
+        DEFAULT_D1_SNAPSHOT_CHUNK_SIZE
+      );
+      await writeSnapshotToD1(env.DB, serialized, chunkSize);
+    }
   }
 
   return snapshot;
@@ -295,10 +397,20 @@ app.get('/health', (c) => {
 });
 
 function getActorIp(c: Context<{ Bindings: Env }>): string {
+  const cfIp = c.req.header('CF-Connecting-IP')?.trim();
+  if (cfIp) return cfIp;
+  const forwarded = c.req.header('X-Forwarded-For')?.split(',')[0]?.trim();
+  return forwarded || 'local';
+}
+
+function isChunkedManifest(value: unknown): value is ChunkedSnapshotManifest {
   return (
-    c.req.header('CF-Connecting-IP') ??
-    c.req.header('X-Forwarded-For') ??
-    'local'
+    typeof value === 'object' &&
+    value !== null &&
+    (value as ChunkedSnapshotManifest).__chunked === true &&
+    typeof (value as ChunkedSnapshotManifest).chunks === 'number' &&
+    Number.isInteger((value as ChunkedSnapshotManifest).chunks) &&
+    (value as ChunkedSnapshotManifest).chunks > 0
   );
 }
 
@@ -317,7 +429,26 @@ async function readCachedSnapshot(
     .first<{ payload: string }>();
   if (!row?.payload) return null;
   try {
-    return JSON.parse(row.payload) as CrowdBlockSnapshot;
+    const parsed: unknown = JSON.parse(row.payload);
+    if (!isChunkedManifest(parsed)) {
+      return parsed as CrowdBlockSnapshot;
+    }
+    const partRows = await env.DB.prepare(
+      'SELECT cache_key, payload FROM snapshot_cache WHERE cache_key LIKE ?'
+    )
+      .bind(`${SNAPSHOT_CHUNK_PREFIX}%`)
+      .all<{ cache_key: string; payload: string }>();
+    const partMap = new Map<string, string>();
+    for (const part of partRows.results ?? []) {
+      partMap.set(part.cache_key, part.payload);
+    }
+    const ordered: string[] = [];
+    for (let i = 0; i < parsed.chunks; i++) {
+      const chunk = partMap.get(`${SNAPSHOT_CHUNK_PREFIX}${i}`);
+      if (chunk === undefined) return null;
+      ordered.push(chunk);
+    }
+    return JSON.parse(ordered.join('')) as CrowdBlockSnapshot;
   } catch {
     return null;
   }
@@ -347,11 +478,9 @@ async function handleGetSnapshot(c: Context<{ Bindings: Env }>) {
     }
   }
 
-  // In local dev or first boot before Cron fires, include accounts with >= 1 vote if min=1 requested, else default
-  const minCount = c.req.query('min')
-    ? Math.max(1, Number(c.req.query('min')))
-    : undefined;
-  const built = await buildAndSaveSnapshot(c.env, minCount);
+  // Always compile with the server-configured MIN_SNAPSHOT_BLOCK_COUNT so public
+  // callers cannot poison the shared snapshot cache with ?min=1 overrides.
+  const built = await buildAndSaveSnapshot(c.env);
   return c.json(built, 200, {
     'Cache-Control': 'public, max-age=60, s-maxage=300',
   });
@@ -384,8 +513,11 @@ app.post('/v1/blocks/report', async (c) => {
     : 'other';
 
   const ip = getActorIp(c);
-  const rateAllowed = await checkRateLimit(
+  const ipLimit = parsePositiveInt(c.env.IP_REPORT_LIMIT_PER_HOUR, 250);
+  const rateAllowed = await checkDualRateLimit(
     c.env.DB,
+    `report_ip:${ip}`,
+    ipLimit,
     `report:${ip}:${reporterHash.slice(0, 16)}`,
     150
   );
@@ -481,9 +613,13 @@ app.post('/v1/blocks/unreport', async (c) => {
     return c.json({ ok: false, error: 'missing_params' }, 400);
   }
 
-  const rateAllowed = await checkRateLimit(
+  const ip = getActorIp(c);
+  const ipLimit = parsePositiveInt(c.env.IP_REPORT_LIMIT_PER_HOUR, 250);
+  const rateAllowed = await checkDualRateLimit(
     c.env.DB,
-    `unreport:${getActorIp(c)}:${reporterHash.slice(0, 16)}`,
+    `unreport_ip:${ip}`,
+    ipLimit,
+    `unreport:${ip}:${reporterHash.slice(0, 16)}`,
     150
   );
   if (!rateAllowed) {
@@ -518,9 +654,13 @@ app.post('/v1/blocks/batch-import', async (c) => {
     return c.json({ ok: false, error: 'invalid_payload' }, 400);
   }
 
-  const rateAllowed = await checkRateLimit(
+  const ip = getActorIp(c);
+  const ipBatchLimit = parsePositiveInt(c.env.IP_BATCH_LIMIT_PER_HOUR, 40);
+  const rateAllowed = await checkDualRateLimit(
     c.env.DB,
-    `batch:${getActorIp(c)}:${reporterHash.slice(0, 16)}`,
+    `batch_ip:${ip}`,
+    ipBatchLimit,
+    `batch:${ip}:${reporterHash.slice(0, 16)}`,
     30
   );
   if (!rateAllowed) {
@@ -584,9 +724,10 @@ app.get('/v1/stats', async (c) => {
   const stats = await c.env.DB.prepare(
     `SELECT
       COUNT(*) as total_flagged_accounts,
-      SUM(CASE WHEN block_count >= 2 THEN 1 ELSE 0 END) as active_crowd_blocked,
+      COALESCE(SUM(CASE WHEN block_count >= 2 THEN 1 ELSE 0 END), 0) as active_crowd_blocked,
       COALESCE(SUM(block_count), 0) as total_votes
-     FROM account_reputation`
+     FROM account_reputation
+     WHERE block_count >= 1`
   ).first<{
     total_flagged_accounts: number;
     active_crowd_blocked: number;
@@ -609,6 +750,11 @@ export default {
     env: Env,
     ctx: ExecutionContext
   ): Promise<void> {
-    ctx.waitUntil(buildAndSaveSnapshot(env));
+    ctx.waitUntil(
+      Promise.all([
+        buildAndSaveSnapshot(env),
+        pruneExpiredRateLimits(env.DB),
+      ])
+    );
   },
 };
