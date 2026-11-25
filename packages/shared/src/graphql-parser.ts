@@ -218,8 +218,8 @@ export function unwrapTweetResult(rawResult: any): any {
  * Extracts normalized ExtractedAuthor from an X GraphQL user result object
  * (supports both X 2026 schema `tweet_counts`/`relationship_counts`/`verification` and `legacy` schema).
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function extractAuthorFromUserResult(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rawUserResult: any
 ): ExtractedAuthor | null {
   if (!rawUserResult || typeof rawUserResult !== 'object') return null;

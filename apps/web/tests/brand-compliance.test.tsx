@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-// @ts-ignore
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';

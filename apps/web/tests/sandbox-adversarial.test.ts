@@ -6,16 +6,12 @@ import {
   zhTWSandboxData,
   enSandboxData,
   getSandboxData,
-  CATEGORY_METAS,
 } from '../src/components/HeroSandbox/sampleData';
 import {
   isTweetIntercepted,
   formatHandle,
-  PRESET_WEIGHT,
   type FilterState,
-  type PresetLevel,
   type SandboxNoiseCategory,
-  type SandboxPreset,
   type SandboxTweet,
   type UndoOperation,
 } from '../src/components/HeroSandbox/types';
@@ -31,8 +27,6 @@ describe('Adversarial & Stress Harness: Hero Sandbox Simulator (Milestone 3)', (
     'crypto',
     'short_reply',
   ];
-
-  const ALL_PRESETS: SandboxPreset[] = ['mild', 'standard', 'extreme'];
 
   function createBaseState(): FilterState {
     return {

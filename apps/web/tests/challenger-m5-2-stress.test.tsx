@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-// @ts-ignore
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -12,7 +11,7 @@ import { ArchitectureFlow } from '../src/components/ArchitectureFlow';
 import { CommunityStats, FALLBACK_STATS } from '../src/components/CommunityStats';
 import { SideloadGuide } from '../src/components/SideloadGuide';
 import { FaqAccordion } from '../src/components/FaqAccordion';
-import { API_STATS_URL, GITHUB_RELEASE_URL } from '../src/config';
+import { GITHUB_RELEASE_URL } from '../src/config';
 
 describe('Adversarial Challenger M5-2: Features 27, 28, 29, 30 Stress Suite', () => {
   let container: HTMLDivElement;
@@ -124,7 +123,6 @@ describe('Adversarial Challenger M5-2: Features 27, 28, 29, 30 Stress Suite', ()
         );
       });
 
-      const allowBtn = container.querySelector('[data-testid="lang-mode-allow"]') as HTMLButtonElement;
       const blockBtn = container.querySelector('[data-testid="lang-mode-block"]') as HTMLButtonElement;
       const mediaToggle = container.querySelector('[data-testid="media-exemption-toggle"]') as HTMLInputElement;
       const statusIndicator = container.querySelector('[data-testid="lang-status-indicator"]') as HTMLElement;
@@ -262,7 +260,6 @@ describe('Adversarial Challenger M5-2: Features 27, 28, 29, 30 Stress Suite', ()
         );
       });
 
-      const step1 = container.querySelector('[data-testid="arch-step-1"]') as HTMLElement;
       const step2 = container.querySelector('[data-testid="arch-step-2"]') as HTMLElement;
       const step3 = container.querySelector('[data-testid="arch-step-3"]') as HTMLElement;
       const inspector = container.querySelector('[data-testid="arch-inspector"]') as HTMLElement;
@@ -516,7 +513,7 @@ describe('Adversarial Challenger M5-2: Features 27, 28, 29, 30 Stress Suite', ()
     });
 
     it('3.6 Number formatting across diverse locales (en, fr, de, zh-CN, pt)', async () => {
-      window.matchMedia = vi.fn().mockImplementation((query) => ({
+      window.matchMedia = vi.fn().mockImplementation((_query) => ({
         matches: true, // reduced-motion = true for deterministic numbers
       }));
 
@@ -549,7 +546,7 @@ describe('Adversarial Challenger M5-2: Features 27, 28, 29, 30 Stress Suite', ()
     });
 
     it('3.7 Edge case numbers: zero values and very large numbers', async () => {
-      window.matchMedia = vi.fn().mockImplementation((query) => ({
+      window.matchMedia = vi.fn().mockImplementation((_query) => ({
         matches: true,
       }));
 
@@ -717,8 +714,7 @@ describe('Adversarial Challenger M5-2: Features 27, 28, 29, 30 Stress Suite', ()
       expect(container.querySelector('[data-testid="install-step-2"]')).not.toBeNull();
 
       // Test C: clipboard API completely undefined -> execCommand fallback
-      // @ts-ignore
-      delete navigator.clipboard;
+      Reflect.deleteProperty(navigator, 'clipboard');
       const execCommandMock = vi.fn();
       document.execCommand = execCommandMock;
 

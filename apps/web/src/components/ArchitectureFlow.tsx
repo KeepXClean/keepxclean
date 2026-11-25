@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Cpu, Layers, Lock, Hash, Eye, Activity, Terminal } from 'lucide-react';
+import { Cpu, Lock, Terminal } from 'lucide-react';
 import { useI18n } from '../locales';
 
 export function ArchitectureFlow() {

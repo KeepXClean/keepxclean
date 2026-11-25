@@ -5,7 +5,6 @@ import { createRoot } from 'react-dom/client';
 import { I18nProvider, useI18n, getDictionary } from '../src/locales';
 
 // Enable React act() environment in jsdom
-// @ts-ignore
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 describe('Feature 22: Dynamic HTML Lang & DOM Meta Synchronization', () => {

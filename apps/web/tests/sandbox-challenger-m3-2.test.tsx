@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 // Set flag to support React act() environment
-// @ts-ignore
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -8,22 +7,13 @@ import React, { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import {
-  zhCNSandboxData,
-  zhTWSandboxData,
-  enSandboxData,
-  SAMPLE_DATASETS,
-  CATEGORY_METAS,
-  getSandboxData,
-} from '../src/components/HeroSandbox/sampleData';
+import { SAMPLE_DATASETS } from '../src/components/HeroSandbox/sampleData';
 import {
   isTweetIntercepted,
-  PRESET_WEIGHT,
   type FilterState,
   type SandboxDatasetLocale,
   type SandboxNoiseCategory,
   type SandboxPreset,
-  type SandboxTweet,
   type UndoOperation,
 } from '../src/components/HeroSandbox/types';
 import { HeroSandbox } from '../src/components/HeroSandbox/HeroSandbox';
@@ -148,13 +138,6 @@ describe('Challenger M3-2: Empirical Adversarial Stress Harness', () => {
 
     it('clean discussion replies are NEVER falsely filtered under ANY preset or category toggle combination (Zero False Positives)', () => {
       const presets: SandboxPreset[] = ['mild', 'standard', 'extreme'];
-      const categoriesList: SandboxNoiseCategory[] = [
-        'impersonator',
-        'ads',
-        'giveaway',
-        'crypto',
-        'short_reply',
-      ];
 
       // Generate all 2^5 = 32 category toggle combinations
       const allCategoryCombos: Array<Record<SandboxNoiseCategory, boolean>> = [];
@@ -284,7 +267,7 @@ describe('Challenger M3-2: Empirical Adversarial Stress Harness', () => {
       // At t = 0ms: raw noisy state
       let statusPill = container.querySelector('.sandbox-status-pill');
       expect(statusPill?.textContent).toContain('0.9s');
-      let masterCheckbox = container.querySelector('input[type="checkbox"][role="switch"]') as HTMLInputElement;
+      const masterCheckbox = container.querySelector('input[type="checkbox"][role="switch"]') as HTMLInputElement;
       expect(masterCheckbox.checked).toBe(false);
 
       // At t = 450ms: still in raw state
@@ -329,7 +312,7 @@ describe('Challenger M3-2: Empirical Adversarial Stress Harness', () => {
         vi.advanceTimersByTime(900);
       });
 
-      let masterCheckbox = container.querySelector('input[type="checkbox"][role="switch"]') as HTMLInputElement;
+      const masterCheckbox = container.querySelector('input[type="checkbox"][role="switch"]') as HTMLInputElement;
       expect(masterCheckbox.checked).toBe(true);
 
       // Find and click Replay button

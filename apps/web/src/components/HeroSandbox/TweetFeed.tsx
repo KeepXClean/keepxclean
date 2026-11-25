@@ -2,7 +2,6 @@ import {
   MessageSquare,
   Repeat2,
   Heart,
-  BarChart3,
   CheckCircle2,
   ArrowLeft,
   Bookmark,

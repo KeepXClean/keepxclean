@@ -3,7 +3,6 @@ import {
   UserRoundCheck,
   Ban,
   RotateCcw,
-  Info,
   Calendar,
   Activity,
   Hash,

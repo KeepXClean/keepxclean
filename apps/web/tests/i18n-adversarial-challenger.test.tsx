@@ -6,7 +6,6 @@ import {
   matchLocaleCandidate,
   resolveSiteLocale,
   updateUrlQueryLang,
-  STORAGE_KEY_LANG,
 } from '../src/locales/resolve';
 import {
   I18nProvider,
@@ -16,7 +15,6 @@ import {
 import { PrivacyApp } from '../src/PrivacyApp';
 import { SUPPORTED_LOCALES, type SupportedLocale } from '@keepxclean/shared';
 
-// @ts-ignore
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 describe('EMPIRICAL CHALLENGER: Feature 21 & 22 Adversarial Stress Suite', () => {
@@ -80,14 +78,10 @@ describe('EMPIRICAL CHALLENGER: Feature 21 & 22 Adversarial Stress Suite', () =>
       expect(matchLocaleCandidate(null)).toBeNull();
       expect(matchLocaleCandidate('   ')).toBeNull();
       expect(matchLocaleCandidate('\t\r\n')).toBeNull();
-      // @ts-ignore: adversarial type bypass
-      expect(matchLocaleCandidate(12345)).toBeNull();
-      // @ts-ignore: adversarial type bypass
-      expect(matchLocaleCandidate({})).toBeNull();
-      // @ts-ignore: adversarial type bypass
-      expect(matchLocaleCandidate([])).toBeNull();
-      // @ts-ignore: adversarial type bypass
-      expect(matchLocaleCandidate(true)).toBeNull();
+      expect(matchLocaleCandidate(12345 as unknown as string)).toBeNull();
+      expect(matchLocaleCandidate({} as unknown as string)).toBeNull();
+      expect(matchLocaleCandidate([] as unknown as string)).toBeNull();
+      expect(matchLocaleCandidate(true as unknown as string)).toBeNull();
     });
 
     it('handles adversarial script injection, prototype tokens, and malformed tags', () => {
@@ -114,8 +108,7 @@ describe('EMPIRICAL CHALLENGER: Feature 21 & 22 Adversarial Stress Suite', () =>
 
     it('demonstrates dictionary lookup vulnerability when called with prototype property ("constructor")', () => {
       // When an invalid locale key like 'constructor' is requested, getDictionary MUST fall back to 'en' dictionary
-      // @ts-ignore: testing adversarial input
-      const dict = getDictionary('constructor');
+      const dict = getDictionary('constructor' as unknown as SupportedLocale);
       expect(dict).toBeDefined();
       expect(dict.meta).toBeDefined();
       expect(typeof dict.meta.title).toBe('string');

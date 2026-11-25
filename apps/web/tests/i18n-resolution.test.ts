@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   matchLocaleCandidate,
   resolveSiteLocale,
@@ -137,10 +137,6 @@ describe('Feature 21: 4-Tier Language Resolution & Candidate Matching', () => {
   });
 
   describe('Browser Environment Mocking', () => {
-    const originalLocation = window.location;
-    const originalLocalStorage = window.localStorage;
-    const originalNavigator = window.navigator;
-
     let mockStorage: Record<string, string> = {};
 
     beforeEach(() => {

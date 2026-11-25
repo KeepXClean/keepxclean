@@ -18,6 +18,7 @@ export function HonestStatusCard() {
   const [runId, setRunId] = useState(0);
 
   const startTimeRef = useRef<number>(Date.now());
+  const elapsedRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
 
   // Run the 4.5s simulation loop
@@ -27,6 +28,7 @@ export function HonestStatusCard() {
       window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
 
     if (prefersReducedMotion) {
+      elapsedRef.current = TOTAL_DURATION_MS;
       setElapsedMs(TOTAL_DURATION_MS);
       setPhase('settled');
       setIsRunning(false);
@@ -38,11 +40,12 @@ export function HonestStatusCard() {
       return;
     }
 
-    startTimeRef.current = Date.now() - elapsedMs;
+    startTimeRef.current = Date.now() - elapsedRef.current;
 
     const tick = () => {
       const now = Date.now();
       const currentElapsed = Math.min(now - startTimeRef.current, TOTAL_DURATION_MS);
+      elapsedRef.current = currentElapsed;
       setElapsedMs(currentElapsed);
 
       if (currentElapsed < PHASE1_END) {
@@ -77,6 +80,7 @@ export function HonestStatusCard() {
   const handleReplay = () => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     setIsUndone(false);
+    elapsedRef.current = 0;
     setElapsedMs(0);
     setPhase('phase1');
     setIsRunning(true);

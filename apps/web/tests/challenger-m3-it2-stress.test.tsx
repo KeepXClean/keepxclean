@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 // Set flag to support React act() environment
-// @ts-ignore
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -8,24 +7,11 @@ import React, { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import {
-  zhCNSandboxData,
-  zhTWSandboxData,
-  enSandboxData,
-  SAMPLE_DATASETS,
-  getSandboxData,
-} from '../src/components/HeroSandbox/sampleData';
-import {
   formatHandle,
-  isTweetIntercepted,
-  type FilterState,
-  type SandboxDatasetLocale,
-  type SandboxTweet,
   type UndoOperation,
 } from '../src/components/HeroSandbox/types';
 import { HeroSandbox } from '../src/components/HeroSandbox/HeroSandbox';
 import { UndoToast } from '../src/components/HeroSandbox/UndoToast';
-import { TweetFeed } from '../src/components/HeroSandbox/TweetFeed';
-import { TweetItem } from '../src/components/HeroSandbox/TweetItem';
 
 describe('Empirical Challenger Iteration 2: Deep Stress & Adversarial Suite', () => {
   let container: HTMLDivElement;

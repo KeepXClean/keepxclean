@@ -1,13 +1,11 @@
 // @vitest-environment jsdom
-// @ts-ignore
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React, { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { SUPPORTED_LOCALES, type SupportedLocale } from '@keepxclean/shared';
-import { I18nProvider, DICTIONARIES } from '../src/locales';
-import { CommunityStats, FALLBACK_STATS } from '../src/components/CommunityStats';
+import { I18nProvider } from '../src/locales';
+import { CommunityStats } from '../src/components/CommunityStats';
 import { ArchitectureFlow } from '../src/components/ArchitectureFlow';
 import { SideloadGuide } from '../src/components/SideloadGuide';
 import { FaqAccordion } from '../src/components/FaqAccordion';
@@ -467,8 +465,7 @@ describe('Adversarial Challenger M5-4: Deep Verification & Stress Suite', () => 
       vi.useFakeTimers();
 
       // Remove navigator.clipboard
-      // @ts-ignore
-      delete navigator.clipboard;
+      Reflect.deleteProperty(navigator, 'clipboard');
 
       const execCommandSpy = vi.fn().mockReturnValue(true);
       document.execCommand = execCommandSpy;
@@ -508,8 +505,7 @@ describe('Adversarial Challenger M5-4: Deep Verification & Stress Suite', () => 
     it('3.4 Fallback executes cleanly even if document.execCommand throws', async () => {
       vi.useFakeTimers();
 
-      // @ts-ignore
-      delete navigator.clipboard;
+      Reflect.deleteProperty(navigator, 'clipboard');
 
       document.execCommand = vi.fn().mockImplementation(() => {
         throw new Error('execCommand disabled in environment');

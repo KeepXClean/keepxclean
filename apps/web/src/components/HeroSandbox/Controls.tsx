@@ -1,4 +1,4 @@
-import { Check, SlidersHorizontal, Eye, EyeOff, Globe } from 'lucide-react';
+import { Check, Eye, EyeOff, Globe } from 'lucide-react';
 import type {
   SandboxDatasetLocale,
   SandboxDisplayMode,

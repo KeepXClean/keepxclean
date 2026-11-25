@@ -29,12 +29,22 @@ export default defineConfig({
       }
     },
   },
-  manifest: ({ mode }) => ({
+  manifest: ({ mode, browser }) => ({
     default_locale: 'en',
     name: '__MSG_extName__',
     short_name: 'KeepXClean',
     description: '__MSG_extDescription__',
     homepage_url: 'https://keepxclean.com',
+    ...(browser === 'firefox'
+      ? {
+          browser_specific_settings: {
+            gecko: {
+              id: 'keepxclean@keepxclean.com',
+              strict_min_version: '128.0',
+            },
+          },
+        }
+      : {}),
     permissions: ['storage', 'alarms'],
     optional_host_permissions: [
       'https://*/*',

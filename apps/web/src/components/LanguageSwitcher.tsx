@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useContext } from 'react';
 import { Globe, ChevronDown, Check } from 'lucide-react';
 import { UI_LOCALE_OPTIONS, type SupportedLocale } from '@keepxclean/shared';
-import { useI18n } from '../locales';
+import { I18nContext } from '../locales/I18nContext';
 
 export interface LanguageSwitcherProps {
   currentLocale?: SupportedLocale;
@@ -14,11 +14,7 @@ export function LanguageSwitcher({
 }: LanguageSwitcherProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  let i18nContext: ReturnType<typeof useI18n> | null = null;
-  try {
-    i18nContext = useI18n();
-  } catch (_) {}
+  const i18nContext = useContext(I18nContext);
 
   const activeLocale = currentLocale ?? i18nContext?.locale ?? 'en';
   const availableOptions = i18nContext?.availableLocales ?? UI_LOCALE_OPTIONS;

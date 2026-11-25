@@ -50,7 +50,7 @@ export async function command<T = void>(action: Command): Promise<T> {
       !isExtensionContextValid() ||
       /Extension context invalidated/i.test(message)
     ) {
-      throw new Error(e.contextInvalidated);
+      throw new Error(e.contextInvalidated, { cause: error });
     }
     throw error;
   }

@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
-import { SUPPORTED_LOCALES, type SupportedLocale } from '@keepxclean/shared';
+import { SUPPORTED_LOCALES } from '@keepxclean/shared';
 import {
   DICTIONARIES,
   getDictionary,
@@ -17,10 +17,7 @@ import {
   de,
   ru,
   I18nProvider,
-  useI18n,
   useCta,
-  resolveSiteLocale,
-  matchLocaleCandidate,
 } from '../src/locales';
 import {
   CWS_EXTENSION_ID,
@@ -33,7 +30,6 @@ import {
 import { Header } from '../src/components/Header';
 
 // Enable React act() environment in jsdom
-// @ts-ignore
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 /**
