@@ -24,7 +24,8 @@ Date: 2026-11-16 (Asia/Shanghai)
 
 ## Submission status
 
-- Submitted 0.1.2 on 2026-11-16. Dashboard confirmed “已将您的扩展程序提交送审” and status “待审核”. Automatic publication after approval is enabled. This is a submission confirmation, not an approval.
+- Submitted 0.1.2 on 2026-11-16 with automatic publication enabled after approval.
 - All ten localized screenshot sets and descriptions were reloaded and verified before submission: `creative/dashboard-verification.json`. The global fallback contains five English screenshots; both global promo tiles and the transparent store icon were replaced.
 - The temporary “无法访问隐私权政策链接” validation message cleared after the privacy draft was saved and the new package was uploaded. The original policy URL remained unchanged and returned HTTP 200; no validator bypass or alternate URL was used.
-- Final dashboard state: `creative/submission-verification.json`.
+- Submission dashboard snapshot: `creative/submission-verification.json`.
+- **Published status (2026-11-24)**: Approved and publicly live on Chrome Web Store (`plngcinmibjmkjjpfjemhfabjfjjkhhd`). Monorepo package versions (`shared`, `server`, `extension`, `web`) and website/README brand assets synchronized to `0.1.2`.

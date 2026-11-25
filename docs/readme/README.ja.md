@@ -32,7 +32,10 @@
 
 <div align="center">
 
-https://github.com/user-attachments/assets/744a6b36-b6b5-4933-b22a-6471c5741ea7
+<a href="https://keepxclean.com/?lang=ja#video">
+    <img src="../../apps/web/public/promo/keepxclean-promo-poster.jpg" width="800" alt="KeepXClean 30秒プロモーション動画プレビュー" />
+  </a>
+  <p><a href="https://keepxclean.com/?lang=ja#video"><strong>▶ 公式サイトで30秒プロモーション動画を見る</strong></a></p>
 
 </div>
 

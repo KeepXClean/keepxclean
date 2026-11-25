@@ -70,7 +70,6 @@ function OfficialXGlyph({ size = 22 }: { size?: number }) {
 
 export function HeroSandbox({ locale = 'en' }: HeroSandboxProps) {
   const isZh = locale.startsWith('zh');
-  const isZhTW = locale === 'zh-TW';
   const dict = useMemo(() => getDictionary(locale), [locale]);
 
   // Derive initial dataset locale
@@ -344,8 +343,8 @@ export function HeroSandbox({ locale = 'en' }: HeroSandboxProps) {
       };
 
   const browserTabTitle = isDatasetZh
-    ? `${currentDataset.originalPost.author.name} 在 X 上：“KeepXClean v0.1.0...” / X`
-    : `${currentDataset.originalPost.author.name} on X: "KeepXClean v0.1.0..." / X`;
+    ? `${currentDataset.originalPost.author.name} 在 X 上：“KeepXClean v0.1.2...” / X`
+    : `${currentDataset.originalPost.author.name} on X: "KeepXClean v0.1.2..." / X`;
 
   return (
     <div className="hero-section-wrapper">

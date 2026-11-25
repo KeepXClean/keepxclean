@@ -12,7 +12,7 @@ export const CWS_EXTENSION_ID = 'plngcinmibjmkjjpfjemhfabjfjjkhhd';
 
 /**
  * CWS_LIVE toggle:
- * - false: Chrome Web Store submission is under review. Primary CTA points to GitHub Release v0.1.0 (.zip)
+ * - false: Chrome Web Store submission is under review. Primary CTA points to GitHub Release (.zip)
  *          accompanied by a "Chrome Web Store under review" / "Chrome 商店审核中" badge.
  * - true:  Chrome Web Store is approved & live. Primary CTA points directly to CWS_STORE_URL ("Add to Chrome").
  */
@@ -24,7 +24,7 @@ export const CWS_LIVE = true;
 export const CWS_STORE_URL = `https://chromewebstore.google.com/detail/keepxclean/${CWS_EXTENSION_ID}`;
 
 /**
- * Direct link to the latest GitHub Release (currently v0.1.0)
+ * Direct link to the latest GitHub Release
  */
 export const GITHUB_RELEASE_URL = 'https://github.com/KeepXClean/keepxclean/releases/latest';
 
@@ -64,7 +64,7 @@ export const AUTHOR_30STO_URL = 'https://30s.to/@linmo';
 /**
  * Current release version tag
  */
-export const CURRENT_VERSION = 'v0.1.1';
+export const CURRENT_VERSION = 'v0.1.2';
 
 /**
  * Runtime CTA configuration snapshot

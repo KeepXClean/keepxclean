@@ -1,6 +1,5 @@
 import {
   type SupportedLocale,
-  SUPPORTED_LOCALES,
   isSupportedLocale,
 } from '@keepxclean/shared';
 

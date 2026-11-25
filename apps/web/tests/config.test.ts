@@ -48,7 +48,34 @@ describe('Feature 23: CTA Configuration & CWS Reservation', () => {
     expect(PRIVACY_EMAIL).toBe('privacy@keepxclean.com');
     expect(AUTHOR_X_URL).toBe('https://x.com/linheitu');
     expect(AUTHOR_30STO_URL).toBe('https://30s.to/@linmo');
-    expect(CURRENT_VERSION).toBe('v0.1.1');
+    expect(CURRENT_VERSION).toBe('v0.1.2');
+  });
+
+  it('CURRENT_VERSION stays aligned with monorepo package versions and all 10 locale dictionaries', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { resolve } = await import('node:path');
+    const { DICTIONARIES } = await import('../src/locales');
+
+    const rootDir = resolve(__dirname, '../../..');
+    const pkgPaths = [
+      'package.json',
+      'packages/shared/package.json',
+      'apps/extension/package.json',
+      'apps/server/package.json',
+      'apps/web/package.json',
+    ];
+    for (const relPath of pkgPaths) {
+      const pkg = JSON.parse(readFileSync(resolve(rootDir, relPath), 'utf8')) as {
+        version: string;
+      };
+      expect(`v${pkg.version}`, `Version drift detected in ${relPath}`).toBe(CURRENT_VERSION);
+    }
+
+    for (const [locale, dict] of Object.entries(DICTIONARIES)) {
+      expect(dict.nav.downloadCta, `${locale}.nav.downloadCta`).toContain(CURRENT_VERSION);
+      expect(dict.install.readyStatus, `${locale}.install.readyStatus`).toContain(CURRENT_VERSION);
+      expect(dict.footer.releaseZip, `${locale}.footer.releaseZip`).toContain(CURRENT_VERSION);
+    }
   });
 
   it('getActiveCtaConfig returns Chrome Web Store URL by default when CWS_LIVE is true', () => {

@@ -32,7 +32,10 @@
 
 <div align="center">
 
-https://github.com/user-attachments/assets/744a6b36-b6b5-4933-b22a-6471c5741ea7
+<a href="https://keepxclean.com/?lang=zh-CN#video">
+    <img src="../../apps/web/public/promo/keepxclean-promo-poster.jpg" width="800" alt="KeepXClean 30 秒宣传视频预览" />
+  </a>
+  <p><a href="https://keepxclean.com/?lang=zh-CN#video"><strong>▶ 前往官网观看 30 秒宣传视频</strong></a></p>
 
 </div>
 
@@ -71,9 +74,10 @@ https://github.com/user-attachments/assets/744a6b36-b6b5-4933-b22a-6471c5741ea7
 ```text
 packages/shared/   共享确定性规则引擎、X GraphQL 解析、24 条公共词库与多语言工具
 apps/extension/    WXT (Manifest V3) 浏览器扩展、Shadow DOM 界面与后台串行任务
-apps/server/       Cloudflare Workers 社区聚合 API、D1 数据库与 R2 快照缓存
+apps/server/       Cloudflare Workers 社区聚合 API、D1 数据库与快照缓存
 apps/web/          官方网站与浏览器仿真交互沙盒 (keepxclean.com)
-tests/e2e/         5 层端到端与对抗性安全测试套件
+tests/e2e/         5 层场景与对抗性安全测试套件
+tests/browser-e2e/ 真实 Chromium MV3 扩展烟雾 E2E 测试套件
 ```
 
 环境要求：**Node.js ≥ 20** 与 **pnpm**
@@ -81,10 +85,12 @@ tests/e2e/         5 层端到端与对抗性安全测试套件
 ```bash
 pnpm install
 pnpm dev:ext      # 启动扩展开发调试模式
+pnpm lint         # 全仓 ESLint 代码检查
 pnpm typecheck    # 全仓 TypeScript 类型检查
 pnpm test         # 运行全仓单元与集成测试
-pnpm test:e2e     # 运行 5 层端到端测试套件
+pnpm test:e2e     # 运行 5 层场景与对抗测试套件
 pnpm build        # 构建生产环境产物
+pnpm test:browser # 运行真实 Chromium MV3 扩展烟雾 E2E
 ```
 
 如需了解服务端自托管与 CI/CD 自动发布配置，请参阅 [docs/DEPLOYMENT.md](../DEPLOYMENT.md)。

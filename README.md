@@ -32,7 +32,10 @@
 
 <div align="center">
 
-https://github.com/user-attachments/assets/744a6b36-b6b5-4933-b22a-6471c5741ea7
+<a href="https://keepxclean.com/#video">
+    <img src="apps/web/public/promo/keepxclean-promo-poster.jpg" width="800" alt="KeepXClean 30-second promo video preview" />
+  </a>
+  <p><a href="https://keepxclean.com/#video"><strong>▶ Watch the 30-second promo video on keepxclean.com</strong></a></p>
 
 </div>
 
@@ -71,9 +74,10 @@ Install in 1 click from the [**Chrome Web Store**](https://chromewebstore.google
 ```text
 packages/shared/   Deterministic rule engine, X GraphQL parser, 24 cloud rules & i18n
 apps/extension/    WXT (Manifest V3) browser extension, Shadow DOM UI & background jobs
-apps/server/       Cloudflare Workers API, D1 vote aggregation & R2 snapshot cache
+apps/server/       Cloudflare Workers API, D1 vote aggregation & snapshot cache
 apps/web/          Official website & interactive browser sandbox (keepxclean.com)
-tests/e2e/         5-tier end-to-end & adversarial verification suite
+tests/e2e/         5-tier virtual-DOM scenario & adversarial verification suite
+tests/browser-e2e/ Real Chromium MV3 extension smoke E2E suite
 ```
 
 Requires **Node.js ≥ 20** and **pnpm**:
@@ -81,10 +85,12 @@ Requires **Node.js ≥ 20** and **pnpm**:
 ```bash
 pnpm install
 pnpm dev:ext      # Launch extension in development mode
+pnpm lint         # Run ESLint across the workspace
 pnpm typecheck    # Typecheck all workspace packages
 pnpm test         # Run unit & integration tests (shared, extension, server, web)
-pnpm test:e2e     # Run 5-tier E2E test suite
+pnpm test:e2e     # Run 5-tier scenario & adversarial test suite
 pnpm build        # Production build across workspace
+pnpm test:browser # Run real Chromium MV3 extension smoke E2E
 ```
 
 For Cloudflare Workers / D1 self-hosting and CI/CD release configuration, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).

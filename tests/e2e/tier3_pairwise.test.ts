@@ -33,6 +33,11 @@ import * as path from 'path';
 setTestTier(3);
 
 const ROOT_DIR = path.resolve(__dirname, '../../');
+const EXT_VERSION = (
+  JSON.parse(
+    fs.readFileSync(path.join(ROOT_DIR, 'apps/extension/package.json'), 'utf8')
+  ) as { version: string }
+).version;
 const fetchMock = new FetchMock();
 
 describe('Tier 3: Cross-Feature Combinations (Pairwise Coverage)', () => {
@@ -820,7 +825,7 @@ describe('Tier 3: Cross-Feature Combinations (Pairwise Coverage)', () => {
   it('T3-29: Public Repository Accessibility & Unauthenticated Release Asset Download', () => {
     expect(GITHUB_REPO_URL).toBe('https://github.com/KeepXClean/keepxclean');
     expect(GITHUB_RELEASE_URL).toContain('/releases/latest');
-    const zipPath = path.join(ROOT_DIR, 'apps/extension/.output/keepxcleanextension-0.1.1-chrome.zip');
+    const zipPath = path.join(ROOT_DIR, `apps/extension/.output/keepxcleanextension-${EXT_VERSION}-chrome.zip`);
     expect(fs.existsSync(zipPath) || GITHUB_RELEASE_URL.length > 0).toBe(true);
   });
 
