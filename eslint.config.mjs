@@ -11,6 +11,7 @@ export default tseslint.config(
       '**/.output/**',
       '**/.wxt/**',
       '**/.wrangler/**',
+      '.agents/**',
       'marketing/**',
       'design/**',
       'release/**',

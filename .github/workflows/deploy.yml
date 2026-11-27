@@ -224,16 +224,47 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
+          VER="${TAG#v}"
+          ZIP_FILE=$(ls dist-ext/*-chrome.zip | head -n 1)
+          SHA256=$(sha256sum "$ZIP_FILE" | awk '{print $1}')
+          PREV_TAG=$(git tag --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | grep -Fxv "$TAG" | head -n 1 || true)
+
+          VER="$VER" TAG="$TAG" PREV_TAG="$PREV_TAG" ZIP_BASENAME="$(basename "$ZIP_FILE")" SHA256="$SHA256" node -e '
+            const fs = require("fs");
+            const ver = process.env.VER;
+            const tag = process.env.TAG;
+            const prev = process.env.PREV_TAG;
+            const zipName = process.env.ZIP_BASENAME;
+            const sha = process.env.SHA256;
+            const cl = fs.existsSync("CHANGELOG.md") ? fs.readFileSync("CHANGELOG.md", "utf8") : "";
+            const escaped = ver.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const m = cl.match(new RegExp("## \\[" + escaped + "\\][^\\n]*\\n+([\\s\\S]*?)(?=\\n## \\[|$)"));
+            const compareUrl = prev
+              ? `https://github.com/KeepXClean/keepxclean/compare/${prev}...${tag}`
+              : `https://github.com/KeepXClean/keepxclean/commits/${tag}`;
+            const footer = [
+              "---",
+              "",
+              `- **Chrome MV3 Package**: \`${zipName}\``,
+              `- **SHA-256**: \`${sha}\``,
+              `- **Full Changelog**: ${compareUrl}`,
+            ].join("\n");
+            const body = m ? `${m[1].trim()}\n\n${footer}\n` : `${footer}\n`;
+            fs.writeFileSync("/tmp/release-notes.md", body);
+          '
+
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" dist-ext/*-chrome.zip --clobber
+            gh release upload "$TAG" "$ZIP_FILE" --clobber
+            gh release edit "$TAG" --title "KeepXClean $TAG" --notes-file /tmp/release-notes.md
           else
-            gh release create "$TAG" dist-ext/*-chrome.zip \
+            gh release create "$TAG" "$ZIP_FILE" \
               --title "KeepXClean $TAG" \
-              --generate-notes
+              --notes-file /tmp/release-notes.md
           fi
 
-      - name: Auto-upload to Chrome Web Store (when CWS API credentials are configured)
+      - name: Auto-upload & publish to Chrome Web Store (API v2)
         env:
+          PUBLISHER_ID: ${{ vars.CWS_PUBLISHER_ID || '58be1080-a518-4def-972f-dda8f7db70a4' }}
           EXTENSION_ID: plngcinmibjmkjjpfjemhfabjfjjkhhd
           CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
@@ -244,10 +275,8 @@ jobs:
             exit 0
           fi
           ZIP_FILE=$(ls dist-ext/*-chrome.zip | head -n 1)
-          npx --yes chrome-webstore-upload-cli@3 upload \
+          npx --yes chrome-webstore-upload-cli@4 \
             --source "$ZIP_FILE" \
+            --publisher-id "$PUBLISHER_ID" \
             --extension-id "$EXTENSION_ID" \
-            --client-id "$CLIENT_ID" \
-            --client-secret "$CLIENT_SECRET" \
-            --refresh-token "$REFRESH_TOKEN" \
-            --auto-publish
+            --max-await-in-progress 300

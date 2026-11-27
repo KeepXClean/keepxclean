@@ -9,11 +9,36 @@ Defined in [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml), tr
 1. **Quality Gate (`verify`)**: Runs `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e`, `wxt zip` (Chrome), `wxt build -b firefox --mv3` (Firefox), real Chromium MV3 extension smoke E2E (`pnpm test:browser`), and `pnpm --filter @keepxclean/web build`, uploading the packaged Chrome extension `.zip` as a workflow artifact.
 2. **API & D1 Deployment (`deploy-server`)**: When `apps/server/`, `packages/shared/`, or workspace lockfiles change, runs `pnpm db:migrate:remote` (applying D1 migrations including `0004_cloud_keywords_lang_group.sql` for `cloud_keywords.lang_group`) and `pnpm deploy:server`, then warms `snapshot.json`.
 3. **Website Deployment (`deploy-web`)**: When `apps/web/` changes, runs `pnpm deploy:web` and verifies `https://keepxclean.com` and `https://keepxclean.com/privacy/`.
-4. **Extension Release (`release-extension`)**: Pushing a `v*` tag (e.g. `git tag v0.2.0 && git push origin v0.2.0`) publishes a GitHub Release with the built `.zip` archive and optionally uploads/publishes to the Chrome Web Store (`plngcinmibjmkjjpfjemhfabjfjjkhhd`) if `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, and `CWS_REFRESH_TOKEN` secrets are configured.
+4. **Extension Release (`release-extension`)**: Pushing a `v*` tag (e.g. `git tag v0.2.1 && git push origin main --tags`) automatically extracts the matching `[X.Y.Z]` release notes and SHA-256 checksum from `CHANGELOG.md` into a GitHub Release with the built `.zip` archive, and uploads + submits the package for auto-publication on the Chrome Web Store (`plngcinmibjmkjjpfjemhfabjfjjkhhd`, Publisher ID `58be1080-a518-4def-972f-dda8f7db70a4`) via Chrome Web Store API v2 (`chrome-webstore-upload-cli@4`) when `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, and `CWS_REFRESH_TOKEN` secrets are configured.
 
-### Required GitHub Secret
+### Required & Optional GitHub Secrets
 
-- `CLOUDFLARE_API_TOKEN`: Cloudflare API token with `Workers Scripts: Edit`, `D1: Edit`, and `Workers Routes: Edit` permissions on the `keepxclean.com` zone.
+- `CLOUDFLARE_API_TOKEN` (**Required**): Cloudflare API token with `Workers Scripts: Edit`, `D1: Edit`, and `Workers Routes: Edit` permissions on the `keepxclean.com` zone.
+- `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN` (**Recommended for zero-touch Chrome Web Store releases**): Google Cloud OAuth 2.0 Desktop App credentials authorized for `https://www.googleapis.com/auth/chromewebstore`.
+
+### One-Time Chrome Web Store API v2 Setup
+
+1. In [Google Cloud Console](https://console.cloud.google.com/), enable the **Chrome Web Store API** (`chromewebstore.googleapis.com`).
+2. Configure the OAuth consent screen (External/Testing with your CWS publisher Google account added under **Test users**, or Internal) and create an **OAuth 2.0 Client ID** of type **Desktop app**.
+3. Run the local loopback helper to authorize once, verify Publisher API v2 access, and write all three secrets directly to GitHub Actions Secrets:
+   ```bash
+   pnpm cws:auth --client-id "<YOUR_CLIENT_ID>" --client-secret "<YOUR_CLIENT_SECRET>"
+   ```
+
+### Standard Automated Release Flow
+
+```bash
+# 1. Atomically align version across workspace packages, web locales, tests & CHANGELOG.md
+pnpm release:bump 0.2.1
+
+# 2. Verify workspace quality gates locally
+pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e
+
+# 3. Commit and push tag -> triggers CI test, Cloudflare deploy, GitHub Release & CWS auto-publish
+git add -A && git commit -m "feat(release): ship KeepXClean v0.2.1"
+git tag v0.2.1 && git push origin main --tags
+```
+> Note: Chrome Web Store API v2 automates `.zip` upload and review submission/auto-publish. Dashboard-only metadata (10-locale detailed descriptions, store screenshots, permission justifications, and privacy disclosures) persists from the previous version and only needs manual/browser updates when store copy or permissions change.
 
 ## Manual Commands
 

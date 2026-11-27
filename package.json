@@ -23,6 +23,8 @@
     "db:migrate:remote": "pnpm --filter @keepxclean/server db:migrate:remote",
     "cloud-rules:push": "tsx apps/server/scripts/cloud-rules.ts push",
     "cloud-rules:list": "tsx apps/server/scripts/cloud-rules.ts list",
+    "release:bump": "tsx scripts/release.ts",
+    "cws:auth": "tsx scripts/cws-auth.ts",
     "deploy:server": "pnpm --filter @keepxclean/server run deploy",
     "deploy:web": "pnpm --filter @keepxclean/web build && pnpm --filter @keepxclean/web exec wrangler deploy"
   },
