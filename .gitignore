@@ -10,5 +10,6 @@ dist/
 .DS_Store
 coverage/
 design/**/*.zip
-.agents/
+.agents/*
+!.agents/skills/
 
