@@ -4,6 +4,10 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import React, { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
+import {
+  CLOUD_KEYWORD_LANG_GROUPS,
+  DEFAULT_CLOUD_KEYWORDS,
+} from '@keepxclean/shared';
 import { I18nProvider } from '../src/locales';
 import { ArchitectureFlow } from '../src/components/ArchitectureFlow';
 
@@ -128,5 +132,25 @@ describe('Feature 28: Local-First Architecture Flow Diagram', () => {
       step2.click();
     });
     expect(inspector?.getAttribute('aria-labelledby')).toBe('arch-step-2');
+  });
+
+  it('displays dynamic cloud keyword and 10-language pack counts in Step 2 (zero hardcoded 24)', async () => {
+    await act(async () => {
+      root!.render(
+        <I18nProvider initialLocale="en">
+          <ArchitectureFlow />
+        </I18nProvider>
+      );
+    });
+
+    const step2 = container.querySelector('[data-testid="arch-step-2"]') as HTMLElement;
+    await act(async () => {
+      step2.click();
+    });
+
+    const inspector = container.querySelector('[data-testid="arch-inspector"]');
+    expect(inspector?.textContent).toContain(`${DEFAULT_CLOUD_KEYWORDS.length} Cloud Keywords`);
+    expect(inspector?.textContent).toContain(`${CLOUD_KEYWORD_LANG_GROUPS.length}-Language Packs`);
+    expect(inspector?.textContent).not.toContain('24 Cloud Keywords');
   });
 });

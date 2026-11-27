@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createDefaultConfig, STORAGE_KEYS } from '@keepxclean/shared';
+import {
+  createDefaultConfig,
+  STORAGE_KEYS,
+  type InterceptionLogEntry,
+} from '@keepxclean/shared';
 import {
   applyImport,
   changeReason,
@@ -14,8 +18,19 @@ import {
   appendLogs,
   initializeStorage,
   readConfig,
+  readState,
+  rollStats,
 } from '../src/background/repository';
-import { UI_KEYS, type ImportJob, type Operation } from '../src/services/model';
+import {
+  defaultCloudSyncMeta,
+  defaultParseHealth,
+  localDate,
+  UI_KEYS,
+  type ImportJob,
+  type Operation,
+  type Stats,
+} from '../src/services/model';
+import { getState, subscribe } from '../src/state/store';
 import { mockChrome } from './mock-chrome';
 
 let mock: ReturnType<typeof mockChrome>;
@@ -148,6 +163,7 @@ describe('durable operation boundaries', () => {
   it('undoes before external writes and restores the prior whitelist', async () => {
     vi.useFakeTimers();
     const config = createDefaultConfig();
+    config.syncNativeXBlock = true;
     config.whitelistUids[entry.uid] = entry;
     mock.values[STORAGE_KEYS.CONFIG] = config;
     const id = await startBlock(entry, 7);
@@ -398,5 +414,443 @@ describe('durable operation boundaries', () => {
       name: 'Live User',
       avatarUrl: undefined,
     });
+  });
+
+  it('tracks 7-day rolling dailyHistory across midnight crossings, seeds v0.1.2 upgrades, and avoids duplicate double-counting', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 10, 14, 0, 0));
+
+    // Seed v0.1.2-style stats without dailyHistory
+    mock.values[UI_KEYS.stats] = {
+      todayDate: '2026-11-10',
+      todayBlocked: 4,
+      totalBlocked: 10,
+      todayAdsHidden: 2,
+      totalAdsHidden: 5,
+      byRule: { keyword: 10, promoted_ad: 5 },
+    };
+    const migrated = rollStats(mock.values[UI_KEYS.stats] as Stats);
+    expect(migrated.dailyHistory).toHaveLength(7);
+    expect(migrated.dailyHistory!.map((d) => d.date)).toEqual([
+      '2026-11-04',
+      '2026-11-05',
+      '2026-11-06',
+      '2026-11-07',
+      '2026-11-08',
+      '2026-11-09',
+      '2026-11-10',
+    ]);
+    expect(migrated.dailyHistory![6]).toEqual({
+      date: '2026-11-10',
+      blocked: 4,
+      ads: 2,
+    });
+
+    // Append logs on Nov 10 (including a duplicate tweetId and a promoted_ad)
+    const nov10Ts = new Date(2026, 10, 10, 15, 0, 0).getTime();
+    await appendLogs([
+      {
+        id: 'd1',
+        tweetId: '50001',
+        authorUid: '1',
+        authorScreenName: 'a',
+        authorName: 'A',
+        tweetSnippet: 'x',
+        scene: 'timeline',
+        ruleId: 'keyword',
+        reasonText: 'kw',
+        timestamp: nov10Ts,
+      },
+      {
+        id: 'd1-dup',
+        tweetId: '50001',
+        authorUid: '1',
+        authorScreenName: 'a',
+        authorName: 'A',
+        tweetSnippet: 'x',
+        scene: 'timeline',
+        ruleId: 'keyword',
+        reasonText: 'kw',
+        timestamp: nov10Ts,
+      },
+      {
+        id: 'ad1',
+        tweetId: '50002',
+        authorUid: '2',
+        authorScreenName: 'b',
+        authorName: 'B',
+        tweetSnippet: 'ad',
+        scene: 'timeline',
+        ruleId: 'promoted_ad',
+        reasonText: 'ad',
+        timestamp: nov10Ts,
+      },
+    ]);
+    let stats = mock.values[UI_KEYS.stats] as Stats;
+    expect(stats.dailyHistory![6]).toEqual({
+      date: '2026-11-10',
+      blocked: 5,
+      ads: 3,
+    });
+
+    // Cross 3 days forward to Nov 13 and append a new block
+    vi.setSystemTime(new Date(2026, 10, 13, 9, 0, 0));
+    await appendLogs([
+      {
+        id: 'd2',
+        tweetId: '50003',
+        authorUid: '3',
+        authorScreenName: 'c',
+        authorName: 'C',
+        tweetSnippet: 'spam',
+        scene: 'reply',
+        ruleId: 'grok_filter',
+        reasonText: 'grok',
+        timestamp: Date.now(),
+      },
+    ]);
+    stats = mock.values[UI_KEYS.stats] as Stats;
+    expect(stats.todayDate).toBe(localDate());
+    expect(stats.todayBlocked).toBe(1);
+    expect(stats.dailyHistory).toHaveLength(7);
+    expect(stats.dailyHistory!.find((d) => d.date === '2026-11-10')).toEqual({
+      date: '2026-11-10',
+      blocked: 5,
+      ads: 3,
+    });
+    expect(stats.dailyHistory![6]).toEqual({
+      date: '2026-11-13',
+      blocked: 1,
+      ads: 0,
+    });
+
+    // Cross >7 days forward to Nov 22: Nov 10 and Nov 13 are pruned to 7 clean days
+    vi.setSystemTime(new Date(2026, 10, 22, 12, 0, 0));
+    const pruned = rollStats(stats);
+    expect(pruned.dailyHistory).toHaveLength(7);
+    expect(pruned.dailyHistory![0]!.date).toBe('2026-11-16');
+    expect(pruned.dailyHistory![6]!.date).toBe('2026-11-22');
+    expect(pruned.dailyHistory!.every((d) => d.blocked === 0 && d.ads === 0)).toBe(
+      true
+    );
+  });
+
+  it('sets onboardingDismissed=false only on fresh install, hydrates true on v0.1.2 upgrade, and never opens tabs', async () => {
+    // 1. Fresh install (empty storage)
+    mock = mockChrome({});
+    await initializeStorage();
+    expect(mock.api.tabs.create).not.toHaveBeenCalled();
+    const freshState = await readState();
+    expect(freshState.config.onboardingDismissed).toBe(false);
+    expect(freshState.config.syncNativeXBlock).toBe(false);
+    expect(freshState.config.enableCrowdReport).toBe(false);
+    expect(freshState.cloudSync).toEqual(defaultCloudSyncMeta());
+    expect(freshState.health).toEqual(defaultParseHealth());
+
+    // 2. Upgrade from v0.1.2 (config present without onboardingDismissed, privacy flags true, stuck cloudSync syncing)
+    const v012 = createDefaultConfig('standard');
+    v012.syncNativeXBlock = true;
+    v012.enableCrowdReport = true;
+    delete v012.onboardingDismissed;
+    mock = mockChrome({
+      [STORAGE_KEYS.CONFIG]: v012,
+      [UI_KEYS.cloudSync]: { enabled: true, status: 'syncing' },
+    });
+    await initializeStorage();
+    expect(mock.api.tabs.create).not.toHaveBeenCalled();
+    const upgraded = await readState();
+    expect(upgraded.config.onboardingDismissed).toBe(true);
+    expect(upgraded.config.syncNativeXBlock).toBe(true);
+    expect(upgraded.config.enableCrowdReport).toBe(true);
+    expect(upgraded.cloudSync.status).toBe('idle');
+    expect(upgraded.cloudSync.enabled).toBe(true);
+  });
+
+  it('rejects prototype-key and invalid ruleId values in appendLogs without corrupting stats.byRule or dailyHistory', async () => {
+    await initializeStorage();
+    const now = Date.now();
+    await appendLogs([
+      {
+        id: 'bad-1',
+        tweetId: '88001',
+        authorUid: '1',
+        authorScreenName: 'a',
+        authorName: 'A',
+        tweetSnippet: 'x',
+        scene: 'timeline',
+        ruleId: 'toString' as 'keyword',
+        reasonText: 'spoof',
+        timestamp: now,
+      },
+      {
+        id: 'bad-2',
+        tweetId: '88002',
+        authorUid: '1',
+        authorScreenName: 'a',
+        authorName: 'A',
+        tweetSnippet: 'x',
+        scene: 'timeline',
+        ruleId: '__proto__' as 'keyword',
+        reasonText: 'spoof',
+        timestamp: now,
+      },
+      {
+        id: 'bad-3',
+        tweetId: '88003',
+        authorUid: '1',
+        authorScreenName: 'a',
+        authorName: 'A',
+        tweetSnippet: 'x',
+        scene: 'timeline',
+        ruleId: 'constructor' as 'keyword',
+        reasonText: 'spoof',
+        timestamp: now,
+      },
+      {
+        id: 'bad-4',
+        tweetId: '88004',
+        authorUid: '1',
+        authorScreenName: 'a',
+        authorName: 'A',
+        tweetSnippet: 'x',
+        scene: 'timeline',
+        ruleId: undefined as unknown as 'keyword',
+        reasonText: 'spoof',
+        timestamp: now,
+      },
+      {
+        id: 'good-1',
+        tweetId: '88005',
+        authorUid: '2',
+        authorScreenName: 'b',
+        authorName: 'B',
+        tweetSnippet: 'ok',
+        scene: 'timeline',
+        ruleId: 'grok_filter',
+        reasonText: 'valid',
+        timestamp: now,
+      },
+    ]);
+
+    const stats = mock.values[UI_KEYS.stats] as Stats;
+    expect(Object.prototype.hasOwnProperty.call(stats.byRule, 'toString')).toBe(
+      false
+    );
+    expect(
+      Object.prototype.hasOwnProperty.call(stats.byRule, 'constructor')
+    ).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(stats.byRule, 'undefined')).toBe(
+      false
+    );
+    expect(stats.byRule.grok_filter).toBe(1);
+    expect(stats.totalBlocked).toBe(1);
+    expect(stats.todayBlocked).toBe(1);
+    expect(stats.dailyHistory![6]!.blocked).toBe(1);
+  });
+
+  it('rolls v0.1.2 stats on storage change and survives UI_KEYS.stats removal across dayTimer ticks', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 10, 12, 0, 0));
+    await initializeStorage();
+    const initialState = await readState();
+    mock.api.runtime.sendMessage.mockResolvedValue({
+      ok: true,
+      data: initialState,
+    });
+
+    const unsubscribe = subscribe(() => {});
+    try {
+      await vi.waitFor(() => {
+        expect(getState().loading).toBe(false);
+        expect(getState().data).toBeDefined();
+      });
+
+      // 1. Storage receives v0.1.2 stats without dailyHistory -> rolled immediately
+      await mock.api.storage.local.set({
+        [UI_KEYS.stats]: {
+          todayDate: '2026-11-10',
+          todayBlocked: 7,
+          totalBlocked: 19,
+          byRule: { keyword: 19 },
+        },
+      });
+      expect(getState().data?.stats.dailyHistory).toHaveLength(7);
+      expect(getState().data?.stats.dailyHistory![6]).toEqual({
+        date: '2026-11-10',
+        blocked: 7,
+        ads: 0,
+      });
+
+      // 2. Removing UI_KEYS.stats falls back to defaultStats() and dayTimer ticks cleanly across midnight
+      await mock.api.storage.local.remove(UI_KEYS.stats);
+      expect(getState().data?.stats).toBeDefined();
+      expect(getState().data?.stats.dailyHistory).toHaveLength(7);
+      expect(getState().data?.stats.todayBlocked).toBe(0);
+
+      vi.setSystemTime(new Date(2026, 10, 11, 0, 5, 0));
+      expect(() => vi.advanceTimersByTime(31_000)).not.toThrow();
+      expect(getState().data?.stats.todayDate).toBe('2026-11-11');
+    } finally {
+      unsubscribe();
+    }
+  });
+
+  it('rejects coerced tweetIds, out-of-range timestamps, invalid scenes, getters, and sanitizes untrusted log fields in appendLogs (R2-3 / N2)', async () => {
+    await initializeStorage();
+    const now = Date.now();
+    let arrayGetterCalls = 0;
+    let propGetterCalls = 0;
+
+    const baseValid = {
+      id: 'ok-base',
+      tweetId: '99100',
+      authorUid: '12345',
+      authorScreenName: 'alice',
+      authorName: 'Alice',
+      tweetSnippet: 'hello world',
+      scene: 'reply' as const,
+      ruleId: 'keyword' as const,
+      reasonText: 'matched kw',
+      timestamp: now,
+    };
+
+    const withOwnGetter: Record<string, unknown> = { ...baseValid };
+    Object.defineProperty(withOwnGetter, 'tweetId', {
+      enumerable: true,
+      get() {
+        propGetterCalls += 1;
+        return '99199';
+      },
+    });
+
+    const withCustomProto = Object.assign(
+      Object.create({ inherited: true }),
+      { ...baseValid, tweetId: '99198' }
+    );
+
+    const malicious: unknown[] = [
+      // Coerced / malformed tweetIds (repeated array to ensure 0 dedup bypass)
+      { ...baseValid, tweetId: ['55555'] },
+      { ...baseValid, tweetId: ['55555'] },
+      { ...baseValid, tweetId: 66666 },
+      { ...baseValid, tweetId: '1'.repeat(31) },
+      { ...baseValid, tweetId: 'abc' },
+      // Out-of-range / non-numeric timestamps
+      { ...baseValid, tweetId: '99101', timestamp: Number.MAX_SAFE_INTEGER },
+      { ...baseValid, tweetId: '99102', timestamp: 8_640_000_000_000_001 },
+      { ...baseValid, tweetId: '99103', timestamp: 1e20 },
+      { ...baseValid, tweetId: '99104', timestamp: -1 },
+      { ...baseValid, tweetId: '99105', timestamp: Number.NaN },
+      { ...baseValid, tweetId: '99106', timestamp: Number.POSITIVE_INFINITY },
+      { ...baseValid, tweetId: '99107', timestamp: '1700000000000' },
+      // Invalid scenes
+      { ...baseValid, tweetId: '99108', scene: 'toString' },
+      { ...baseValid, tweetId: '99109', scene: ['reply'] },
+      { ...baseValid, tweetId: '99110', scene: '' },
+      // Own getter & custom prototype
+      withOwnGetter,
+      withCustomProto,
+      // Valid boundary timestamps & field sanitization
+      {
+        ...baseValid,
+        id: 'boundary-zero',
+        tweetId: '99201',
+        timestamp: 0,
+        scene: undefined,
+        authorUid: 'toString',
+        authorAvatar: 'javascript:alert(1)',
+        evidence: { bad: 1 },
+        hugeBlob: 'A'.repeat(20_000),
+      },
+      {
+        ...baseValid,
+        id: 'boundary-max',
+        tweetId: '99202',
+        timestamp: 8_640_000_000_000_000,
+        authorAvatar: 'https://pbs.twimg.com/profile_images/1/avatar.jpg',
+        evidence: [
+          { key: 'kw', label: 'Keyword', value: 'spam' },
+          { label: 'Count', value: 3 },
+          { label: 'Bad', value: { nested: true } },
+        ],
+      },
+      {
+        ...baseValid,
+        id: 'valid-now',
+        tweetId: '99203',
+        timestamp: now,
+      },
+    ];
+
+    // Sparse array with an element getter that must never be invoked
+    const sparseEntries: unknown[] = [];
+    sparseEntries[1] = malicious[0];
+    Object.defineProperty(sparseEntries, 2, {
+      enumerable: true,
+      get() {
+        arrayGetterCalls += 1;
+        return { ...baseValid, tweetId: '99197' };
+      },
+    });
+    sparseEntries[3] = malicious[malicious.length - 1];
+
+    await appendLogs(malicious.slice(0, -1) as InterceptionLogEntry[]);
+    await appendLogs(sparseEntries as InterceptionLogEntry[]);
+
+    expect(arrayGetterCalls).toBe(0);
+    expect(propGetterCalls).toBe(0);
+
+    const storedLogs = mock.values[
+      STORAGE_KEYS.INTERCEPTION_LOGS
+    ] as InterceptionLogEntry[];
+    const storedById = new Map(storedLogs.map((l) => [l.tweetId, l]));
+    expect([...storedById.keys()].sort()).toEqual(['99201', '99202', '99203']);
+
+    const zeroEntry = storedById.get('99201')!;
+    expect(zeroEntry.scene).toBe('timeline');
+    expect(zeroEntry.authorUid).toBe('');
+    expect(zeroEntry.authorAvatar).toBeUndefined();
+    expect(zeroEntry.evidence).toBeUndefined();
+    expect('hugeBlob' in zeroEntry).toBe(false);
+
+    const maxEntry = storedById.get('99202')!;
+    expect(maxEntry.authorAvatar).toBe(
+      'https://pbs.twimg.com/profile_images/1/avatar.jpg'
+    );
+    expect(maxEntry.evidence).toEqual([
+      { key: 'kw', label: 'Keyword', value: 'spam' },
+      { label: 'Count', value: 3 },
+    ]);
+
+    const stats = mock.values[UI_KEYS.stats] as Stats;
+    expect(stats.totalBlocked).toBe(3);
+    expect(stats.todayBlocked).toBe(1);
+    expect(stats.byRule.keyword).toBe(3);
+    expect(
+      stats.dailyHistory?.every((d) => /^\d{4}-\d{2}-\d{2}$/.test(d.date))
+    ).toBe(true);
+  });
+
+  it('rejects array-coerced UIDs in startImport without adding them to job.ids', async () => {
+    mock.api.tabs.sendMessage.mockImplementation(
+      async (_tab: unknown, message: unknown) =>
+        (message as { action: string }).action === 'FETCH_EXISTING_BLOCKS'
+          ? {
+              ok: true,
+              viewerUid: '123',
+              ids: ['1001', ['1002'], 1003],
+              nextCursor: '0',
+            }
+          : { ok: true, viewerUid: '123' }
+    );
+    await startImport(7);
+    await vi.waitFor(() =>
+      expect((mock.values[UI_KEYS.imports] as ImportJob[])[0].status).toBe(
+        'preview'
+      )
+    );
+    const job = (mock.values[UI_KEYS.imports] as ImportJob[])[0];
+    expect(job.ids).toEqual(['1001']);
+    expect(job.invalid).toBe(2);
   });
 });

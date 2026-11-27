@@ -139,7 +139,9 @@ describe('Tier 4: Real-World Workloads & End-to-End User Journeys', () => {
     const browser = createVirtualBrowser({ language: 'zh-CN' });
 
     // Find bait keyword pattern
-    const clicheRule = DEFAULT_CLOUD_KEYWORDS.find((k: any) => k.id.startsWith('cloud-cliche'));
+    const clicheRule =
+      DEFAULT_CLOUD_KEYWORDS.find((k: any) => k.id === 'cloud-cliche-trivia-1') ??
+      DEFAULT_CLOUD_KEYWORDS.find((k: any) => k.id.startsWith('cloud-cliche'));
     expect(clicheRule).toBeDefined();
 
     // Verify regex matches sample bait tweet

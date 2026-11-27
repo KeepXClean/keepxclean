@@ -28,7 +28,7 @@ describe('Challenger M3-2: Empirical Adversarial Stress Harness', () => {
   describe('1. Dataset & Localization Adversarial Tests', () => {
     const datasetKeys: SandboxDatasetLocale[] = ['zh-CN', 'zh-TW', 'en'];
 
-    it('each dataset has exactly 8 tweets (1 OP + 2 clean discussion + 5 noisy)', () => {
+    it('each dataset has exactly 11 tweets (1 OP + 3 clean discussion + 7 noisy)', () => {
       for (const locale of datasetKeys) {
         const data = SAMPLE_DATASETS[locale];
 
@@ -37,27 +37,29 @@ describe('Challenger M3-2: Empirical Adversarial Stress Harness', () => {
         expect(data.originalPost.isOriginalPost).toBe(true);
         expect(data.originalPost.filterReason).toBeUndefined();
 
-        // 7 replies (2 clean + 5 noisy)
-        expect(data.replies).toHaveLength(7);
+        // 10 replies (3 clean + 7 noisy)
+        expect(data.replies).toHaveLength(10);
 
-        // Total tweets = 1 OP + 7 replies = 8
+        // Total tweets = 1 OP + 10 replies = 11
         const allTweets = [data.originalPost, ...data.replies];
-        expect(allTweets).toHaveLength(8);
+        expect(allTweets).toHaveLength(11);
 
         const cleanReplies = data.replies.filter((r) => !r.filterReason);
-        expect(cleanReplies, `${locale} must have exactly 2 clean replies`).toHaveLength(2);
+        expect(cleanReplies, `${locale} must have exactly 3 clean replies`).toHaveLength(3);
 
         const noisyReplies = data.replies.filter((r) => Boolean(r.filterReason));
-        expect(noisyReplies, `${locale} must have exactly 5 noisy replies`).toHaveLength(5);
+        expect(noisyReplies, `${locale} must have exactly 7 noisy replies`).toHaveLength(7);
       }
     });
 
-    it('all 5 noise categories are present with authentic metadata in all 3 datasets', () => {
+    it('all 7 noise categories are present with authentic metadata in all 3 datasets', () => {
       const requiredCategories: SandboxNoiseCategory[] = [
         'impersonator',
         'ads',
         'giveaway',
         'crypto',
+        'duplicate_reply',
+        'grok_summon',
         'short_reply',
       ];
 
@@ -79,9 +81,9 @@ describe('Challenger M3-2: Empirical Adversarial Stress Harness', () => {
           // Rule level assignments
           if (cat === 'impersonator' || cat === 'ads') {
             expect(tweet.filterReason!.presetLevel).toBe('mild');
-          } else if (cat === 'giveaway' || cat === 'crypto') {
+          } else if (cat === 'giveaway' || cat === 'crypto' || cat === 'duplicate_reply') {
             expect(tweet.filterReason!.presetLevel).toBe('standard');
-          } else if (cat === 'short_reply') {
+          } else if (cat === 'grok_summon' || cat === 'short_reply') {
             expect(tweet.filterReason!.presetLevel).toBe('extreme');
           }
 
@@ -136,18 +138,21 @@ describe('Challenger M3-2: Empirical Adversarial Stress Harness', () => {
       }
     });
 
-    it('clean discussion replies are NEVER falsely filtered under ANY preset or category toggle combination (Zero False Positives)', () => {
+    it('clean discussion replies (including official @grok & 1st kept) are NEVER falsely filtered under ANY preset, scene, or 2^7 category combination', () => {
       const presets: SandboxPreset[] = ['mild', 'standard', 'extreme'];
+      const scenes = ['for_you', 'following'] as const;
 
-      // Generate all 2^5 = 32 category toggle combinations
+      // Generate all 2^7 = 128 category toggle combinations
       const allCategoryCombos: Array<Record<SandboxNoiseCategory, boolean>> = [];
-      for (let i = 0; i < 32; i++) {
+      for (let i = 0; i < 128; i++) {
         allCategoryCombos.push({
           impersonator: Boolean(i & 1),
           ads: Boolean(i & 2),
           giveaway: Boolean(i & 4),
           crypto: Boolean(i & 8),
-          short_reply: Boolean(i & 16),
+          duplicate_reply: Boolean(i & 16),
+          grok_summon: Boolean(i & 32),
+          short_reply: Boolean(i & 64),
         });
       }
 
@@ -156,27 +161,30 @@ describe('Challenger M3-2: Empirical Adversarial Stress Harness', () => {
         const data = SAMPLE_DATASETS[locale];
         const cleanReplies = data.replies.filter((r) => !r.filterReason);
 
-        expect(cleanReplies).toHaveLength(2);
+        expect(cleanReplies).toHaveLength(3);
 
         for (const preset of presets) {
-          for (const cats of allCategoryCombos) {
-            for (const master of [true, false]) {
-              const testState: FilterState = {
-                masterEnabled: master,
-                preset,
-                displayMode: 'folded',
-                categories: cats,
-                manuallyBlockedIds: new Set(),
-                restoredTweetIds: new Set(),
-                whitelistedHandles: new Set(),
-              };
+          for (const scene of scenes) {
+            for (const cats of allCategoryCombos) {
+              for (const master of [true, false]) {
+                const testState: FilterState = {
+                  masterEnabled: master,
+                  preset,
+                  displayMode: 'folded',
+                  scene,
+                  categories: cats,
+                  manuallyBlockedIds: new Set(),
+                  restoredTweetIds: new Set(),
+                  whitelistedHandles: new Set(),
+                };
 
-              for (const cleanReply of cleanReplies) {
-                const intercepted = isTweetIntercepted(cleanReply, testState);
-                expect(
-                  intercepted,
-                  `False positive! Clean reply ${cleanReply.id} was filtered in ${locale} with preset=${preset}, master=${master}`
-                ).toBe(false);
+                for (const cleanReply of cleanReplies) {
+                  const intercepted = isTweetIntercepted(cleanReply, testState);
+                  expect(
+                    intercepted,
+                    `False positive! Clean reply ${cleanReply.id} was filtered in ${locale} with preset=${preset}, scene=${scene}, master=${master}`
+                  ).toBe(false);
+                }
               }
             }
           }
@@ -241,9 +249,11 @@ describe('Challenger M3-2: Empirical Adversarial Stress Harness', () => {
       const masterCheckbox = container.querySelector('input[type="checkbox"][role="switch"]') as HTMLInputElement;
       expect(masterCheckbox.checked).toBe(true);
 
-      // Filtered count should immediately reflect cleaned standard preset (4 items)
+      // Filtered count should immediately reflect cleaned standard preset (5 items)
       const statsSummary = container.querySelector('.category-stats-summary');
-      expect(statsSummary?.textContent).toContain('4 / 5');
+      expect(statsSummary?.textContent).toContain('5 / 7');
+      expect(container.textContent).toContain('v0.2.0');
+      expect(container.textContent).not.toMatch(new RegExp(`0\\.${1}\\.${2}`));
     });
 
     it('standard motion (no reduced motion) delays auto-cleanup by exactly 900ms', () => {
@@ -287,7 +297,63 @@ describe('Challenger M3-2: Empirical Adversarial Stress Harness', () => {
       expect(masterCheckbox.checked).toBe(true);
 
       const statsSummary = container.querySelector('.category-stats-summary');
-      expect(statsSummary?.textContent).toContain('4 / 5');
+      expect(statsSummary?.textContent).toContain('5 / 7');
+    });
+
+    it('For You / Following scene tabs toggle Bypass mode (5 / 7 <-> 1 / 7) and render @grok protection & 1st-kept duplicate badges', () => {
+      window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+        matches: query.includes('prefers-reduced-motion: reduce'),
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }));
+
+      root = createRoot(container);
+      act(() => {
+        root!.render(<HeroSandbox locale="en" />);
+      });
+
+      const statsSummary = container.querySelector('.category-stats-summary');
+      expect(statsSummary?.textContent).toContain('5 / 7');
+      expect(container.querySelector('[data-testid="grok-protected-badge"]')).not.toBeNull();
+      expect(container.querySelector('[data-testid="duplicate-first-kept-badge"]')).not.toBeNull();
+      expect(container.querySelector('[data-testid="sandbox-scene-bypass-banner"]')).toBeNull();
+
+      // Switch to Extreme preset -> short @grok summon folds (7 / 7) while official @grok stays protected
+      const presetGroup = container.querySelectorAll('.segmented-group')[1];
+      const extremeBtn = presetGroup.querySelectorAll('button')[2] as HTMLButtonElement;
+      act(() => {
+        extremeBtn.click();
+      });
+      expect(statsSummary?.textContent).toContain('7 / 7');
+      expect(container.querySelector('[data-testid="grok-protected-badge"]')).not.toBeNull();
+
+      // Switch to Following tab -> Bypass active (1 / 7: promoted ad only)
+      const followingTab = container.querySelector(
+        '[data-testid="scene-tab-following"]'
+      ) as HTMLButtonElement;
+      const forYouTab = container.querySelector(
+        '[data-testid="scene-tab-for-you"]'
+      ) as HTMLButtonElement;
+      expect(followingTab).not.toBeNull();
+      expect(forYouTab).not.toBeNull();
+
+      act(() => {
+        followingTab.click();
+      });
+      expect(statsSummary?.textContent).toContain('1 / 7');
+      expect(container.querySelector('[data-testid="sandbox-scene-bypass-banner"]')).not.toBeNull();
+
+      // Switch back to For You -> restores 7 / 7
+      act(() => {
+        forYouTab.click();
+      });
+      expect(statsSummary?.textContent).toContain('7 / 7');
+      expect(container.querySelector('[data-testid="sandbox-scene-bypass-banner"]')).toBeNull();
     });
 
     it('Replay Cleanup button resets state and re-executes 900ms cleanup sequence', () => {
@@ -528,6 +594,366 @@ describe('Challenger M3-2: Empirical Adversarial Stress Harness', () => {
       expect(triggerBtn.getAttribute('aria-expanded')).toBe('false');
       expect(firstBar.getAttribute('data-expanded')).toBeNull();
       expect(firstBar.querySelector('.folded-expanded-view')).toBeNull();
+    });
+
+    it('Quick Clean -> Expand folded bar -> click Whitelist immediately un-folds tweet and clears undo toast', () => {
+      window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+        matches: query.includes('prefers-reduced-motion: reduce'),
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }));
+
+      root = createRoot(container);
+      act(() => {
+        root!.render(<HeroSandbox locale="en" />);
+      });
+
+      const getTargetWrapper = () =>
+        container.querySelector('[data-tweet-id="reply-en-clean-1"]') as HTMLElement | null;
+
+      // Starts visible as a normal clean reply
+      const initialWrapper = getTargetWrapper();
+      expect(initialWrapper).not.toBeNull();
+      expect(initialWrapper!.querySelector('.folded-bar-container')).toBeNull();
+
+      // 1. Click Quick Clean on reply-en-clean-1
+      const quickCleanBtn = initialWrapper!.querySelector('.btn-quick-clean') as HTMLButtonElement;
+      expect(quickCleanBtn).not.toBeNull();
+      act(() => {
+        quickCleanBtn.click();
+      });
+
+      // Tweet is now folded and Undo toast is active
+      const foldedWrapper = getTargetWrapper();
+      expect(foldedWrapper).not.toBeNull();
+      expect(foldedWrapper!.querySelector('.folded-bar-container')).not.toBeNull();
+      expect(container.querySelector('.undo-toast')).not.toBeNull();
+
+      // 2. Expand folded bar
+      const expandTrigger = foldedWrapper!.querySelector('.collapse-trigger') as HTMLButtonElement;
+      expect(expandTrigger).not.toBeNull();
+      act(() => {
+        expandTrigger.click();
+      });
+      expect(foldedWrapper!.querySelector('.folded-expanded-view')).not.toBeNull();
+
+      // 3. Click Whitelist inside expanded folded bar
+      const whitelistBtn = foldedWrapper!.querySelector(
+        '.btn-collapse-action.primary'
+      ) as HTMLButtonElement;
+      expect(whitelistBtn).not.toBeNull();
+      act(() => {
+        whitelistBtn.click();
+      });
+
+      // Tweet immediately un-folds back to a normal visible tweet card and stale undo toast clears
+      const unfoldedWrapper = getTargetWrapper();
+      expect(unfoldedWrapper).not.toBeNull();
+      expect(unfoldedWrapper!.querySelector('.folded-bar-container')).toBeNull();
+      expect(unfoldedWrapper!.querySelector('article.tweet-card')).not.toBeNull();
+      expect(container.querySelector('.undo-toast')).toBeNull();
+    });
+
+    it('zh-TW locale renders Traditional Chinese status pill in Following Bypass mode with zero Simplified characters', () => {
+      window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+        matches: query.includes('prefers-reduced-motion: reduce'),
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }));
+
+      root = createRoot(container);
+      act(() => {
+        root!.render(<HeroSandbox locale="zh-TW" />);
+      });
+
+      const followingTab = container.querySelector(
+        '[data-testid="scene-tab-following"]'
+      ) as HTMLButtonElement;
+      expect(followingTab).not.toBeNull();
+      act(() => {
+        followingTab.click();
+      });
+
+      const statusPill = container.querySelector('.sandbox-status-pill');
+      expect(statusPill?.textContent).toContain(
+        '✨ 淨空引擎已就緒 · 正在跟隨場景跳過自動過濾 (Bypass)'
+      );
+      expect(statusPill?.textContent).not.toMatch(/[净绪关场过动滤随]/);
+    });
+
+    it('Quick Clean -> Expand -> Whitelist -> Quick Clean again renders collapsed and resets expanded across Bypass, Master OFF, and Hide transitions', () => {
+      window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+        matches: query.includes('prefers-reduced-motion: reduce'),
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }));
+
+      root = createRoot(container);
+      act(() => {
+        root!.render(<HeroSandbox locale="en" />);
+      });
+
+      const getCleanWrapper = () =>
+        container.querySelector('[data-tweet-id="reply-en-clean-1"]') as HTMLElement | null;
+
+      // 1. Quick Clean -> Expand -> Whitelist -> Quick Clean again
+      act(() => {
+        (getCleanWrapper()!.querySelector('.btn-quick-clean') as HTMLButtonElement).click();
+      });
+      const firstTrigger = getCleanWrapper()!.querySelector('.collapse-trigger') as HTMLButtonElement;
+      expect(firstTrigger.getAttribute('aria-expanded')).toBe('false');
+
+      act(() => {
+        firstTrigger.click();
+      });
+      expect(firstTrigger.getAttribute('aria-expanded')).toBe('true');
+      expect(getCleanWrapper()!.querySelector('.folded-expanded-view')).not.toBeNull();
+
+      act(() => {
+        (getCleanWrapper()!.querySelector('.btn-collapse-action.primary') as HTMLButtonElement).click();
+      });
+      expect(getCleanWrapper()!.querySelector('.folded-bar-container')).toBeNull();
+
+      // 2nd Quick Clean must render collapsed, NOT stuck open
+      act(() => {
+        (getCleanWrapper()!.querySelector('.btn-quick-clean') as HTMLButtonElement).click();
+      });
+      const secondTrigger = getCleanWrapper()!.querySelector('.collapse-trigger') as HTMLButtonElement;
+      expect(secondTrigger).not.toBeNull();
+      expect(secondTrigger.getAttribute('aria-expanded')).toBe('false');
+      expect(getCleanWrapper()!.querySelector('.folded-expanded-view')).toBeNull();
+
+      // Clicking .collapse-trigger cleanly expands the freshly re-cleaned tweet
+      act(() => {
+        secondTrigger.click();
+      });
+      expect(secondTrigger.getAttribute('aria-expanded')).toBe('true');
+      expect(getCleanWrapper()!.querySelector('.folded-expanded-view')).not.toBeNull();
+
+      // 2. Auto-filtered tweet: Expand -> Following Bypass -> For You resets expanded
+      const impersonatorId = SAMPLE_DATASETS.en.replies.find(
+        (r) => r.filterReason?.category === 'impersonator'
+      )!.id;
+      const getImpWrapper = () =>
+        container.querySelector(`[data-tweet-id="${impersonatorId}"]`) as HTMLElement | null;
+
+      act(() => {
+        (getImpWrapper()!.querySelector('.collapse-trigger') as HTMLButtonElement).click();
+      });
+      expect(
+        getImpWrapper()!.querySelector('.collapse-trigger')?.getAttribute('aria-expanded')
+      ).toBe('true');
+      expect(getImpWrapper()!.querySelector('.folded-expanded-view')).not.toBeNull();
+
+      const followingTab = container.querySelector(
+        '[data-testid="scene-tab-following"]'
+      ) as HTMLButtonElement;
+      const forYouTab = container.querySelector(
+        '[data-testid="scene-tab-for-you"]'
+      ) as HTMLButtonElement;
+
+      act(() => {
+        followingTab.click();
+      });
+      expect(getImpWrapper()!.querySelector('.folded-bar-container')).toBeNull();
+
+      act(() => {
+        forYouTab.click();
+      });
+      expect(
+        getImpWrapper()!.querySelector('.collapse-trigger')?.getAttribute('aria-expanded')
+      ).toBe('false');
+      expect(getImpWrapper()!.querySelector('.folded-expanded-view')).toBeNull();
+
+      // 3. Expand -> Master OFF -> Master ON resets expanded
+      act(() => {
+        (getImpWrapper()!.querySelector('.collapse-trigger') as HTMLButtonElement).click();
+      });
+      expect(getImpWrapper()!.querySelector('.folded-expanded-view')).not.toBeNull();
+
+      const masterSwitch = container.querySelector(
+        'input[type="checkbox"][role="switch"]'
+      ) as HTMLInputElement;
+      act(() => {
+        masterSwitch.click();
+      });
+      expect(masterSwitch.checked).toBe(false);
+      act(() => {
+        masterSwitch.click();
+      });
+      expect(masterSwitch.checked).toBe(true);
+      expect(
+        getImpWrapper()!.querySelector('.collapse-trigger')?.getAttribute('aria-expanded')
+      ).toBe('false');
+      expect(getImpWrapper()!.querySelector('.folded-expanded-view')).toBeNull();
+
+      // 4. Expand -> Hide -> Folded resets expanded
+      act(() => {
+        (getImpWrapper()!.querySelector('.collapse-trigger') as HTMLButtonElement).click();
+      });
+      expect(getImpWrapper()!.querySelector('.folded-expanded-view')).not.toBeNull();
+
+      const displayModeGroup = container.querySelectorAll('.segmented-group')[2];
+      const foldedBtn = displayModeGroup.querySelectorAll('button')[0] as HTMLButtonElement;
+      const hideBtn = displayModeGroup.querySelectorAll('button')[1] as HTMLButtonElement;
+      act(() => {
+        hideBtn.click();
+      });
+      expect(getImpWrapper()!.classList.contains('hidden')).toBe(true);
+      act(() => {
+        foldedBtn.click();
+      });
+      expect(
+        getImpWrapper()!.querySelector('.collapse-trigger')?.getAttribute('aria-expanded')
+      ).toBe('false');
+      expect(getImpWrapper()!.querySelector('.folded-expanded-view')).toBeNull();
+    });
+
+    it('keeps .sandbox-status-pill language consistent with datasetLang across all 4 states when switching datasets', () => {
+      window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+        matches: query.includes('prefers-reduced-motion: reduce'),
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }));
+
+      // Case 1: locale="zh-TW" switching dataset to "English" renders pure English in all 4 states
+      root = createRoot(container);
+      act(() => {
+        root!.render(<HeroSandbox locale="zh-TW" />);
+      });
+
+      const getStatusText = () =>
+        container.querySelector('.sandbox-status-pill')?.textContent?.trim() ?? '';
+      const getDatasetButtons = () =>
+        Array.from(container.querySelectorAll('.segmented-group')[0].querySelectorAll('button'));
+      const simplifiedOnlyPattern = /[净绪关场过动滤随评区实时护暂现]/;
+
+      // Case 0: locale="zh-TW" default renders pure Traditional Chinese across all 4 states
+      expect(getStatusText()).toBe('✨ 淨空引擎已就緒 · 即時保護中');
+      expect(getStatusText()).not.toMatch(simplifiedOnlyPattern);
+
+      act(() => {
+        (container.querySelector('[data-testid="scene-tab-following"]') as HTMLButtonElement).click();
+      });
+      expect(getStatusText()).toBe('✨ 淨空引擎已就緒 · 正在跟隨場景跳過自動過濾 (Bypass)');
+      expect(getStatusText()).not.toMatch(simplifiedOnlyPattern);
+
+      act(() => {
+        (container.querySelector('input[type="checkbox"][role="switch"]') as HTMLInputElement).click();
+      });
+      expect(getStatusText()).toBe('⏸️ 淨化已暫停 · 呈現未過濾原貌');
+      expect(getStatusText()).not.toMatch(simplifiedOnlyPattern);
+
+      act(() => {
+        (container.querySelector('.btn-replay-clean') as HTMLButtonElement).click();
+      });
+      expect(getStatusText()).toBe('⚡ 感知原始評論區噪音中 (0.9s)...');
+      expect(getStatusText()).not.toMatch(simplifiedOnlyPattern);
+      act(() => {
+        vi.advanceTimersByTime(900);
+      });
+      act(() => {
+        (container.querySelector('[data-testid="scene-tab-for-you"]') as HTMLButtonElement).click();
+      });
+
+      const enDatasetBtn = getDatasetButtons().find((b) =>
+        b.textContent?.includes('English')
+      ) as HTMLButtonElement;
+      expect(enDatasetBtn).toBeDefined();
+      act(() => {
+        enDatasetBtn.click();
+      });
+
+      // Active For You -> English (zero Simplified Chinese leak!)
+      expect(getStatusText()).toBe('✨ Clean Engine Active · Real-time Protection');
+      expect(getStatusText()).not.toMatch(/[\u4e00-\u9fff]/);
+
+      // Following Bypass -> English
+      act(() => {
+        (container.querySelector('[data-testid="scene-tab-following"]') as HTMLButtonElement).click();
+      });
+      expect(getStatusText()).toBe('✨ Clean Engine Active · Following Scene Bypass');
+
+      // Paused -> English
+      const masterSwitchZhTw = container.querySelector(
+        'input[type="checkbox"][role="switch"]'
+      ) as HTMLInputElement;
+      act(() => {
+        masterSwitchZhTw.click();
+      });
+      expect(getStatusText()).toBe('⏸️ Filtering Paused · Raw Timeline View');
+
+      // Entrance (Replay) -> English
+      act(() => {
+        (container.querySelector('.btn-replay-clean') as HTMLButtonElement).click();
+      });
+      expect(getStatusText()).toBe('⚡ Sensing raw timeline noise (0.9s)...');
+      act(() => {
+        vi.advanceTimersByTime(900);
+      });
+
+      // Case 2: locale="en" switching dataset to "简中" renders Simplified Chinese in all 4 states (no language flip)
+      act(() => {
+        root!.render(<HeroSandbox locale="en" />);
+      });
+      act(() => {
+        (container.querySelector('[data-testid="scene-tab-for-you"]') as HTMLButtonElement).click();
+      });
+
+      const zhCnDatasetBtn = getDatasetButtons().find((b) =>
+        b.textContent?.includes('简中')
+      ) as HTMLButtonElement;
+      expect(zhCnDatasetBtn).toBeDefined();
+      act(() => {
+        zhCnDatasetBtn.click();
+      });
+
+      // Active For You -> Simplified Chinese
+      expect(getStatusText()).toBe('✨ 净空引擎已就绪 · 实时保护中');
+
+      // Following Bypass -> Simplified Chinese (no English <-> Simplified flip)
+      act(() => {
+        (container.querySelector('[data-testid="scene-tab-following"]') as HTMLButtonElement).click();
+      });
+      expect(getStatusText()).toBe('✨ 净空引擎已就绪 · 正在关注场景跳过自动过滤 (Bypass)');
+
+      // Paused -> Simplified Chinese
+      const masterSwitchEn = container.querySelector(
+        'input[type="checkbox"][role="switch"]'
+      ) as HTMLInputElement;
+      act(() => {
+        masterSwitchEn.click();
+      });
+      expect(getStatusText()).toBe('⏸️ 净化已暂停 · 呈现未过滤原貌');
+
+      // Entrance (Replay) -> Simplified Chinese
+      act(() => {
+        (container.querySelector('.btn-replay-clean') as HTMLButtonElement).click();
+      });
+      expect(getStatusText()).toBe('⚡ 感知原始评论区噪音中 (0.9s)...');
+      act(() => {
+        vi.advanceTimersByTime(900);
+      });
     });
 
     it('cancels exit timeout when a new operation arrives during exit animation window', () => {

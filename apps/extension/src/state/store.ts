@@ -2,7 +2,15 @@ import { useSyncExternalStore } from 'react';
 import { STORAGE_KEYS } from '@keepxclean/shared';
 import { setActiveLocaleSetting } from '../i18n/state';
 import { command, isExtensionContextValid } from '../services/client';
-import { UI_KEYS, localDate, type AppState } from '../services/model';
+import {
+  defaultCloudSyncMeta,
+  defaultStats,
+  localDate,
+  rollStats,
+  UI_KEYS,
+  type AppState,
+} from '../services/model';
+import { normalizeParseHealth } from '../services/parse-health';
 import { validateConfig, validateSnapshot } from '../services/validation';
 import { cacheThemeSetting } from '../ui/theme';
 
@@ -57,6 +65,8 @@ function onStorage(
     STORAGE_KEYS.INTERCEPTION_LOGS,
     UI_KEYS.stats,
     UI_KEYS.sync,
+    UI_KEYS.cloudSync,
+    UI_KEYS.health,
     UI_KEYS.operations,
     UI_KEYS.imports,
   ];
@@ -71,12 +81,22 @@ function onStorage(
       );
     if (changes[STORAGE_KEYS.INTERCEPTION_LOGS])
       data.logs = changes[STORAGE_KEYS.INTERCEPTION_LOGS].newValue ?? [];
-    if (changes[UI_KEYS.stats]) data.stats = changes[UI_KEYS.stats].newValue;
-    if (changes[UI_KEYS.sync]) data.sync = changes[UI_KEYS.sync].newValue;
+    if (changes[UI_KEYS.stats])
+      data.stats = rollStats(changes[UI_KEYS.stats].newValue ?? defaultStats());
+    if (changes[UI_KEYS.sync])
+      data.sync = changes[UI_KEYS.sync].newValue ?? {
+        status: 'idle',
+        source: 'builtin',
+      };
+    if (changes[UI_KEYS.cloudSync])
+      data.cloudSync =
+        changes[UI_KEYS.cloudSync].newValue ?? defaultCloudSyncMeta();
+    if (changes[UI_KEYS.health])
+      data.health = normalizeParseHealth(changes[UI_KEYS.health].newValue);
     if (changes[UI_KEYS.operations])
-      data.operations = changes[UI_KEYS.operations].newValue;
+      data.operations = changes[UI_KEYS.operations].newValue ?? [];
     if (changes[UI_KEYS.imports])
-      data.imports = changes[UI_KEYS.imports].newValue;
+      data.imports = changes[UI_KEYS.imports].newValue ?? [];
     emit({ data, error: undefined });
   } catch (error) {
     emit({ error: (error as Error).message });
@@ -99,17 +119,12 @@ export function subscribe(fn: () => void) {
         clearInterval(dayTimer);
         return;
       }
-      if (current.data && current.data.stats.todayDate !== localDate())
+      if (!current.data?.stats) return;
+      if (current.data.stats.todayDate !== localDate())
         emit({
           data: {
             ...current.data,
-            stats: {
-              ...current.data.stats,
-              todayDate: localDate(),
-              todayBlocked: 0,
-              todayAdsHidden: 0,
-              partialDay: undefined,
-            },
+            stats: rollStats(current.data.stats),
           },
         });
     }, 30000);

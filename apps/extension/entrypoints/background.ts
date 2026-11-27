@@ -2,14 +2,29 @@ import { STORAGE_KEYS, type ViewerProfile } from '@keepxclean/shared';
 import {
   applyConfigCommand,
   mergeViewerProfile,
+  openOptionsPage,
 } from '../src/background/config';
 import {
+  CLOUD_SYNC_PUSH_ALARM,
+  disableCloudSync,
+  enableCloudSync,
+  flushCloudSyncPush,
+  handleSyncStorageChanged,
+  pullCloudSyncIfEnabled,
+  pushCloudSyncNow,
+  resolveCloudSync,
+  scheduleCloudSyncPush,
+} from '../src/background/cloud-sync';
+import {
   appendLogs,
+  dismissParseHealth,
   enqueue,
   initializeStorage,
   readConfig,
   readState,
   recoverConfig,
+  setOnConfigWrittenHook,
+  updateParseHealth,
   writeConfig,
 } from '../src/background/repository';
 import {
@@ -36,9 +51,11 @@ import {
   type Command,
   type Result,
 } from '../src/services/model';
-import { assert, UID } from '../src/services/validation';
+import { assert, record, UID } from '../src/services/validation';
 
 export default defineBackground(() => {
+  setOnConfigWrittenHook(() => scheduleCloudSyncPush());
+
   let initialized: Promise<void> | undefined;
   const ready = () =>
     initialized ??
@@ -75,6 +92,7 @@ export default defineBackground(() => {
     if (!(await chrome.alarms.get('kxc-sync')))
       await chrome.alarms.create('kxc-sync', { periodInMinutes: 30 });
     void refreshSnapshot().catch(() => undefined);
+    void pullCloudSyncIfEnabled().catch(() => undefined);
   };
   chrome.runtime.onInstalled.addListener(() => {
     void setup().catch(() => undefined);
@@ -85,6 +103,10 @@ export default defineBackground(() => {
   chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === 'kxc-sync')
       void refreshSnapshot().catch(() => undefined);
+    if (alarm.name === CLOUD_SYNC_PUSH_ALARM)
+      void ready()
+        .then(() => flushCloudSyncPush())
+        .catch(() => undefined);
     if (alarm.name.startsWith('kxc-op-'))
       void ready()
         .then(() => runOperation(alarm.name.slice(7)))
@@ -96,6 +118,10 @@ export default defineBackground(() => {
       (changes[STORAGE_KEYS.CONFIG] || changes[UI_KEYS.stats])
     )
       void badge();
+    if (area === 'sync')
+      void ready()
+        .then(() => handleSyncStorageChanged(changes, area))
+        .catch(() => undefined);
   });
   chrome.tabs.onRemoved.addListener((tabId) => {
     void enqueue(async () => {
@@ -121,8 +147,15 @@ export default defineBackground(() => {
       case 'config.reset':
       case 'keyword.save':
       case 'keyword.delete':
+      case 'domain.save':
+      case 'domain.delete':
       case 'cloudKeyword.toggle':
       case 'cloudKeyword.customize':
+      case 'cloudLangGroup.toggle':
+      case 'target.disable':
+      case 'pack.install':
+      case 'pack.toggle':
+      case 'pack.uninstall':
       case 'account.save':
       case 'account.delete':
         return enqueue(async () => {
@@ -130,6 +163,18 @@ export default defineBackground(() => {
           await checkServicePermission(next);
           await writeConfig(next);
         });
+      case 'cloudSync.enable':
+        return enableCloudSync();
+      case 'cloudSync.resolve':
+        return resolveCloudSync(action.strategy);
+      case 'cloudSync.disable':
+        return disableCloudSync();
+      case 'cloudSync.pushNow':
+        return pushCloudSyncNow();
+      case 'health.update':
+        return enqueue(() => updateParseHealth(action.report));
+      case 'health.dismiss':
+        return enqueue(() => dismissParseHealth());
       case 'account.resolve':
         return resolveAccount(action.query, sender.tab?.id);
       case 'config.recover':
@@ -149,16 +194,29 @@ export default defineBackground(() => {
       case 'viewer.set':
         return enqueue(async () => {
           assert(sender.tab?.id !== undefined, e.missingXTab);
-          const viewer: ViewerProfile = action.viewer;
+          const rawViewer = record(action.viewer, 'viewer');
           assert(
-            viewer &&
-              UID.test(viewer.restId) &&
-              /^[a-f0-9]{64}$/.test(viewer.reporterHash) &&
-              Number.isFinite(viewer.accountAgeDays) &&
-              viewer.accountAgeDays >= 0 &&
-              Number.isFinite(viewer.followersCount),
+            typeof rawViewer.restId === 'string' &&
+              UID.test(rawViewer.restId) &&
+              typeof rawViewer.reporterHash === 'string' &&
+              /^[a-f0-9]{64}$/.test(rawViewer.reporterHash) &&
+              typeof rawViewer.screenName === 'string' &&
+              rawViewer.screenName.length <= 100 &&
+              typeof rawViewer.accountAgeDays === 'number' &&
+              Number.isFinite(rawViewer.accountAgeDays) &&
+              rawViewer.accountAgeDays >= 0 &&
+              typeof rawViewer.followersCount === 'number' &&
+              Number.isFinite(rawViewer.followersCount) &&
+              rawViewer.followersCount >= 0,
             e.expectObject('viewer')
           );
+          const viewer: ViewerProfile = {
+            restId: rawViewer.restId,
+            screenName: rawViewer.screenName,
+            accountAgeDays: rawViewer.accountAgeDays,
+            followersCount: rawViewer.followersCount,
+            reporterHash: rawViewer.reporterHash,
+          };
           const data = await chrome.storage.local.get(UI_KEYS.viewers);
           const viewers = data[UI_KEYS.viewers] ?? {};
           const previous = viewers[sender.tab.id];
@@ -192,10 +250,7 @@ export default defineBackground(() => {
         return { reloaded: xTabs.length };
       }
       case 'options.open':
-        assert(!action.page || /^[a-z]+$/.test(action.page), e.unknownConfigField);
-        return chrome.tabs.create({
-          url: chrome.runtime.getURL(`options.html#/${action.page || 'rules'}`),
-        });
+        return openOptionsPage(action.page, action.query);
       case 'block.start':
         return startBlock(
           action.entry,

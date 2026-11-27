@@ -1,4 +1,8 @@
 import { useState } from 'react';
+import {
+  CLOUD_KEYWORD_LANG_GROUPS,
+  DEFAULT_CLOUD_KEYWORDS,
+} from '@keepxclean/shared';
 import { Cpu, Lock, Terminal } from 'lucide-react';
 import { useI18n } from '../locales';
 
@@ -14,19 +18,22 @@ export function ArchitectureFlow() {
       title: arch.step1Title,
       summary: arch.step1Desc,
       latency: '0ms (In-Memory Hook)',
-      input: 'X Web GraphQL response (TimelineAddEntries / UserTweets)',
-      processing: 'Deep instruction tree parsing prior to DOM mounting',
-      output: 'Normalized ExtractedTweet and Author entities',
-      privacy: 'Page responses processed in local browser memory',
+      input:
+        'X Web GraphQL response (HomeTimeline / HomeLatestTimeline / TweetDetail / UserTweets)',
+      processing:
+        'Deep instruction tree parsing prior to DOM mounting + local parse health self-check',
+      output: 'Normalized ExtractedTweet (with timelineFeed) and Author entities',
+      privacy: 'Page responses processed in local browser memory; zero telemetry',
     },
     {
       num: 2,
       title: arch.step2Title,
       summary: arch.step2Desc,
       latency: '< 1ms (Pure CPU)',
-      input: 'Extracted Tweet + Active FilterConfig + 24 Cloud Keywords',
-      processing: 'Deterministic pattern matching, linguistic heuristics, quote penetration',
-      output: 'InterceptionDecision (allow | strip | collapse | badge_only)',
+      input: `Extracted Tweet + Active FilterConfig + ${DEFAULT_CLOUD_KEYWORDS.length} Cloud Keywords (${CLOUD_KEYWORD_LANG_GROUPS.length}-Language Packs) + Offline Rule Packs`,
+      processing:
+        'Deterministic pattern matching, Grok protection, same-thread dedup, domain rules & quote penetration',
+      output: 'InterceptionDecision (allow | strip | collapse | badge_only) + matchedTarget',
       privacy: 'Zero remote AI model latency; 100% offline rule execution',
     },
     {
@@ -34,20 +41,23 @@ export function ArchitectureFlow() {
       title: arch.step3Title,
       summary: arch.step3Desc,
       latency: 'Instant (Render Cycle)',
-      input: 'InterceptionDecision + Timeline DOM state',
-      processing: 'In-place relay instruction surgery or non-destructive folded bar insertion',
+      input: 'InterceptionDecision + Per-Scene Override (For You / Following / Reply / Search)',
+      processing:
+        'In-place relay surgery or non-destructive folded bar with deep-link rule tuning & 1-click item disable',
       output: 'Clean timeline or collapsible bar with 4.5s undo countdown',
-      privacy: 'Non-destructive; full evidence retention and user inspection rights',
+      privacy:
+        'Non-destructive; full evidence retention, local 7-day stats & Canvas 2D Battle Report PNG',
     },
     {
       num: 4,
       title: arch.step4Title,
       summary: arch.step4Desc,
       latency: 'Asynchronous (Background)',
-      input: 'User manual block confirmation (after 4.5s window)',
-      processing: 'One-way cryptographic hash: sha256Hex("kxc_v1_" + authorId)',
-      output: 'Anonymous reputation counter increment (1 account = 1 vote)',
-      privacy: 'Public target details and a derived reporter ID; no X session credentials',
+      input: 'Opt-in manual block confirmation (after 4.5s window) & optional chrome.storage.sync',
+      processing:
+        'One-way cryptographic hash: sha256Hex("kxc_v1_" + authorId) · chunked sync (<=6 KB)',
+      output: 'Anonymous reputation counter increment (1 account = 1 vote); blocklists stay device-local',
+      privacy: 'Opt-in only (default OFF); no X session credentials or telemetry ever sent',
     },
   ];
 

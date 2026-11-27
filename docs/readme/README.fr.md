@@ -41,11 +41,11 @@
 
 ## Points Forts
 
-- **Moteur Déterministe Local (`< 1ms`)** : Analyse en mémoire les réponses GraphQL déjà transmises par X à votre navigateur. Aucun compte requis et aucun appel supplémentaire à l'API X.
-- **Défense Anti-Bruit Complète** : Bloque les réponses courtes de bots certifiés, les usurpateurs de l'auteur original, les concours pièges, le flood massif, l'abus de hashtags, **24 règles publiques intégrées**, le filtrage par langue et les publicités.
-- **Barre Repliée ou Masquage Silencieux + Pénétration des Citations** : Repliez les tweets interceptés en une barre inspectable d'une ligne ou masquez-les totalement ; lorsqu'un compte suivi cite du spam, l'action cible précisément le spammeur cité.
-- **Annulation sous 4,5 s & Retour Transparent** : Blocage local instantané avec **4,5 secondes pour annuler**, suivi en option du blocage natif X et du vote communautaire anonyme `SHA-256` salé (`1 compte = 1 vote`, seuil `5×` pour les créateurs ≥50k abonnés).
-- **10 Langues Natives** : Français, anglais, chinois (simplifié/traditionnel), japonais, coréen, espagnol, portugais, allemand et russe.
+- **Moteur Déterministe Local (`< 1ms`) & Autodiagnostic GraphQL** : Analyse en mémoire les réponses GraphQL déjà transmises par X sans aucune nouvelle permission (`storage` + `alarms`), sans connexion et avec autodiagnostic local de l'analyseur (résumé anonymisé, récupération automatique, zéro télémétrie).
+- **Défense Anti-Bruit Complète** : Bloque les réponses courtes de bots certifiés, **les réponses dupliquées dans un même fil** (conserve la 1re occurrence), **la protection officielle de `@grok` et le filtrage optionnel des invocations courtes**, les usurpateurs, les concours pièges, le flood, **le filtrage structuré des domaines externes**, **les packs publics en 10 langues (45 règles intégrées)**, **les packs hors ligne `.kxc-pack.json`**, le filtrage par langue et les publicités.
+- **Modes par Scène, Liens Directs & Pénétration des Citations** : Distingue **Pour vous** et **Abonnements** (`inherit` / `collapse` / `strip` / `bypass`), applique la pénétration des citations et propose depuis la barre dépliée d'ajuster directement la règle déclenchée ou de désactiver l'élément en un clic.
+- **Démarrage Rapide, Statistiques par Règle & Synchronisation Facultative** : Carte de prise en main non intrusive, statistiques par règle + tendance sur 7 jours + **rapport PNG local Canvas 2D** (zéro PII), **annulation sous 4,5 s** et **synchronisation facultative `chrome.storage.sync`** (désactivée par défaut ; listes locales et journaux restent sur l'appareil).
+- **10 Langues Natives & Chrome / Firefox MV3** : Français, anglais, chinois (simplifié/traditionnel), japonais, coréen, espagnol, portugais, allemand et russe.
 
 ## Installation
 
@@ -62,17 +62,19 @@ Installez en 1 clic depuis le [**Chrome Web Store**](https://chromewebstore.goog
 ## Confidentialité & Sécurité
 
 - KeepXClean ne demande ni mots de passe ni messages privés. Il lit localement les cookies de X pour identifier le compte et effectuer les opérations demandées par l’utilisateur. Les cookies de session et valeurs d’autorisation servent uniquement aux échanges avec X, jamais avec les serveurs KeepXClean. Consultez la politique de confidentialité pour les signalements communautaires facultatifs.
+- **Options Opt-In & Listes Locales** : Lors d'une nouvelle installation, `syncNativeXBlock`, `enableCrowdReport` et la synchronisation facultative (`chrome.storage.sync`) sont tous **désactivés** ; la synchronisation exclut les listes locales de blocage et journaux, et l'autodiagnostic ne transmet aucune télémétrie ni PII.
 - **Zéro Télémétrie** : Aucun SDK d'analyse tiers ni traceur publicitaire.
 - Consultez la [**Politique de Confidentialité**](https://keepxclean.com/privacy/) complète.
 
 ## Structure du Dépôt & Développement
 
 ```text
-packages/shared/   Moteur déterministe, parseur GraphQL X, 24 règles publiques & i18n
-apps/extension/    Extension WXT (Manifest V3), interface Shadow DOM & tâches de fond
-apps/server/       API Cloudflare Workers, agrégation D1 & cache R2
+packages/shared/   Moteur déterministe, parseur GraphQL X, packs publics en 10 langues (45 règles), validateur hors ligne & i18n
+apps/extension/    Extension WXT (Manifest V3 — Chrome & Firefox), interface Shadow DOM, rapport Canvas 2D & tâches de fond
+apps/server/       API Cloudflare Workers, agrégation D1, cache de snapshot & CLI cloud-rules
 apps/web/          Site officiel & bac à sable navigateur interactif (keepxclean.com)
 tests/e2e/         Suite de tests E2E et adversariaux à 5 niveaux
+tests/browser-e2e/ Suite E2E réelle d'extension MV3 dans Chromium
 ```
 
 Prérequis : **Node.js ≥ 20** et **pnpm**
@@ -80,13 +82,15 @@ Prérequis : **Node.js ≥ 20** et **pnpm**
 ```bash
 pnpm install
 pnpm dev:ext      # Lancer l'extension en mode développement
+pnpm lint         # Exécuter ESLint sur tout le workspace
 pnpm typecheck    # Vérification des types TypeScript
 pnpm test         # Tests unitaires et d'intégration
 pnpm test:e2e     # Suite E2E à 5 niveaux
 pnpm build        # Build de production
+pnpm test:browser # Exécuter la suite E2E réelle Chromium MV3
 ```
 
-Pour l'auto-hébergement et le déploiement CI/CD, voir [docs/DEPLOYMENT.md](../DEPLOYMENT.md).
+Consultez l'historique des versions dans [CHANGELOG.md](../../CHANGELOG.md). Pour l'auto-hébergement et le déploiement CI/CD, voir [docs/DEPLOYMENT.md](../DEPLOYMENT.md).
 
 ## Auteur & Licence
 

@@ -1658,11 +1658,127 @@
   text-transform: uppercase;
 }
 
-.risk-tag.impersonator { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
-.risk-tag.short_reply  { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
-.risk-tag.giveaway     { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
-.risk-tag.crypto       { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
-.risk-tag.ads          { background: var(--surface-subtle); color: var(--muted); border: 1px solid var(--border); }
+.risk-tag.impersonator    { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
+.risk-tag.short_reply     { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
+.risk-tag.giveaway        { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
+.risk-tag.crypto          { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
+.risk-tag.duplicate_reply { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
+.risk-tag.grok_summon     { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
+.risk-tag.ads             { background: var(--surface-subtle); color: var(--muted); border: 1px solid var(--border); }
+
+/* v0.2.0 For You / Following Scene Tabs, Bypass Banner & Protection Badges */
+.x-scene-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-bottom: 1px solid #eff3f4;
+  background: var(--surface);
+}
+
+.x-scene-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px 12px;
+  background: transparent;
+  border: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.x-scene-tab:hover {
+  background: var(--surface-subtle);
+  color: var(--text);
+}
+
+.x-scene-tab:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: -2px;
+}
+
+.x-scene-tab.active {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.x-scene-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--green);
+}
+
+.x-scene-tab-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--selected);
+  color: var(--green);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.sandbox-scene-bypass-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  background: var(--selected);
+  border-bottom: 1px solid rgba(19, 134, 95, 0.16);
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.sandbox-scene-bypass-banner svg {
+  flex-shrink: 0;
+}
+
+.tweet-protected-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--selected);
+  border: 1px solid rgba(19, 134, 95, 0.24);
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.tweet-duplicate-kept-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.stats-bypass-tag {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--green);
+}
 
 /* ==========================================================================
    5. 4.5s Undo Countdown Toast

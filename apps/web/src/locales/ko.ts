@@ -16,7 +16,7 @@ export const ko: TranslationDictionary = {
     faq: '자주 묻는 질문',
     privacy: '개인정보 처리방침',
     github: 'GitHub 소스코드',
-    downloadCta: 'v0.1.2 다운로드',
+    downloadCta: 'v0.2.0 다운로드',
     addToChrome: 'Chrome에 추가',
     cwsBadge: 'Chrome 웹 스토어 심사 중',
     cwsReviewBadge: 'Chrome 웹 스토어 심사 중',
@@ -31,9 +31,9 @@ export const ko: TranslationDictionary = {
     headlinePrefix: '깨끗하고 가치 있는',
     headlineHighlight: 'X 타임라인과 답글창 되찾기',
     subheadline:
-      'X의 GraphQL 응답을 브라우저 로컬에서 직접 결정론적으로 처리합니다. 별도 가입 불필요, 1ms 미만의 즉각 실행, 투명한 규칙으로 AI 봇과 사기성 도배를 차단합니다.',
-    ctaDownload: 'GitHub 얼리 액세스 (v0.1.2) 다운로드',
-    ctaPrimary: 'GitHub 얼리 액세스 (v0.1.2) 다운로드',
+      'X의 GraphQL 응답을 브라우저 로컬에서 1ms 미만으로 결정론적 처리합니다. 공식 @grok 보호, 동일 스레드 복붙 답글 차단, 10개 언어 공용 키워드 팩, 오프라인 규칙 팩 및 선택적 기기 동기화를 추가 권한 없이 제공합니다.',
+    ctaDownload: 'GitHub 릴리스 (v0.2.0) 다운로드',
+    ctaPrimary: 'GitHub 릴리스 (v0.2.0) 다운로드',
     ctaStore: 'Chrome에 추가',
     ctaSecondary: 'GitHub에서 소스 보기',
     ctaGitHub: 'GitHub에서 소스 보기',
@@ -65,7 +65,7 @@ export const ko: TranslationDictionary = {
     counterLabel: '차단된 노이즈',
     counterSuffix: '개',
     quickCleanTooltip: '즉시 정화 (4.5초 실행 취소 가능)',
-    discussionHeader: '인기 답글 (7개)',
+    discussionHeader: '인기 답글 (10개)',
     foldedBar: {
       expand: '차단된 답글 보기',
       collapse: '접기',
@@ -83,7 +83,7 @@ export const ko: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.2이 출시되었습니다! 로컬 우선 아키텍처, 1ms 미만의 결정론적 평가, 로컬 필터링, 10개 언어 매트릭스. X에서 순수한 고신호 타임라인을 경험하세요.',
+        'KeepXClean v0.2.0이 출시되었습니다! 1ms 미만 로컬 우선 엔진에 공식 @grok 보호, 중복 답글 차단, 10개 언어 공용 키워드 팩을 추가 권한 없이 담았습니다.',
       time: '2시간 전',
       replies: '142',
       reposts: '389',
@@ -93,14 +93,14 @@ export const ko: TranslationDictionary = {
   bento: {
     badge: '핵심 기능',
     title: '계정 정보 노출 없이 완벽하게 제어하는 피드',
-    sub: '외부 블랙박스 서버에 의존하지 않는 4가지 로컬 우선 아키텍처.',
+    sub: '외부 블랙박스 서버에 의존하지 않는 4가지 로컬 우선 기둥과 v0.2.0 신규 기능.',
     sectionTitle: '핵심 기능 둘러보기',
     sectionDesc:
-      '24개 공용 키워드 · 4.5초 정직한 3단계 상태 · 프로필 위험 뱃지 · 언어 필터 및 미디어 스마트 면제.',
+      '10개 언어 공용 키워드 팩(45개 규칙) · 4.5초 정직한 3단계 상태 · 프로필 위험 뱃지 · 언어/미디어 면제 · 오프라인 규칙 팩 및 로컬 리포트.',
     card1: {
-      tag: '공용 규칙 모음',
-      title: '24개 공용 키워드 및 클리셰 필터팩',
-      desc: '마케팅 상투어구, 코인 선동, 맞팔 품앗이, 성인 플랫폼 유도, 불법 거래 등 5대 카테고리를 망라합니다. 정규식을 확인하고 개별 토글할 수 있습니다.',
+      tag: '10개 언어 팩',
+      title: '10개 언어 공용 키워드 팩 및 클리셰 필터',
+      desc: '공용 스팸 팩과 9개 언어 팩으로 나뉘어 마케팅 상투어구, 코인 선동, 맞팔 품앗이, 성인 유도, 사기 등 5개 분류를 투명하게 관리합니다. 언어 팩 일괄 전환과 개별 정규식 조정을 지원합니다.',
       categoryAll: '전체',
       categoryCliche: '마케팅 클리셰',
       categoryCrypto: '코인 및 밈코인',
@@ -111,11 +111,16 @@ export const ko: TranslationDictionary = {
       disabled: '꺼짐',
       copyRegex: '규칙 복사',
       copied: '복사 완료!',
-      searchPlaceholder: '키워드 또는 정규식 필터링...',
+      searchPlaceholder: '키워드, 언어 팩 또는 정규식 필터링...',
       searchAriaLabel: '키워드 필터링',
       clearSearch: '검색 지우기',
       inspectRegex: '정규식 검사',
       closeInspector: '검사기 닫기',
+      langPacksAriaLabel: '언어 팩으로 필터링',
+      langPackAll: '전체 팩',
+      langPackUniversal: '공통',
+      enablePack: '팩 전체 켜기',
+      disablePack: '팩 전체 끄기',
     },
     card2: {
       tag: '정직한 3단계 피드백',
@@ -177,6 +182,30 @@ export const ko: TranslationDictionary = {
       normalLangNotice: '정상 표시 (언어 조건에 부합).',
       toggleMediaLabel: '미디어 첨부 및 범용 이모지 전환:',
     },
+    v020Highlights: {
+      badge: 'v0.2.0 신규 기능',
+      title: '더 정교한 필터링, 여전히 추가 권한 제로',
+      langPacks: {
+        tag: '10개 언어 팩',
+        title: '언어별 공용 키워드 팩',
+        desc: '공통 스팸 팩과 9개 지역 언어 팩(기본 45개 규칙)을 제공합니다. UI 언어에 맞춰 자동 활성화되며 팩 일괄 전환과 개별 미세 조정이 가능합니다.',
+      },
+      rulePacks: {
+        tag: '오프라인 .kxc-pack.json',
+        title: '공유 가능한 오프라인 규칙 팩',
+        desc: '로컬 JSON 파일이나 클립보드로 키워드·외부 도메인·UID 규칙 팩을 안전하게 주고받으며, 원격 구독 없이 독립 관리 및 원클릭 삭제가 가능합니다.',
+      },
+      battleReport: {
+        tag: '로컬 Canvas 2D',
+        title: '규칙별 통계 및 로컬 정화 리포트 PNG',
+        desc: '기록 페이지에서 규칙별 분포와 최근 7일 추세를 확인하고, 개인정보 없는 라이트 테마 리포트 PNG를 로컬에서 즉시 생성·저장할 수 있습니다.',
+      },
+      cloudSync: {
+        tag: '선택 기능 · 기본 꺼짐',
+        title: '선택적 기기 간 동기화',
+        desc: 'chrome.storage.sync로 규칙·장면 정책·도메인·팩을 6KB 이하 청크로 동기화하며 3가지 충돌 해결을 지원합니다. 대용량 로컬 차단 목록과 로그는 기기에만 유지됩니다.',
+      },
+    },
   },
   architecture: {
     badge: '로컬 우선 아키텍처',
@@ -194,7 +223,7 @@ export const ko: TranslationDictionary = {
       'X 웹 클라이언트가 이미 수신한 응답을 직접 활용하므로 추가 API 호출이나 호출 한도 문제가 없습니다.',
     step2Title: '2. 결정론적 로컬 규칙 엔진',
     step2Desc:
-      '로컬 CPU에서 1ms 미만으로 규칙, 팔로워 비율, 스팸 패턴을 판별하여 클라우드 지연이 없습니다.',
+      '로컬 CPU에서 1ms 미만으로 프리셋, Grok 보호, 중복 답글 제거, 도메인 필터, 10개 언어 팩과 오프라인 규칙 팩을 판별합니다.',
     step3Title: '3. 비침습적 DOM 스타일 적용',
     step3Desc:
       '부드러운 CSS 높이 전환 애니메이션으로 사용자 설정에 맞춰 노이즈를 숨기거나 접습니다.',
@@ -236,10 +265,10 @@ export const ko: TranslationDictionary = {
     sectionDesc:
       '릴리스 ZIP 다운로드 · 압축 해제 · Chrome 개발자 모드에서 압축해제된 확장 프로그램 로드.',
     copyTooltip: 'chrome://extensions 복사',
-    readyStatus: 'KeepXClean v0.1.2 · 사용 준비 완료',
+    readyStatus: 'KeepXClean v0.2.0 · 사용 준비 완료',
     step1Title: '1단계: 배포 패키지 (.zip) 다운로드',
     step1Desc:
-      'GitHub Releases에서 최신 keepxclean-v0.1.2.zip 파일을 다운로드하고 로컬 폴더에 압축을 풉니다.',
+      'GitHub Releases에서 최신 keepxclean-v0.2.0.zip 파일을 다운로드하고 로컬 폴더에 압축을 풉니다.',
     step1Action: '릴리스 ZIP 다운로드',
     step2Title: '2단계: 개발자 모드 활성화',
     step2Desc:
@@ -282,6 +311,14 @@ export const ko: TranslationDictionary = {
         q: 'KeepXClean은 정말 완전 무료이고 오픈 소스인가요?',
         a: '네. KeepXClean은 매우 자유로운 MIT 라이선스를 따르며, 확장 프로그램, 공유 라이브러리, 웹사이트의 모든 코드가 GitHub에 100% 공개되어 누구나 감사하고 기여할 수 있습니다.',
       },
+      {
+        q: '10개 언어 공용 키워드 팩과 오프라인 .kxc-pack.json 규칙 팩은 어떻게 동작하나요?',
+        a: '기본 공용 규칙은 공통 팩과 9개 언어 팩(총 45개 규칙)으로 구성되어 팩 단위 및 항목별 전환이 가능합니다. 주제별 규칙 팩은 .kxc-pack.json 파일이나 클립보드로만 완전 오프라인 공유되며, 원격 URL 구독 없이 독립 설치·원클릭 제거를 지원합니다.',
+      },
+      {
+        q: '선택적 기기 간 동기화(chrome.storage.sync)는 어떻게 동작하며 새 권한이 필요한가요?',
+        a: '기기 간 동기화는 기본적으로 꺼져 있으며 새로운 브라우저 권한을 요구하지 않습니다(여전히 storage와 alarms만 사용). 환경설정에서 켜면 규칙, 장면 정책, 도메인, 규칙 팩이 6KB 이하 청크로 동기화되고 최초 충돌 시 3가지 선택지를 제공합니다. 대용량 로컬 차단 목록, 허용 목록, 로그 및 파싱 상태 진단은 기기에만 보관됩니다.',
+      },
     ],
   },
   footer: {
@@ -300,7 +337,7 @@ export const ko: TranslationDictionary = {
     install: '설치 가이드',
     faq: '자주 묻는 질문',
     githubRepo: 'GitHub 저장소',
-    releaseZip: '릴리스 v0.1.2 (.zip)',
+    releaseZip: '릴리스 v0.2.0 (.zip)',
     statsApi: '커뮤니티 통계 API',
     issues: '이슈 트래커',
     privacyPolicy: '개인정보 처리방침 (이중언어)',

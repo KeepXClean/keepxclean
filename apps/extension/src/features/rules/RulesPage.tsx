@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Activity,
+  Bot,
   Check,
   ChevronDown,
   ChevronRight,
   Feather,
+  Globe,
   Hash,
   Languages,
   Magnet,
@@ -21,9 +23,12 @@ import {
 import {
   TWEET_LANGUAGE_CODES,
   getTweetLanguageLabel,
+  resolveEnabledCloudLangGroups,
   type FilterConfig,
   type FilterRulesConfig,
   type KeywordRuleItem,
+  type SceneModeKey,
+  type SceneModeOverride,
 } from '@keepxclean/shared';
 import { formatCount, getI18n, useI18n } from '../../i18n';
 import { mutate, useApp } from '../../state/store';
@@ -40,18 +45,28 @@ import {
   Setting,
   Switch,
 } from '../../ui/components';
+import { useFocusHighlight, useHashQuery } from '../../ui/useHashQuery';
 
 export const ruleDefinitions = [
   { key: 'replySpam', icon: MessageCircle },
+  { key: 'grokFilter', icon: Bot },
   { key: 'engagementBait', icon: Magnet },
   { key: 'highFrequency', icon: Activity },
   { key: 'crowdBlock', icon: Users },
   { key: 'keywords', icon: Type },
+  { key: 'domainFilter', icon: Globe },
   { key: 'tagSpam', icon: Hash },
   { key: 'accountQuality', icon: UserRoundCheck },
   { key: 'languageFilter', icon: Languages },
   { key: 'hidePromotedAds', icon: MegaphoneOff },
 ] as const;
+
+const SCENE_MODE_ORDER: SceneModeKey[] = [
+  'for_you',
+  'following',
+  'reply',
+  'search',
+];
 
 export function summarizeRule(
   key: keyof FilterRulesConfig,
@@ -80,6 +95,24 @@ export function summarizeRule(
           m.rules.summary.bioLink(formatCount(r.bioLinkMaxFollowers, locale))
         );
       if (r.blockPureMediaReplies) parts.push(m.rules.summary.pureMedia);
+      if (r.blockDuplicateReplies) parts.push(m.rules.summary.duplicateReplies);
+      return parts.length
+        ? parts.join(' · ')
+        : m.rules.summary.enabledSelectItems;
+    }
+    case 'grokFilter': {
+      const r = rules.grokFilter;
+      const parts: string[] = [];
+      if (r.protectOfficialGrok) parts.push(m.rules.summary.grokProtectOfficial);
+      if (r.blockShortMentions) {
+        parts.push(
+          m.rules.summary.grokShortMentions(
+            r.maxMentionWeightedLength,
+            Math.ceil(r.maxMentionWeightedLength / 2)
+          )
+        );
+      }
+      if (r.hideGrokReplies) parts.push(m.rules.summary.grokHideReplies);
       return parts.length
         ? parts.join(' · ')
         : m.rules.summary.enabledSelectItems;
@@ -110,9 +143,13 @@ export function summarizeRule(
         ? m.rules.summary.keywordsLocalOn(activeLocal)
         : m.rules.summary.keywordsLocalOff;
       const disabledCloudSet = new Set(config.disabledCloudKeywordIds);
+      const enabledGroups = new Set(resolveEnabledCloudLangGroups(config));
       const totalCloud = cloudKeywords.filter((k) => k.enabled).length;
       const activeCloud = cloudKeywords.filter(
-        (k) => k.enabled && !disabledCloudSet.has(k.id)
+        (k) =>
+          k.enabled &&
+          !disabledCloudSet.has(k.id) &&
+          enabledGroups.has(k.langGroup ?? 'universal')
       ).length;
       const cloudPart = config.enableCloudKeywords
         ? activeCloud === totalCloud
@@ -120,6 +157,15 @@ export function summarizeRule(
           : m.rules.summary.keywordsCloudPartial(activeCloud, totalCloud)
         : m.rules.summary.keywordsCloudOff;
       return `${localPart} · ${cloudPart}`;
+    }
+    case 'domainFilter': {
+      const items = rules.domainFilter.items;
+      const total = items.length;
+      const active = items.filter((d) => d.enabled).length;
+      if (total === 0) return m.rules.summary.domainEmpty;
+      return active === total
+        ? m.rules.summary.domainActive(active)
+        : m.rules.summary.domainPartial(active, total);
     }
     case 'tagSpam':
       return m.rules.summary.tagSpam(
@@ -246,10 +292,30 @@ export function RulesPage() {
   const { data } = useApp();
   const { m, locale } = useI18n();
   const { config, snapshot } = data!;
-  const [expanded, setExpanded] = useState<string | null>(
-    new URLSearchParams(location.hash.split('?')[1]).get('rule')
-  );
+  const hashQuery = useHashQuery();
+  const focusRuleParam = hashQuery.get('focus') || hashQuery.get('rule');
+  const validRuleFocus = ruleDefinitions.some((r) => r.key === focusRuleParam)
+    ? focusRuleParam
+    : null;
+  const [expanded, setExpanded] = useState<string | null>(validRuleFocus);
   const [modeChanged, setModeChanged] = useState(false);
+
+  const sceneModes = config.sceneModes ?? {};
+  const overrideCount = SCENE_MODE_ORDER.filter(
+    (scene) => sceneModes[scene] && sceneModes[scene] !== 'inherit'
+  ).length;
+  const hasBypassScene = SCENE_MODE_ORDER.some(
+    (scene) => sceneModes[scene] === 'bypass'
+  );
+  const [sceneModesOpen, setSceneModesOpen] = useState(overrideCount > 0);
+
+  useEffect(() => {
+    if (validRuleFocus) {
+      setExpanded(validRuleFocus);
+    }
+  }, [hashQuery, validRuleFocus]);
+
+  const activeFocusId = useFocusHighlight(validRuleFocus);
 
   const numericFields: Partial<
     Record<
@@ -279,6 +345,15 @@ export function RulesPage() {
         min: 0,
         step: 50,
         max: 5000,
+      },
+    ],
+    grokFilter: [
+      {
+        field: 'maxMentionWeightedLength',
+        title: m.rules.fields.maxMentionWeightedLength.title,
+        unit: m.rules.fields.maxMentionWeightedLength.unit,
+        min: 1,
+        max: 64,
       },
     ],
     highFrequency: [
@@ -360,6 +435,24 @@ export function RulesPage() {
       {
         field: 'blockPureMediaReplies',
         title: m.rules.fields.blockPureMediaReplies,
+      },
+      {
+        field: 'blockDuplicateReplies',
+        title: m.rules.fields.blockDuplicateReplies,
+      },
+    ],
+    grokFilter: [
+      {
+        field: 'protectOfficialGrok',
+        title: m.rules.fields.protectOfficialGrok,
+      },
+      {
+        field: 'blockShortMentions',
+        title: m.rules.fields.blockShortMentions,
+      },
+      {
+        field: 'hideGrokReplies',
+        title: m.rules.fields.hideGrokReplies,
       },
     ],
     engagementBait: [
@@ -445,6 +538,108 @@ export function RulesPage() {
               />
             </div>
           </Setting>
+          <div className="scene-modes-box">
+            <button
+              type="button"
+              className="scene-modes-toggle"
+              aria-expanded={sceneModesOpen}
+              onClick={() => setSceneModesOpen((open) => !open)}
+            >
+              <div>
+                <h3>{m.rules.sceneModes.title}</h3>
+                <p className="small muted">{m.rules.sceneModes.desc}</p>
+              </div>
+              <div className="row" style={{ gap: 8 }}>
+                <Pill kind={overrideCount > 0 ? '' : 'neutral'}>
+                  {overrideCount > 0
+                    ? m.rules.sceneModes.overrideCount(overrideCount)
+                    : m.rules.sceneModes.allInherit}
+                </Pill>
+                {sceneModesOpen ? (
+                  <ChevronDown size={16} />
+                ) : (
+                  <ChevronRight size={16} />
+                )}
+              </div>
+            </button>
+            {sceneModesOpen && (
+              <div className="scene-modes-grid">
+                {SCENE_MODE_ORDER.map((sceneKey) => {
+                  const currentMode: SceneModeOverride =
+                    sceneModes[sceneKey] ?? 'inherit';
+                  return (
+                    <div
+                      className="scene-modes-row"
+                      key={sceneKey}
+                      data-scene-mode-row={sceneKey}
+                    >
+                      <span className="small" style={{ fontWeight: 550 }}>
+                        {m.rules.sceneModes.scenes[sceneKey]}
+                      </span>
+                      <Segmented<SceneModeOverride>
+                        label={m.rules.sceneModes.scenes[sceneKey]}
+                        value={currentMode}
+                        options={[
+                          {
+                            value: 'inherit',
+                            label: m.rules.sceneModes.modes.inherit,
+                          },
+                          {
+                            value: 'collapse',
+                            label: m.rules.sceneModes.modes.collapse,
+                          },
+                          {
+                            value: 'strip',
+                            label: m.rules.sceneModes.modes.strip,
+                          },
+                          {
+                            value: 'bypass',
+                            label: m.rules.sceneModes.modes.bypass,
+                          },
+                        ]}
+                        onChange={(nextMode) => {
+                          if (nextMode !== currentMode) {
+                            perform({
+                              type: 'config.patch',
+                              patch: { sceneModes: { [sceneKey]: nextMode } },
+                            });
+                            setModeChanged(true);
+                          }
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+                {hasBypassScene && (
+                  <Banner>{m.rules.sceneModes.bypassNote}</Banner>
+                )}
+                {overrideCount > 0 && (
+                  <div className="row" style={{ justifyContent: 'flex-end' }}>
+                    <Button
+                      variant="ghost sm"
+                      onClick={() => {
+                        perform({
+                          type: 'config.patch',
+                          patch: {
+                            sceneModes: {
+                              for_you: 'inherit',
+                              following: 'inherit',
+                              reply: 'inherit',
+                              search: 'inherit',
+                            },
+                          },
+                        });
+                        setModeChanged(true);
+                      }}
+                    >
+                      <RotateCcw size={13} />
+                      {m.rules.sceneModes.resetAllBtn}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </Panel>
 
         <div className="row between">
@@ -462,14 +657,18 @@ export function RulesPage() {
             const def = m.rules.defs[rule.key];
             const open = expanded === rule.key;
             const ruleEnabled = config.rules[rule.key].enabled;
+            const isFocused = activeFocusId === rule.key;
             const values = config.rules[rule.key] as unknown as Record<
               string,
               number | boolean
             >;
             return (
               <section
-                className="rule-item"
+                className={`rule-item${isFocused ? ' focus-highlight' : ''}`}
                 key={rule.key}
+                data-rule-key={rule.key}
+                data-focus-id={rule.key}
+                data-focused={isFocused ? 'true' : undefined}
                 data-disabled={String(!ruleEnabled)}
               >
                 <div className="rule-summary">
@@ -635,6 +834,13 @@ export function RulesPage() {
                       <div>
                         <a className="btn sm" href="#/keywords">
                           {m.rules.manageKeywordsLink}
+                        </a>
+                      </div>
+                    )}
+                    {rule.key === 'domainFilter' && (
+                      <div>
+                        <a className="btn sm" href="#/keywords?tab=domains">
+                          {m.rules.manageDomainsLink}
                         </a>
                       </div>
                     )}

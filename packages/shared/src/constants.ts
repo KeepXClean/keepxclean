@@ -23,3 +23,20 @@ export const STORAGE_KEYS = {
 } as const;
 
 export const MAX_INTERCEPTION_LOGS = 200;
+
+/**
+ * Official @grok Account & Engine v2 Rule Constants
+ */
+export const OFFICIAL_GROK_UID = '1720665183188922368';
+export const OFFICIAL_GROK_SCREEN_NAME = 'grok';
+export const DEFAULT_GROK_MAX_MENTION_WEIGHTED_LENGTH = 16;
+export const MIN_DUPLICATE_REPLY_WEIGHTED_LENGTH = 12;
+
+/**
+ * Offline Rule Pack (kxc-pack-v1) Security Limits
+ */
+export const MAX_RULE_PACK_BYTES = 2 * 1024 * 1024;
+export const MAX_RULE_PACK_KEYWORDS = 200;
+export const MAX_RULE_PACK_DOMAINS = 200;
+export const MAX_RULE_PACK_BLOCKED_UIDS = 2000;
+export const MAX_RULE_PACK_REGEX_LENGTH = 500;

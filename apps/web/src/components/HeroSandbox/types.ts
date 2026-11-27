@@ -6,13 +6,16 @@
 export type SandboxPreset = 'mild' | 'standard' | 'extreme';
 export type PresetLevel = 'mild' | 'standard' | 'extreme';
 export type SandboxDisplayMode = 'folded' | 'hide';
+export type SandboxScene = 'for_you' | 'following';
 
 export type SandboxNoiseCategory =
-  | 'impersonator'  // Thread-Author Impersonator / 高仿原推主
-  | 'short_reply'   // Verified Short/AI Spam / 蓝标无意义水评
-  | 'giveaway'      // Engagement & Giveaway Bait / 口令抽奖引流
-  | 'crypto'        // Cloud Clichés & Crypto Shilling / 币圈土狗喊单
-  | 'ads';          // Promoted Ads / 赞助广告
+  | 'impersonator'    // Thread-Author Impersonator / 高仿原推主 (mild)
+  | 'ads'             // Promoted Ads / 赞助广告 (mild; active in Following bypass)
+  | 'giveaway'        // Engagement & Giveaway Bait / 口令抽奖引流 (standard)
+  | 'crypto'          // Cloud Clichés & Crypto Shilling / 币圈土狗喊单 (standard)
+  | 'duplicate_reply' // Same-Thread Duplicate Reply Spam / 同贴复读水军 (standard, v0.2.0)
+  | 'grok_summon'     // Short @grok Summon Spam / @grok 短召唤刷屏 (extreme, v0.2.0)
+  | 'short_reply';    // Verified Short/AI Spam / 蓝标无意义水评 (extreme)
 
 export interface TweetAuthor {
   name: string;
@@ -22,6 +25,8 @@ export interface TweetAuthor {
   isBlueVerified?: boolean;
   isAuthor?: boolean;
   isImpersonator?: boolean;
+  isOfficialGrok?: boolean;
+  dailyPostsRate?: string;
   followersCount?: string;
   accountAge?: string;
   bio?: string;
@@ -52,6 +57,9 @@ export interface SandboxTweet {
   isReplyTo?: string;
   filterReason?: TweetFilterReason;
   sponsoredTag?: string;
+  protectedNotice?: string;
+  duplicateRole?: 'first_kept' | 'duplicate_blocked';
+  duplicateNotice?: string;
 }
 
 export interface LocalizedSandboxData {
@@ -76,6 +84,7 @@ export interface FilterState {
   masterEnabled: boolean;
   preset: SandboxPreset;
   displayMode: SandboxDisplayMode;
+  scene?: SandboxScene;
   categories: Record<SandboxNoiseCategory, boolean>;
   manuallyBlockedIds: Set<string>;
   restoredTweetIds: Set<string>;
@@ -104,13 +113,30 @@ export function formatHandle(handle?: string | null): string {
 }
 
 /**
+ * Normalizes an author handle for case-insensitive, '@' prefix-insensitive comparison.
+ */
+export function normalizeSandboxHandle(handle: string): string {
+  return handle.trim().replace(/^@+/, '').toLowerCase();
+}
+
+const KNOWN_SANDBOX_CATEGORIES = new Set<string>([
+  'impersonator',
+  'ads',
+  'giveaway',
+  'crypto',
+  'duplicate_reply',
+  'grok_summon',
+  'short_reply',
+]);
+
+/**
  * Pure evaluation function to determine if a tweet should be intercepted.
  */
 export function isTweetIntercepted(
   tweet: SandboxTweet,
   state: FilterState
 ): boolean {
-  // 1. Manually blocked tweets are always intercepted
+  // 1. Manually blocked tweets are always intercepted (even in Following bypass or master OFF)
   if (state.manuallyBlockedIds.has(tweet.id)) {
     return true;
   }
@@ -126,9 +152,19 @@ export function isTweetIntercepted(
   }
 
   // 4. Whitelisted author handles bypass filtering
-  const cleanHandle = tweet.author.handle.replace(/^@/, '').toLowerCase();
-  if (state.whitelistedHandles.has(cleanHandle) || state.whitelistedHandles.has(tweet.author.handle)) {
-    return false;
+  const cleanHandle = normalizeSandboxHandle(tweet.author.handle);
+  if (cleanHandle.length > 0) {
+    if (
+      state.whitelistedHandles.has(cleanHandle) ||
+      state.whitelistedHandles.has(tweet.author.handle)
+    ) {
+      return false;
+    }
+    for (const whitelisted of state.whitelistedHandles) {
+      if (normalizeSandboxHandle(whitelisted) === cleanHandle) {
+        return false;
+      }
+    }
   }
 
   // 5. Restored tweets bypass automatic filtering
@@ -136,15 +172,33 @@ export function isTweetIntercepted(
     return false;
   }
 
-  // 6. Clean discussion tweets have no filterReason
+  // 6. Clean discussion tweets (including protected official @grok & 1st kept replies) have no filterReason
   if (!tweet.filterReason) {
     return false;
   }
 
   const { category, presetLevel } = tweet.filterReason;
 
-  // 7. Check category toggle
-  if (!state.categories[category]) {
+  // 6.5. v0.2.0 Following scene bypass: skip automatic heuristic rules while keeping promoted ads & manual blocks
+  const effectiveScene: SandboxScene = state.scene ?? 'for_you';
+  if (effectiveScene === 'following' && category !== 'ads') {
+    return false;
+  }
+
+  // 7. Check category toggle (reject unknown categories; use own-property lookup;
+  //    default omitted v0.2.0 keys ON for legacy 5-key callers only when all provided keys are enabled)
+  if (!KNOWN_SANDBOX_CATEGORIES.has(category)) {
+    return false;
+  }
+  const categoryEntries = Object.entries(state.categories);
+  if (categoryEntries.length === 0) {
+    return false;
+  }
+  if (Object.prototype.hasOwnProperty.call(state.categories, category)) {
+    if (!state.categories[category]) {
+      return false;
+    }
+  } else if (!categoryEntries.every(([, enabled]) => Boolean(enabled))) {
     return false;
   }
 

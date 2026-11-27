@@ -202,7 +202,9 @@ const BLOCK_REASON_DICT: Record<
 export function getBlockReasonLabels(
   locale: SupportedLocale
 ): Record<BlockReasonTag, string> {
-  return BLOCK_REASON_DICT[locale] ?? BLOCK_REASON_DICT.en;
+  return Object.prototype.hasOwnProperty.call(BLOCK_REASON_DICT, locale)
+    ? BLOCK_REASON_DICT[locale]
+    : BLOCK_REASON_DICT.en;
 }
 
 const TWEET_LANGUAGE_NAMES: Record<SupportedLocale, Record<string, string>> = {
@@ -383,11 +385,19 @@ export function getTweetLanguageLabel(
   locale: SupportedLocale
 ): string {
   const clean = code.toLowerCase().trim();
-  return (
-    TWEET_LANGUAGE_NAMES[locale]?.[clean] ??
-    TWEET_LANGUAGE_NAMES.en[clean] ??
-    clean.toUpperCase()
-  );
+  const dict = Object.prototype.hasOwnProperty.call(
+    TWEET_LANGUAGE_NAMES,
+    locale
+  )
+    ? TWEET_LANGUAGE_NAMES[locale]
+    : undefined;
+  if (dict && Object.prototype.hasOwnProperty.call(dict, clean)) {
+    return dict[clean]!;
+  }
+  if (Object.prototype.hasOwnProperty.call(TWEET_LANGUAGE_NAMES.en, clean)) {
+    return TWEET_LANGUAGE_NAMES.en[clean]!;
+  }
+  return clean.toUpperCase();
 }
 
 const CLOUD_KEYWORD_NOTES: Record<SupportedLocale, Record<string, string>> = {
@@ -397,7 +407,7 @@ const CLOUD_KEYWORD_NOTES: Record<SupportedLocale, Record<string, string>> = {
     'cloud-cliche-clickbait-1': 'Clickbait: "99% don’t know / Delete before banned" shock hooks',
     'cloud-cliche-breaking-1': 'Fake urgency: "BREAKING 🚨 / Just in" impression farming',
     'cloud-cliche-guru-1': 'Hustle-bro clichés: "Monetize mindset / Info gap / Wealth code"',
-    'cloud-cliche-aislop-cn-1': 'Content farm: "Compiled all night / Ultimatebookmark thread"',
+    'cloud-cliche-aislop-cn-1': 'Content farm: "Compiled all night / Ultimate bookmark thread"',
     'cloud-cliche-emotion-1': 'Low-effort vent clichés & viral melodrama slang',
     'cloud-cliche-aislop-en-1': 'English bait: "Hot take / Unpopular opinion / Illegal to know"',
     'cloud-cliche-ai-reply-1': 'Reply bots: Leaked AI prompts & "Check my pinned tweet" funnels',
@@ -416,6 +426,27 @@ const CLOUD_KEYWORD_NOTES: Record<SupportedLocale, Record<string, string>> = {
     'cloud-scam-whatsapp-1': 'Pig-butchering funnel: Direct WhatsApp / LINE chat jump links',
     'cloud-gambling-cn-1': 'Online gambling: Casino sign-up bonus & hash-betting promos',
     'cloud-blackmarket-1': 'Illicit trade: USDT laundering, SMS farms & bulk account sales',
+    'cloud-follow-ja-1': 'Japanese follow pods: Mutual-follow & guaranteed follow-back ("相互フォロー / フォロバ100")',
+    'cloud-scam-ja-1': 'Japanese giveaway & side-hustle scams: Cash-drop baits & LINE funnels',
+    'cloud-nsfw-ja-1': 'Japanese NSFW funnels: Secret-account ("裏垢女子") & pinned-video adult bait',
+    'cloud-follow-ko-1': 'Korean follow pods: Mutual-follow & like-back tags ("선팔맞팔 / 맞팔환영")',
+    'cloud-scam-ko-1': 'Korean investment & gambling spam: Signal rooms, "free bonus" & betting promos',
+    'cloud-nsfw-ko-1': 'Korean NSFW funnels: Escort ads & profile adult-video links',
+    'cloud-follow-es-1': 'Spanish follow pods: "Sígueme y te sigo / Follow x Follow" mutual-follow spam',
+    'cloud-scam-es-1': 'Spanish scam & hustle funnels: Guaranteed profit, VIP signals & "comment info" bait',
+    'cloud-nsfw-es-1': 'Spanish NSFW funnels: "Página azul", paid packs & exclusive bio-link bait',
+    'cloud-follow-pt-1': 'Portuguese follow pods: "Sigo de volta / SDV 100%" mutual-follow spam',
+    'cloud-scam-pt-1': 'Portuguese scam & betting spam: Instant Pix baits, casino "paying hours" & VIP signals',
+    'cloud-nsfw-pt-1': 'Portuguese NSFW funnels: Exclusive +18 bio links, Privacy & DM pack promos',
+    'cloud-follow-fr-1': 'French follow pods: "Je rends les follows / Abonne-toi je rends" spam',
+    'cloud-scam-fr-1': 'French scam & bait: Guaranteed profits, VIP trading signals & comment-to-DM funnels',
+    'cloud-nsfw-fr-1': 'French NSFW funnels: MYM/OnlyFans bio pointers & private-media DM bait',
+    'cloud-follow-de-1': 'German follow pods: "Ich folge zurück / Gegenseitig folgen" mutual-follow spam',
+    'cloud-scam-de-1': 'German scam & signal funnels: Guaranteed returns, fast-money & VIP Telegram groups',
+    'cloud-nsfw-de-1': 'German NSFW funnels: Exclusive bio-link & BestFans/DM adult-media bait',
+    'cloud-follow-ru-1': 'Russian follow pods: Mutual-follow & guaranteed follow-back ("Взаимная подписка")',
+    'cloud-scam-ru-1': 'Russian scam & betting spam: Account-pumping, guaranteed income, fixed matches & casino promos',
+    'cloud-nsfw-ru-1': 'Russian NSFW funnels: "Full in bio", private-channel & adult-media DM bait',
   },
   'zh-CN': {
     'cloud-cliche-trivia-1': '营销套话：「冷知识 / 热知识」伪科普起号帖',
@@ -442,6 +473,27 @@ const CLOUD_KEYWORD_NOTES: Record<SupportedLocale, Record<string, string>> = {
     'cloud-scam-whatsapp-1': '杀猪盘导流：WhatsApp / LINE 私聊跳转链接',
     'cloud-gambling-cn-1': '网络博彩：「注册送彩金 / 哈希竞猜 / AG真人」赌博引流',
     'cloud-blackmarket-1': '黑灰产交易：USDT 跑分洗钱、接码与批发卖号',
+    'cloud-follow-ja-1': '日文互关：「相互フォロー / フォロバ100」互粉涨粉党',
+    'cloud-scam-ja-1': '日文撒钱/副业诈骗：现金配布、日结兼职与 LINE 导流',
+    'cloud-nsfw-ja-1': '日文色情导流：「裏垢女子」与置顶成人视频外链诱饵',
+    'cloud-follow-ko-1': '韩文互关：「선팔맞팔 / 맞팔환영」互粉互赞刷量',
+    'cloud-scam-ko-1': '韩文喊单/博彩诈骗：免费带单房、注册送彩金与私彩推广',
+    'cloud-nsfw-ko-1': '韩文色情导流：援交广告与主页成人视频外链',
+    'cloud-follow-es-1': '西语互关：「Sígueme y te sigo / Follow x Follow」互粉党',
+    'cloud-scam-es-1': '西语暴利/带单诈骗：稳赚收益、VIP 信号与评论回复引流',
+    'cloud-nsfw-es-1': '西语色情导流：「Página azul」、私信卖图包与简介成人外链',
+    'cloud-follow-pt-1': '葡语互关：「Sigo de volta / SDV 100%」互粉刷粉党',
+    'cloud-scam-pt-1': '葡语诈骗/博彩：Pix 秒到账诱饵、赌场爆分时段与 VIP 信号群',
+    'cloud-nsfw-pt-1': '葡语色情导流：简介 18+ 专属外链、Privacy 与私信卖包',
+    'cloud-follow-fr-1': '法语互关：「Je rends les follows / Abonne-toi je rends」互粉党',
+    'cloud-scam-fr-1': '法语暴利/喊单诈骗：保证收益、VIP 交易信号与评论私信导流',
+    'cloud-nsfw-fr-1': '法语色情导流：MYM/OnlyFans 简介导流与私信成人媒体诱饵',
+    'cloud-follow-de-1': '德语互关：「Ich folge zurück / Gegenseitig folgen」互粉党',
+    'cloud-scam-de-1': '德语诈骗/信号群：保证回报、快速赚钱与 VIP 电报信号群',
+    'cloud-nsfw-de-1': '德语色情导流：简介专属成人外链与 BestFans/私信导流',
+    'cloud-follow-ru-1': '俄语互关：「Взаимная подписка」互粉与 100% 回关刷粉党',
+    'cloud-scam-ru-1': '俄语诈骗/博彩：代操翻倍、稳赚收益、假球内幕与赌场彩金',
+    'cloud-nsfw-ru-1': '俄语色情导流：「完整版见简介」、私密频道与私信成人诱饵',
   },
   'zh-TW': {
     'cloud-cliche-trivia-1': '行銷套話：「冷知識 / 熱知識」偽科普起號貼文',
@@ -468,6 +520,27 @@ const CLOUD_KEYWORD_NOTES: Record<SupportedLocale, Record<string, string>> = {
     'cloud-scam-whatsapp-1': '殺豬盤導流：WhatsApp / LINE 私訊跳轉連結',
     'cloud-gambling-cn-1': '網路博彩：「註冊送彩金 / 哈希競猜 / AG真人」賭博引流',
     'cloud-blackmarket-1': '黑灰產交易：USDT 跑分洗錢、接碼與批發賣號',
+    'cloud-follow-ja-1': '日文互追：「相互フォロー / フォロバ100」互粉漲粉黨',
+    'cloud-scam-ja-1': '日文撒錢/副業詐騙：現金配布、日結兼職與 LINE 導流',
+    'cloud-nsfw-ja-1': '日文色情導流：「裏垢女子」與置頂成人影片外鏈誘餌',
+    'cloud-follow-ko-1': '韓文互追：「선팔맞팔 / 맞팔환영」互粉互讚洗量',
+    'cloud-scam-ko-1': '韓文帶單/博彩詐騙：免費帶單房、註冊送彩金與私彩推廣',
+    'cloud-nsfw-ko-1': '韓文色情導流：援交廣告與主頁成人影片外鏈',
+    'cloud-follow-es-1': '西語互追：「Sígueme y te sigo / Follow x Follow」互粉黨',
+    'cloud-scam-es-1': '西語暴利/帶單詐騙：保證收益、VIP 訊號與留言私訊引流',
+    'cloud-nsfw-es-1': '西語色情導流：「Página azul」、私訊賣圖包與簡介成人外鏈',
+    'cloud-follow-pt-1': '葡語互追：「Sigo de volta / SDV 100%」互粉洗粉黨',
+    'cloud-scam-pt-1': '葡語詐騙/博彩：Pix 秒到帳誘餌、賭場爆分時段與 VIP 訊號群',
+    'cloud-nsfw-pt-1': '葡語色情導流：簡介 18+ 專屬外鏈、Privacy 與私訊賣包',
+    'cloud-follow-fr-1': '法語互追：「Je rends les follows / Abonne-toi je rends」互粉黨',
+    'cloud-scam-fr-1': '法語暴利/帶單詐騙：保證獲利、VIP 交易訊號與留言私訊導流',
+    'cloud-nsfw-fr-1': '法語色情導流：MYM/OnlyFans 簡介導流與私訊成人媒體誘餌',
+    'cloud-follow-de-1': '德語互追：「Ich folge zurück / Gegenseitig folgen」互粉黨',
+    'cloud-scam-de-1': '德語詐騙/訊號群：保證報酬、快速賺錢與 VIP Telegram 訊號群',
+    'cloud-nsfw-de-1': '德語色情導流：簡介專屬成人外鏈與 BestFans/私訊導流',
+    'cloud-follow-ru-1': '俄語互追：「Взаимная подписка」互粉與 100% 回追洗粉黨',
+    'cloud-scam-ru-1': '俄語詐騙/博彩：代操翻倍、保證收益、假球內幕與賭場彩金',
+    'cloud-nsfw-ru-1': '俄語色情導流：「完整版見簡介」、私密頻道與私訊成人誘餌',
   },
   ja: {
     'cloud-cliche-trivia-1': '定型ネタ：「豆知識・トリビア」系インプレ稼ぎ投稿',
@@ -494,6 +567,27 @@ const CLOUD_KEYWORD_NOTES: Record<SupportedLocale, Record<string, string>> = {
     'cloud-scam-whatsapp-1': 'ロマンス・投資詐欺：WhatsApp / LINE 直通チャットリンク',
     'cloud-gambling-cn-1': 'オンラインカジノ：登録ボーナス・賭博サイト誘導',
     'cloud-blackmarket-1': '闇取引：USDTマネロン・SMS認証代行・アカウント売買',
+    'cloud-follow-ja-1': '日本語相互フォロー：「相互フォロー / フォロバ100」稼ぎ投稿',
+    'cloud-scam-ja-1': '日本語配布・副業詐欺：お金配り・即日即金・LINE誘導スパム',
+    'cloud-nsfw-ja-1': '日本語アダルト誘導：「裏垢女子」・固定ポスト動画釣りリンク',
+    'cloud-follow-ko-1': '韓国語相互フォロー：「선팔맞팔 / 맞팔환영」フォロワー稼ぎ',
+    'cloud-scam-ko-1': '韓国語投資・賭博詐欺：無料シグナル部屋・登録ボーナス勧誘',
+    'cloud-nsfw-ko-1': '韓国語アダルト誘導：出会い系宣伝・プロフィール動画リンク',
+    'cloud-follow-es-1': 'スペイン語相互フォロー：「Sígueme y te sigo / Follow x Follow」',
+    'cloud-scam-es-1': 'スペイン語詐欺・誘導：確実な利益・VIPシグナル・返信DM釣り',
+    'cloud-nsfw-es-1': 'スペイン語アダルト誘導：「Página azul」・有料パック・プロフ誘導',
+    'cloud-follow-pt-1': 'ポルトガル語相互フォロー：「Sigo de volta / SDV 100%」スパム',
+    'cloud-scam-pt-1': 'ポルトガル語詐欺・賭博：Pix即金釣り・カジノ攻略時間・VIP配信',
+    'cloud-nsfw-pt-1': 'ポルトガル語アダルト誘導：プロフ18+限定リンク・Privacy・DM販売',
+    'cloud-follow-fr-1': 'フランス語相互フォロー：「Je rends les follows / Abonne-toi je rends」',
+    'cloud-scam-fr-1': 'フランス語詐欺・誘導：利益保証・VIPトレード配信・返信DM誘導',
+    'cloud-nsfw-fr-1': 'フランス語アダルト誘導：MYM/OnlyFansプロフ誘導・DM成人コンテンツ',
+    'cloud-follow-de-1': 'ドイツ語相互フォロー：「Ich folge zurück / Gegenseitig folgen」',
+    'cloud-scam-de-1': 'ドイツ語詐欺・配信グループ：高利回り保証・簡単収入・VIP Telegram勧誘',
+    'cloud-nsfw-de-1': 'ドイツ語アダルト誘導：プロフ限定リンク・BestFans/DM成人釣り',
+    'cloud-follow-ru-1': 'ロシア語相互フォロー：「Взаимная подписка」100%フォロバ稼ぎ',
+    'cloud-scam-ru-1': 'ロシア語詐欺・賭博：口座運用・収益保証・八百長予想・カジノ特典',
+    'cloud-nsfw-ru-1': 'ロシア語アダルト誘導：プロフ限定フル動画・非公開ch・DM成人誘導',
   },
   ko: {
     'cloud-cliche-trivia-1': '상투적 낚시: "잡학상식 / 몰랐던 사실" 조회수 파밍 글',
@@ -520,6 +614,27 @@ const CLOUD_KEYWORD_NOTES: Record<SupportedLocale, Record<string, string>> = {
     'cloud-scam-whatsapp-1': '피싱 메신저 유도: WhatsApp / LINE 1:1 채팅 링크',
     'cloud-gambling-cn-1': '불법 도박: 가입 꽁머니·카지노·해시 배팅 홍보',
     'cloud-blackmarket-1': '불법 거래: USDT 자금세탁·대포계정·계정 대량 판매',
+    'cloud-follow-ja-1': '일본어 맞팔 품앗이: "相互フォロー / フォロバ100" 팔로워 늘리기',
+    'cloud-scam-ja-1': '일본어 현금 배포·부업 사기: 현금 살포 미끼 및 LINE 유도',
+    'cloud-nsfw-ja-1': '일본어 성인 유도: "裏垢女子" 및 고정 트윗 성인 영상 링크',
+    'cloud-follow-ko-1': '한국어 맞팔 품앗이: "선팔맞팔 / 맞팔환영 / 좋아요 반사" 도배',
+    'cloud-scam-ko-1': '한국어 리딩방·도박 스팸: 무료 리딩방, 가입 꽁머니 및 토토 홍보',
+    'cloud-nsfw-ko-1': '한국어 성인 유도: 조건만남·출장 광고 및 프로필 성인 영상 링크',
+    'cloud-follow-es-1': '스페인어 맞팔 품앗이: "Sígueme y te sigo / Follow x Follow" 스팸',
+    'cloud-scam-es-1': '스페인어 투자 사기: 수익 보장, VIP 시그널 및 댓글 DM 유도',
+    'cloud-nsfw-es-1': '스페인어 성인 유도: "Página azul", 유료 팩 및 프로필 19금 링크',
+    'cloud-follow-pt-1': '포르투갈어 맞팔 품앗이: "Sigo de volta / SDV 100%" 스팸',
+    'cloud-scam-pt-1': '포르투갈어 사기·도박: Pix 즉시 지급 미끼, 카지노 시간대 및 VIP 방',
+    'cloud-nsfw-pt-1': '포르투갈어 성인 유도: 프로필 18+ 링크, Privacy 및 DM 팩 판매',
+    'cloud-follow-fr-1': '프랑스어 맞팔 품앗이: "Je rends les follows / Abonne-toi je rends"',
+    'cloud-scam-fr-1': '프랑스어 사기·유도: 수익 보장, VIP 트레이딩 시그널 및 댓글 DM 유도',
+    'cloud-nsfw-fr-1': '프랑스어 성인 유도: MYM/OnlyFans 프로필 링크 및 DM 성인 미끼',
+    'cloud-follow-de-1': '독일어 맞팔 품앗이: "Ich folge zurück / Gegenseitig folgen" 스팸',
+    'cloud-scam-de-1': '독일어 사기·시그널방: 수익 보장, 빠른 돈벌이 및 VIP 텔레그램 초대',
+    'cloud-nsfw-de-1': '독일어 성인 유도: 프로필 독점 링크 및 BestFans/DM 성인 홍보',
+    'cloud-follow-ru-1': '러시아어 맞팔 품앗이: "Взаимная подписка" 100% 맞팔 도배',
+    'cloud-scam-ru-1': '러시아어 사기·도박: 계좌 불리기, 수익 보장, 승부조작 및 카지노 보너스',
+    'cloud-nsfw-ru-1': '러시아어 성인 유도: 프로필 풀영상, 비공개 채널 및 DM 성인 미끼',
   },
   es: {
     'cloud-cliche-trivia-1': 'Cliché viral: Posts de pseudocuriosidades para ganar alcance',
@@ -546,6 +661,27 @@ const CLOUD_KEYWORD_NOTES: Record<SupportedLocale, Record<string, string>> = {
     'cloud-scam-whatsapp-1': 'Estafa por chat: Enlaces directos a WhatsApp y LINE',
     'cloud-gambling-cn-1': 'Apuestas online: Bonos de casino y casas de apuestas ilegales',
     'cloud-blackmarket-1': 'Mercado negro: Lavado USDT, granjas SMS y venta de cuentas',
+    'cloud-follow-ja-1': 'Follow mutuo (JA): Granjas de seguimiento "相互フォロー / フォロバ100"',
+    'cloud-scam-ja-1': 'Estafas en japonés: Sorteos de efectivo falsos y embudos de LINE',
+    'cloud-nsfw-ja-1': 'Tráfico NSFW (JA): Cuentas secretas ("裏垢女子") y enlaces adultos',
+    'cloud-follow-ko-1': 'Follow mutuo (KO): Etiquetas de intercambio "선팔맞팔 / 맞팔환영"',
+    'cloud-scam-ko-1': 'Estafas y apuestas (KO): Salas de señales VIP, bonos y apuestas',
+    'cloud-nsfw-ko-1': 'Tráfico NSFW (KO): Anuncios de acompañantes y videos adultos en perfil',
+    'cloud-follow-es-1': 'Follow mutuo (ES): Spam de "Sígueme y te sigo / Follow x Follow"',
+    'cloud-scam-es-1': 'Estafas en español: Ganancias garantizadas, señales VIP y "comenta info"',
+    'cloud-nsfw-es-1': 'Tráfico NSFW (ES): "Página azul", venta de packs y enlaces +18 en bio',
+    'cloud-follow-pt-1': 'Follow mutuo (PT): Spam de "Sigo de volta / SDV 100%"',
+    'cloud-scam-pt-1': 'Estafas y apuestas (PT): Cebos de Pix instantáneo, horarios de casino y señales VIP',
+    'cloud-nsfw-pt-1': 'Tráfico NSFW (PT): Enlaces +18 en bio, Privacy y packs por DM',
+    'cloud-follow-fr-1': 'Follow mutuo (FR): Spam de "Je rends les follows / Abonne-toi je rends"',
+    'cloud-scam-fr-1': 'Estafas en francés: Ganancias garantizadas, señales VIP y embudos por DM',
+    'cloud-nsfw-fr-1': 'Tráfico NSFW (FR): Enlaces MYM/OnlyFans en bio y cebo adulto por DM',
+    'cloud-follow-de-1': 'Follow mutuo (DE): Spam de "Ich folge zurück / Gegenseitig folgen"',
+    'cloud-scam-de-1': 'Estafas en alemán: Rentabilidad garantizada, dinero fácil y grupos VIP de Telegram',
+    'cloud-nsfw-de-1': 'Tráfico NSFW (DE): Enlaces exclusivos en bio y cebo adulto BestFans/DM',
+    'cloud-follow-ru-1': 'Follow mutuo (RU): Spam de seguimiento recíproco ("Взаимная подписка")',
+    'cloud-scam-ru-1': 'Estafas y apuestas (RU): Inflado de cuentas, partidos amañados y bonos de casino',
+    'cloud-nsfw-ru-1': 'Tráfico NSFW (RU): "Video completo en bio", canales privados y cebo por DM',
   },
   pt: {
     'cloud-cliche-trivia-1': 'Clichê viral: Posts de pseudocuriosidades para farmar alcance',
@@ -572,6 +708,27 @@ const CLOUD_KEYWORD_NOTES: Record<SupportedLocale, Record<string, string>> = {
     'cloud-scam-whatsapp-1': 'Golpe no privado: Links diretos para WhatsApp e LINE',
     'cloud-gambling-cn-1': 'Apostas e cassino: Bônus de cadastro e plataformas de jogos',
     'cloud-blackmarket-1': 'Mercado clandestino: Lavagem via USDT, SMS virtual e venda de contas',
+    'cloud-follow-ja-1': 'Troca de seguidores (JA): Perfis de "相互フォロー / フォロバ100"',
+    'cloud-scam-ja-1': 'Golpes em japonês: Sorteios falsos de dinheiro e funis de LINE',
+    'cloud-nsfw-ja-1': 'Funil NSFW (JA): Contas secretas ("裏垢女子") e vídeos adultos no fixado',
+    'cloud-follow-ko-1': 'Troca de seguidores (KO): Tags de follow mútuo "선팔맞팔 / 맞팔환영"',
+    'cloud-scam-ko-1': 'Golpes e apostas (KO): Salas de sinais, bônus grátis e promoções de apostas',
+    'cloud-nsfw-ko-1': 'Funil NSFW (KO): Anúncios adultos e links de vídeo no perfil',
+    'cloud-follow-es-1': 'Troca de seguidores (ES): Spam de "Sígueme y te sigo / Follow x Follow"',
+    'cloud-scam-es-1': 'Golpes em espanhol: Lucro garantido, sinais VIP e isca "comente info"',
+    'cloud-nsfw-es-1': 'Funil NSFW (ES): "Página azul", venda de packs e links +18 na bio',
+    'cloud-follow-pt-1': 'Troca de seguidores (PT): Spam de "Sigo de volta / SDV 100%"',
+    'cloud-scam-pt-1': 'Golpes e apostas (PT): Iscas de Pix na hora, horário pagante e salas VIP',
+    'cloud-nsfw-pt-1': 'Funil NSFW (PT): Links +18 na bio, Privacy e venda de packs na DM',
+    'cloud-follow-fr-1': 'Troca de seguidores (FR): Spam de "Je rends les follows / Abonne-toi je rends"',
+    'cloud-scam-fr-1': 'Golpes em francês: Ganhos garantidos, sinais VIP e funis por DM',
+    'cloud-nsfw-fr-1': 'Funil NSFW (FR): Links MYM/OnlyFans na bio e isca adulta na DM',
+    'cloud-follow-de-1': 'Troca de seguidores (DE): Spam de "Ich folge zurück / Gegenseitig folgen"',
+    'cloud-scam-de-1': 'Golpes em alemão: Retorno garantido, dinheiro rápido e grupos VIP no Telegram',
+    'cloud-nsfw-de-1': 'Funil NSFW (DE): Links exclusivos na bio e isca adulta BestFans/DM',
+    'cloud-follow-ru-1': 'Troca de seguidores (RU): Spam de follow recíproco ("Взаимная подписка")',
+    'cloud-scam-ru-1': 'Golpes e apostas (RU): Alavancagem de conta, jogos combinados e bônus de cassino',
+    'cloud-nsfw-ru-1': 'Funil NSFW (RU): "Vídeo completo na bio", canais privados e isca adulta na DM',
   },
   fr: {
     'cloud-cliche-trivia-1': 'Cliché viral : Pseudo-anecdotes pour gonfler la portée',
@@ -598,6 +755,27 @@ const CLOUD_KEYWORD_NOTES: Record<SupportedLocale, Record<string, string>> = {
     'cloud-scam-whatsapp-1': 'Arnaque messagerie : Liens directs vers WhatsApp et LINE',
     'cloud-gambling-cn-1': 'Jeux d’argent : Bonus de casino en ligne et paris illégaux',
     'cloud-blackmarket-1': 'Marché noir : Blanchiment USDT, fermes SMS et vente de comptes',
+    'cloud-follow-ja-1': 'Follow-back (JA) : Échange d’abonnés « 相互フォロー / フォロバ100 »',
+    'cloud-scam-ja-1': 'Arnaques (JA) : Faux dons d’argent, petits boulots et redirections LINE',
+    'cloud-nsfw-ja-1': 'Appât NSFW (JA) : Comptes secrets (« 裏垢女子 ») et liens vidéo adultes',
+    'cloud-follow-ko-1': 'Follow-back (KO) : Tags d’échange d’abonnements « 선팔맞팔 / 맞팔환영 »',
+    'cloud-scam-ko-1': 'Arnaques & paris (KO) : Groupes de signaux, bonus gratuits et paris',
+    'cloud-nsfw-ko-1': 'Appât NSFW (KO) : Annonces d’escortes et liens vidéo adultes en bio',
+    'cloud-follow-es-1': 'Follow-back (ES) : Spam « Sígueme y te sigo / Follow x Follow »',
+    'cloud-scam-es-1': 'Arnaques (ES) : Gains garantis, signaux VIP et appâts « commente info »',
+    'cloud-nsfw-es-1': 'Appât NSFW (ES) : « Página azul », packs payants et liens +18 en bio',
+    'cloud-follow-pt-1': 'Follow-back (PT) : Spam « Sigo de volta / SDV 100% »',
+    'cloud-scam-pt-1': 'Arnaques & paris (PT) : Appâts Pix instantané, horaires casino et signaux VIP',
+    'cloud-nsfw-pt-1': 'Appât NSFW (PT) : Liens +18 en bio, Privacy et packs par MP',
+    'cloud-follow-fr-1': 'Follow-back (FR) : Spam « Je rends les follows / Abonne-toi je rends »',
+    'cloud-scam-fr-1': 'Arnaques (FR) : Gains garantis, signaux trading VIP et appâts vers les MP',
+    'cloud-nsfw-fr-1': 'Appât NSFW (FR) : Liens MYM/OnlyFans en bio et médias privés en MP',
+    'cloud-follow-de-1': 'Follow-back (DE) : Spam « Ich folge zurück / Gegenseitig folgen »',
+    'cloud-scam-de-1': 'Arnaques (DE) : Rendements garantis, argent facile et groupes Telegram VIP',
+    'cloud-nsfw-de-1': 'Appât NSFW (DE) : Contenus exclusifs en bio et appâts BestFans/MP',
+    'cloud-follow-ru-1': 'Follow-back (RU) : Spam d’abonnements réciproques (« Взаимная подписка »)',
+    'cloud-scam-ru-1': 'Arnaques & paris (RU) : Gonflage de compte, matchs truqués et bonus casino',
+    'cloud-nsfw-ru-1': 'Appât NSFW (RU) : « Vidéo complète en bio », canaux privés et médias en MP',
   },
   de: {
     'cloud-cliche-trivia-1': 'Reichweiten-Klischee: Pseudo-Fakten-Posts („Unnützes Wissen“)',
@@ -624,6 +802,27 @@ const CLOUD_KEYWORD_NOTES: Record<SupportedLocale, Record<string, string>> = {
     'cloud-scam-whatsapp-1': 'Chat-Betrug: Direkte Weiterleitungslinks zu WhatsApp & LINE',
     'cloud-gambling-cn-1': 'Online-Glücksspiel: Casino-Startguthaben & Wett-Spam',
     'cloud-blackmarket-1': 'Schwarzmarkt: USDT-Geldwäsche, SMS-Dienste & Kontenhandel',
+    'cloud-follow-ja-1': 'Follow-Gruppen (JA): Gegenseitiges Folgen („相互フォロー / フォロバ100“)',
+    'cloud-scam-ja-1': 'Betrug (JA): Fake-Geldgeschenke, Nebenjob-Fallen & LINE-Weiterleitungen',
+    'cloud-nsfw-ja-1': 'NSFW-Köder (JA): Geheime Konten („裏垢女子“) & angepinnte Adult-Videos',
+    'cloud-follow-ko-1': 'Follow-Gruppen (KO): Follow-for-Follow-Tags („선팔맞팔 / 맞팔환영“)',
+    'cloud-scam-ko-1': 'Betrug & Wetten (KO): Kostenlose Signal-Räume, Bonus- & Wett-Spam',
+    'cloud-nsfw-ko-1': 'NSFW-Köder (KO): Escort-Werbung & Profil-Links zu Adult-Videos',
+    'cloud-follow-es-1': 'Follow-Gruppen (ES): „Sígueme y te sigo / Follow x Follow“-Spam',
+    'cloud-scam-es-1': 'Betrug (ES): Garantierte Gewinne, VIP-Signale & „Kommentiere Info“-Köder',
+    'cloud-nsfw-es-1': 'NSFW-Köder (ES): „Página azul“, bezahlte Packs & +18-Bio-Links',
+    'cloud-follow-pt-1': 'Follow-Gruppen (PT): „Sigo de volta / SDV 100%“-Spam',
+    'cloud-scam-pt-1': 'Betrug & Wetten (PT): Sofort-Pix-Köder, Casino-Zeiten & VIP-Signale',
+    'cloud-nsfw-pt-1': 'NSFW-Köder (PT): Exklusive +18-Bio-Links, Privacy & DM-Pack-Werbung',
+    'cloud-follow-fr-1': 'Follow-Gruppen (FR): „Je rends les follows / Abonne-toi je rends“-Spam',
+    'cloud-scam-fr-1': 'Betrug (FR): Garantierte Gewinne, VIP-Trading-Signale & Kommentar-DM-Köder',
+    'cloud-nsfw-fr-1': 'NSFW-Köder (FR): MYM/OnlyFans-Bio-Hinweise & private Medien per DM',
+    'cloud-follow-de-1': 'Follow-Gruppen (DE): „Ich folge zurück / Gegenseitig folgen“-Spam',
+    'cloud-scam-de-1': 'Betrug (DE): Garantierte Rendite, schnelles Geld & VIP-Telegram-Gruppen',
+    'cloud-nsfw-de-1': 'NSFW-Köder (DE): Exklusive Bio-Links & BestFans/DM-Adult-Werbung',
+    'cloud-follow-ru-1': 'Follow-Gruppen (RU): Gegenseitiges Folgen („Взаимная подписка“)',
+    'cloud-scam-ru-1': 'Betrug & Wetten (RU): Konto-Aufstockung, manipulierte Spiele & Casino-Boni',
+    'cloud-nsfw-ru-1': 'NSFW-Köder (RU): „Vollversion in der Bio“, Privatkanäle & DM-Köder',
   },
   ru: {
     'cloud-cliche-trivia-1': 'Клише-посты: Псевдофакты «Мало кто знает» ради охватов',
@@ -650,15 +849,60 @@ const CLOUD_KEYWORD_NOTES: Record<SupportedLocale, Record<string, string>> = {
     'cloud-scam-whatsapp-1': 'Скам-воронки: Прямые ссылки на чаты WhatsApp и LINE',
     'cloud-gambling-cn-1': 'Онлайн-казино: Бонусы за регистрацию и крипто-ставки',
     'cloud-blackmarket-1': 'Теневой рынок: Отмыв USDT, приём SMS и оптовая продажа аккаунтов',
+    'cloud-follow-ja-1': 'Взаимные подписки (JA): Накрутка фолловеров («相互フォロー / フォロバ100»)',
+    'cloud-scam-ja-1': 'Скам (JA): Фейковые раздачи денег, подработки и воронки в LINE',
+    'cloud-nsfw-ja-1': '18+ байт (JA): Тайные аккаунты («裏垢女子») и ссылки на видео в закрепе',
+    'cloud-follow-ko-1': 'Взаимные подписки (KO): Теги взаимофолловинга («선팔맞팔 / 맞팔환영»)',
+    'cloud-scam-ko-1': 'Скам и ставки (KO): Бесплатные сигнал-комнаты, бонусы и тотализаторы',
+    'cloud-nsfw-ko-1': '18+ байт (KO): Объявления эскорта и ссылки на 18+ видео в профиле',
+    'cloud-follow-es-1': 'Взаимные подписки (ES): Спам «Sígueme y te sigo / Follow x Follow»',
+    'cloud-scam-es-1': 'Скам (ES): Гарантированная прибыль, VIP-сигналы и байт «пиши info»',
+    'cloud-nsfw-es-1': '18+ байт (ES): «Página azul», продажа паков и 18+ ссылки в био',
+    'cloud-follow-pt-1': 'Взаимные подписки (PT): Спам «Sigo de volta / SDV 100%»',
+    'cloud-scam-pt-1': 'Скам и ставки (PT): Мгновенный Pix, «часы выплат» казино и VIP-сигналы',
+    'cloud-nsfw-pt-1': '18+ байт (PT): Ссылки 18+ в био, Privacy и продажа паков в ЛС',
+    'cloud-follow-fr-1': 'Взаимные подписки (FR): Спам «Je rends les follows / Abonne-toi je rends»',
+    'cloud-scam-fr-1': 'Скам (FR): Гарантированный доход, VIP-сигналы трейдинга и перевод в ЛС',
+    'cloud-nsfw-fr-1': '18+ байт (FR): Указатели на MYM/OnlyFans в био и приватные медиа в ЛС',
+    'cloud-follow-de-1': 'Взаимные подписки (DE): Спам «Ich folge zurück / Gegenseitig folgen»',
+    'cloud-scam-de-1': 'Скам (DE): Гарантированная доходность, лёгкие деньги и VIP-группы в Telegram',
+    'cloud-nsfw-de-1': '18+ байт (DE): Эксклюзивные ссылки в био и 18+ байт BestFans/ЛС',
+    'cloud-follow-ru-1': 'Взаимные подписки (RU): «Взаимная подписка» и 100% взаимный фолловинг',
+    'cloud-scam-ru-1': 'Скам и ставки (RU): Раскрутка счёта, гарантия дохода, договорняки и казино',
+    'cloud-nsfw-ru-1': '18+ байт (RU): «Фулл в био», приватные каналы и интим-контент в ЛС',
   },
 };
+
+export function hasLocalizedCloudKeywordNote(
+  id: string,
+  locale: SupportedLocale
+): boolean {
+  if (!Object.prototype.hasOwnProperty.call(CLOUD_KEYWORD_NOTES, locale)) {
+    return false;
+  }
+  const dict = CLOUD_KEYWORD_NOTES[locale];
+  return Boolean(
+    dict &&
+      Object.prototype.hasOwnProperty.call(dict, id) &&
+      typeof dict[id] === 'string' &&
+      dict[id].trim().length > 0
+  );
+}
 
 export function getCloudKeywordNote(
   item: KeywordRuleItem,
   locale: SupportedLocale
 ): string {
-  const dict = CLOUD_KEYWORD_NOTES[locale] ?? CLOUD_KEYWORD_NOTES.en;
-  return dict[item.id] ?? item.note ?? item.pattern;
+  const dict = Object.prototype.hasOwnProperty.call(CLOUD_KEYWORD_NOTES, locale)
+    ? CLOUD_KEYWORD_NOTES[locale]
+    : CLOUD_KEYWORD_NOTES.en;
+  if (dict && Object.prototype.hasOwnProperty.call(dict, item.id)) {
+    return dict[item.id];
+  }
+  if (Object.prototype.hasOwnProperty.call(CLOUD_KEYWORD_NOTES.en, item.id)) {
+    return CLOUD_KEYWORD_NOTES.en[item.id];
+  }
+  return item.note ?? item.pattern;
 }
 
 export interface EngineMessages {
@@ -690,6 +934,21 @@ export interface EngineMessages {
   cashtagSpamReason: (count: number) => string;
   langAllowReason: (langLabel: string) => string;
   langBlockReason: (langLabel: string) => string;
+  grokShortMentionReason: string;
+  grokHiddenReplyReason: string;
+  replyDuplicateReason: string;
+  domainFilterReason: (scopeLabel: string, domain: string) => string;
+  rulePackKeywordReason: (
+    packName: string,
+    scopeLabel: string,
+    pattern: string
+  ) => string;
+  rulePackDomainReason: (
+    packName: string,
+    scopeLabel: string,
+    domain: string
+  ) => string;
+  rulePackAccountReason: (packName: string) => string;
   evidence: {
     matchedReason: string;
     matchedUid: string;
@@ -711,6 +970,11 @@ export interface EngineMessages {
     bioLinkThreshold: string;
     weightedLength: string;
     minThreshold: string;
+    maxThreshold: string;
+    duplicateCount: string;
+    matchedDomain: string;
+    matchedHost: string;
+    rulePack: string;
   };
 }
 
@@ -744,6 +1008,13 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
     cashtagSpamReason: (c) => `Ticker spam: ${c} $Cashtags`,
     langAllowReason: (l) => `Non-preferred language (${l})`,
     langBlockReason: (l) => `Blocked language (${l})`,
+    grokShortMentionReason: 'Short @grok summon reply',
+    grokHiddenReplyReason: 'Hidden @grok reply',
+    replyDuplicateReason: 'Duplicate copy-paste reply in thread',
+    domainFilterReason: (s, d) => `${s} matched blocked domain "${d}"`,
+    rulePackKeywordReason: (pk, s, p) => `Rule pack "${pk}": ${s} matched "${p}"`,
+    rulePackDomainReason: (pk, s, d) => `Rule pack "${pk}": ${s} matched domain "${d}"`,
+    rulePackAccountReason: (pk) => `Rule pack "${pk}": blocked account`,
     evidence: {
       matchedReason: 'Matched reason',
       matchedUid: 'Matched UID',
@@ -765,6 +1036,11 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
       bioLinkThreshold: 'Bio-link limit',
       weightedLength: 'Weighted length',
       minThreshold: 'Minimum required',
+      maxThreshold: 'Max allowed length',
+      duplicateCount: 'Duplicate count',
+      matchedDomain: 'Matched domain',
+      matchedHost: 'Matched host',
+      rulePack: 'Rule pack',
     },
   },
   'zh-CN': {
@@ -796,6 +1072,13 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
     cashtagSpamReason: (c) => `币圈标签刷屏: 含 ${c} 个 $Cashtag`,
     langAllowReason: (l) => `非偏好语种推文 (${l})`,
     langBlockReason: (l) => `已屏蔽语种推文 (${l})`,
+    grokShortMentionReason: '评论区 @grok 短召唤回复',
+    grokHiddenReplyReason: '已隐藏 @grok 回复',
+    replyDuplicateReason: '同贴重复复读水军回复',
+    domainFilterReason: (s, d) => `${s}命中屏蔽域名「${d}」`,
+    rulePackKeywordReason: (pk, s, p) => `规则包「${pk}」：${s}命中「${p}」`,
+    rulePackDomainReason: (pk, s, d) => `规则包「${pk}」：${s}命中域名「${d}」`,
+    rulePackAccountReason: (pk) => `规则包「${pk}」：屏蔽账号`,
     evidence: {
       matchedReason: '命中时原因',
       matchedUid: '命中账号 UID',
@@ -817,6 +1100,11 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
       bioLinkThreshold: '外链门槛',
       weightedLength: '加权长度',
       minThreshold: '最低门槛',
+      maxThreshold: '最大允许长度',
+      duplicateCount: '同贴重复次数',
+      matchedDomain: '命中规则域名',
+      matchedHost: '实际链接主机',
+      rulePack: '所属规则包',
     },
   },
   'zh-TW': {
@@ -848,6 +1136,13 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
     cashtagSpamReason: (c) => `幣圈標籤洗版: 含 ${c} 個 $Cashtag`,
     langAllowReason: (l) => `非偏好語種推文 (${l})`,
     langBlockReason: (l) => `已封鎖語種推文 (${l})`,
+    grokShortMentionReason: '回覆區 @grok 短召喚回覆',
+    grokHiddenReplyReason: '已隱藏 @grok 回覆',
+    replyDuplicateReason: '同貼重複洗版回覆',
+    domainFilterReason: (s, d) => `${s}命中封鎖網域「${d}」`,
+    rulePackKeywordReason: (pk, s, p) => `規則包「${pk}」：${s}命中「${p}」`,
+    rulePackDomainReason: (pk, s, d) => `規則包「${pk}」：${s}命中網域「${d}」`,
+    rulePackAccountReason: (pk) => `規則包「${pk}」：封鎖帳號`,
     evidence: {
       matchedReason: '命中時原因',
       matchedUid: '命中帳號 UID',
@@ -869,6 +1164,11 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
       bioLinkThreshold: '外鏈門檻',
       weightedLength: '加權長度',
       minThreshold: '最低門檻',
+      maxThreshold: '最大允許長度',
+      duplicateCount: '同貼重複次數',
+      matchedDomain: '命中規則網域',
+      matchedHost: '實際連結主機',
+      rulePack: '所屬規則包',
     },
   },
   ja: {
@@ -900,6 +1200,13 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
     cashtagSpamReason: (c) => `銘柄タグ連投: $Cashtag ${c} 個`,
     langAllowReason: (l) => `対象外言語のポスト (${l})`,
     langBlockReason: (l) => `除外言語のポスト (${l})`,
+    grokShortMentionReason: '返信欄の短い @grok 呼び出し',
+    grokHiddenReplyReason: '@grok の返信を非表示',
+    replyDuplicateReason: '同スレッド内の重複コピペ返信',
+    domainFilterReason: (s, d) => `${s}がブロック対象ドメイン「${d}」に一致`,
+    rulePackKeywordReason: (pk, s, p) => `ルールパック「${pk}」: ${s}が「${p}」に一致`,
+    rulePackDomainReason: (pk, s, d) => `ルールパック「${pk}」: ${s}がドメイン「${d}」に一致`,
+    rulePackAccountReason: (pk) => `ルールパック「${pk}」: ブロック対象アカウント`,
     evidence: {
       matchedReason: '判定理由',
       matchedUid: '対象アカウント UID',
@@ -921,6 +1228,11 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
       bioLinkThreshold: 'リンク判定上限',
       weightedLength: '重み付き文字長',
       minThreshold: '最小しきい値',
+      maxThreshold: '最大許容長',
+      duplicateCount: '重複回数',
+      matchedDomain: '一致ドメイン',
+      matchedHost: '検出ホスト',
+      rulePack: 'ルールパック',
     },
   },
   ko: {
@@ -952,6 +1264,13 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
     cashtagSpamReason: (c) => `티커 도배: $Cashtag ${c}개`,
     langAllowReason: (l) => `선호 외 언어 게시물 (${l})`,
     langBlockReason: (l) => `차단된 언어 게시물 (${l})`,
+    grokShortMentionReason: '답글창 짧은 @grok 호출',
+    grokHiddenReplyReason: '숨겨진 @grok 답글',
+    replyDuplicateReason: '동일 스레드 중복 복붙 답글',
+    domainFilterReason: (s, d) => `${s} 차단 도메인 "${d}" 일치`,
+    rulePackKeywordReason: (pk, s, p) => `규칙 팩 "${pk}": ${s} "${p}" 일치`,
+    rulePackDomainReason: (pk, s, d) => `규칙 팩 "${pk}": ${s} 도메인 "${d}" 일치`,
+    rulePackAccountReason: (pk) => `규칙 팩 "${pk}": 차단 목록 계정`,
     evidence: {
       matchedReason: '차단 사유',
       matchedUid: '적중 계정 UID',
@@ -973,6 +1292,11 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
       bioLinkThreshold: '외부 링크 기준',
       weightedLength: '가중 길이',
       minThreshold: '최소 기준',
+      maxThreshold: '최대 허용 길이',
+      duplicateCount: '중복 횟수',
+      matchedDomain: '일치 도메인',
+      matchedHost: '감지된 호스트',
+      rulePack: '규칙 팩',
     },
   },
   es: {
@@ -1004,6 +1328,13 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
     cashtagSpamReason: (c) => `Spam cripto: ${c} $Cashtags`,
     langAllowReason: (l) => `Idioma no preferido (${l})`,
     langBlockReason: (l) => `Idioma bloqueado (${l})`,
+    grokShortMentionReason: 'Mención breve a @grok en respuestas',
+    grokHiddenReplyReason: 'Respuesta de @grok oculta',
+    replyDuplicateReason: 'Respuesta duplicada en el mismo hilo',
+    domainFilterReason: (s, d) => `${s} coincide con el dominio bloqueado "${d}"`,
+    rulePackKeywordReason: (pk, s, p) => `Paquete "${pk}": ${s} coincide con "${p}"`,
+    rulePackDomainReason: (pk, s, d) => `Paquete "${pk}": ${s} coincide con dominio "${d}"`,
+    rulePackAccountReason: (pk) => `Paquete "${pk}": cuenta bloqueada`,
     evidence: {
       matchedReason: 'Motivo detectado',
       matchedUid: 'UID detectado',
@@ -1025,6 +1356,11 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
       bioLinkThreshold: 'Límite enlaces bio',
       weightedLength: 'Longitud ponderada',
       minThreshold: 'Mínimo requerido',
+      maxThreshold: 'Longitud máx. permitida',
+      duplicateCount: 'Veces repetido',
+      matchedDomain: 'Dominio coincidente',
+      matchedHost: 'Host detectado',
+      rulePack: 'Paquete de reglas',
     },
   },
   pt: {
@@ -1056,6 +1392,13 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
     cashtagSpamReason: (c) => `Spam de tickers: ${c} $Cashtags`,
     langAllowReason: (l) => `Idioma fora da preferência (${l})`,
     langBlockReason: (l) => `Idioma bloqueado (${l})`,
+    grokShortMentionReason: 'Menção curta a @grok nas respostas',
+    grokHiddenReplyReason: 'Resposta do @grok ocultada',
+    replyDuplicateReason: 'Resposta duplicada no mesmo tópico',
+    domainFilterReason: (s, d) => `${s} corresponde ao domínio bloqueado "${d}"`,
+    rulePackKeywordReason: (pk, s, p) => `Pacote "${pk}": ${s} corresponde a "${p}"`,
+    rulePackDomainReason: (pk, s, d) => `Pacote "${pk}": ${s} corresponde ao domínio "${d}"`,
+    rulePackAccountReason: (pk) => `Pacote "${pk}": conta bloqueada`,
     evidence: {
       matchedReason: 'Motivo registrado',
       matchedUid: 'UID correspondente',
@@ -1077,6 +1420,11 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
       bioLinkThreshold: 'Limite de link na bio',
       weightedLength: 'Comprimento ponderado',
       minThreshold: 'Mínimo exigido',
+      maxThreshold: 'Comprimento máx.',
+      duplicateCount: 'Repetições no tópico',
+      matchedDomain: 'Domínio correspondente',
+      matchedHost: 'Host detectado',
+      rulePack: 'Pacote de regras',
     },
   },
   fr: {
@@ -1108,6 +1456,13 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
     cashtagSpamReason: (c) => `Spam crypto : ${c} $Cashtags`,
     langAllowReason: (l) => `Langue non retenue (${l})`,
     langBlockReason: (l) => `Langue masquée (${l})`,
+    grokShortMentionReason: 'Mention courte @grok en réponse',
+    grokHiddenReplyReason: 'Réponse @grok masquée',
+    replyDuplicateReason: 'Réponse dupliquée dans ce fil',
+    domainFilterReason: (s, d) => `${s} correspond au domaine bloqué « ${d} »`,
+    rulePackKeywordReason: (pk, s, p) => `Pack « ${pk} » : ${s} contient « ${p} »`,
+    rulePackDomainReason: (pk, s, d) => `Pack « ${pk} » : ${s} correspond au domaine « ${d} »`,
+    rulePackAccountReason: (pk) => `Pack « ${pk} » : compte bloqué`,
     evidence: {
       matchedReason: 'Motif détecté',
       matchedUid: 'UID détecté',
@@ -1129,6 +1484,11 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
       bioLinkThreshold: 'Seuil lien bio',
       weightedLength: 'Longueur pondérée',
       minThreshold: 'Minimum requis',
+      maxThreshold: 'Longueur max. autorisée',
+      duplicateCount: 'Occurrences en doublon',
+      matchedDomain: 'Domaine correspondant',
+      matchedHost: 'Hôte détecté',
+      rulePack: 'Pack de règles',
     },
   },
   de: {
@@ -1160,6 +1520,13 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
     cashtagSpamReason: (c) => `Ticker-Spam: ${c} $Cashtags`,
     langAllowReason: (l) => `Nicht gewählte Sprache (${l})`,
     langBlockReason: (l) => `Blockierte Sprache (${l})`,
+    grokShortMentionReason: 'Kurzer @grok-Aufruf in Antworten',
+    grokHiddenReplyReason: 'Ausgeblendete @grok-Antwort',
+    replyDuplicateReason: 'Doppelte Copy-Paste-Antwort im Thread',
+    domainFilterReason: (s, d) => `${s} trifft blockierte Domain „${d}“`,
+    rulePackKeywordReason: (pk, s, p) => `Regelpaket „${pk}“: ${s} trifft „${p}“`,
+    rulePackDomainReason: (pk, s, d) => `Regelpaket „${pk}“: ${s} trifft Domain „${d}“`,
+    rulePackAccountReason: (pk) => `Regelpaket „${pk}“: blockiertes Konto`,
     evidence: {
       matchedReason: 'Auslösegrund',
       matchedUid: 'Betroffene UID',
@@ -1181,6 +1548,11 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
       bioLinkThreshold: 'Bio-Link-Schwelle',
       weightedLength: 'Gewichtete Länge',
       minThreshold: 'Mindestwert',
+      maxThreshold: 'Max. erlaubte Länge',
+      duplicateCount: 'Wiederholungen',
+      matchedDomain: 'Treffer-Domain',
+      matchedHost: 'Erkannter Host',
+      rulePack: 'Regelpaket',
     },
   },
   ru: {
@@ -1212,6 +1584,13 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
     cashtagSpamReason: (c) => `Крипто-спам: ${c} $Cashtag`,
     langAllowReason: (l) => `Язык вне списка (${l})`,
     langBlockReason: (l) => `Скрытый язык (${l})`,
+    grokShortMentionReason: 'Короткий вызов @grok в ответах',
+    grokHiddenReplyReason: 'Скрытый ответ @grok',
+    replyDuplicateReason: 'Повторяющийся ответ в ветке',
+    domainFilterReason: (s, d) => `${s}: заблокированный домен «${d}»`,
+    rulePackKeywordReason: (pk, s, p) => `Набор «${pk}»: ${s} — совпадение «${p}»`,
+    rulePackDomainReason: (pk, s, d) => `Набор «${pk}»: ${s} — домен «${d}»`,
+    rulePackAccountReason: (pk) => `Набор «${pk}»: аккаунт в ЧС`,
     evidence: {
       matchedReason: 'Причина срабатывания',
       matchedUid: 'UID аккаунта',
@@ -1233,12 +1612,19 @@ const ENGINE_MESSAGES: Record<SupportedLocale, EngineMessages> = {
       bioLinkThreshold: 'Лимит для био-ссылок',
       weightedLength: 'Взвешенная длина',
       minThreshold: 'Мин. порог',
+      maxThreshold: 'Макс. допустимая длина',
+      duplicateCount: 'Число повторов',
+      matchedDomain: 'Совпавший домен',
+      matchedHost: 'Обнаруженный хост',
+      rulePack: 'Набор правил',
     },
   },
 };
 
 export function getEngineMessages(locale: SupportedLocale): EngineMessages {
-  return ENGINE_MESSAGES[locale] ?? ENGINE_MESSAGES.en;
+  return Object.prototype.hasOwnProperty.call(ENGINE_MESSAGES, locale)
+    ? ENGINE_MESSAGES[locale]
+    : ENGINE_MESSAGES.en;
 }
 
 export interface BridgeMessages {
@@ -1411,5 +1797,7 @@ const BRIDGE_MESSAGES: Record<SupportedLocale, BridgeMessages> = {
 };
 
 export function getBridgeMessages(locale: SupportedLocale): BridgeMessages {
-  return BRIDGE_MESSAGES[locale] ?? BRIDGE_MESSAGES.en;
+  return Object.prototype.hasOwnProperty.call(BRIDGE_MESSAGES, locale)
+    ? BRIDGE_MESSAGES[locale]
+    : BRIDGE_MESSAGES.en;
 }

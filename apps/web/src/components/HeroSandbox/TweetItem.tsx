@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ChevronDown,
   ChevronUp,
   UserCheck,
   Trash2,
   Ban,
+  CheckCircle2,
   MessageSquare,
   Repeat2,
   Heart,
@@ -46,6 +47,8 @@ export interface TweetItemProps {
   staggerIndex: number;
   onQuickClean: (tweet: SandboxTweet) => void;
   onWhitelist: (authorHandle: string) => void;
+  showProtectionHints?: boolean;
+  showDuplicateKeptHint?: boolean;
   locale?: string;
 }
 
@@ -56,9 +59,16 @@ export function TweetItem({
   staggerIndex,
   onQuickClean,
   onWhitelist,
+  showProtectionHints = false,
+  showDuplicateKeptHint = false,
   locale = 'zh-CN',
 }: TweetItemProps) {
   const [expanded, setExpanded] = useState(false);
+  useEffect(() => {
+    if (!isFiltered || displayMode !== 'folded') {
+      setExpanded(false);
+    }
+  }, [isFiltered, displayMode]);
   const isZh = locale.startsWith('zh');
 
   // Intercepted & Hide Mode: completely collapse to 0 height
@@ -131,7 +141,7 @@ export function TweetItem({
                 <div className="folded-expanded-badges">
                   {tweet.filterReason && (
                     <span className={`risk-tag ${tweet.filterReason.category}`}>
-                      {tweet.filterReason.category.toUpperCase()}
+                      {tweet.filterReason.category.replace(/_/g, ' ').toUpperCase()}
                     </span>
                   )}
                   <span className="tweet-author-handle">UID {tweet.id}</span>
@@ -238,6 +248,23 @@ export function TweetItem({
               {tweet.sponsoredTag && (
                 <span className="tweet-sponsored-tag">
                   {tweet.sponsoredTag}
+                </span>
+              )}
+              {showProtectionHints && tweet.protectedNotice && (
+                <span
+                  className="tweet-protected-badge"
+                  data-testid="grok-protected-badge"
+                >
+                  <CheckCircle2 size={11} aria-hidden="true" />
+                  <span>{tweet.protectedNotice}</span>
+                </span>
+              )}
+              {showDuplicateKeptHint && tweet.duplicateNotice && (
+                <span
+                  className="tweet-duplicate-kept-badge"
+                  data-testid="duplicate-first-kept-badge"
+                >
+                  {tweet.duplicateNotice}
                 </span>
               )}
             </div>

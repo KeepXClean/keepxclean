@@ -4,6 +4,7 @@ import { cors } from 'hono/cors';
 import {
   DEFAULT_CLOUD_KEYWORDS,
   HIGH_FOLLOWER_PROTECT_THRESHOLD,
+  isCloudKeywordLangGroup,
   mergeCloudKeywords,
   MIN_REPORTER_ACCOUNT_AGE_DAYS,
   SITE_DOMAIN,
@@ -45,10 +46,50 @@ interface ChunkedSnapshotManifest {
   chunks: number;
 }
 
-const initializedDatabases = new WeakSet<D1Database>();
+const VALID_KEYWORD_SCOPES = new Set<KeywordMatchScope>([
+  'text',
+  'bio',
+  'name',
+  'url',
+]);
 
-async function ensureSchema(db: D1Database): Promise<void> {
-  if (initializedDatabases.has(db)) return;
+const schemaInitPromises = new WeakMap<D1Database, Promise<void>>();
+
+export function isDuplicateColumnError(error: unknown): boolean {
+  const parts: string[] = [];
+  const seen = new Set<object>();
+  let current: unknown = error;
+  let depth = 0;
+  while (current !== undefined && current !== null && depth < 5) {
+    if (typeof current === 'object') {
+      if (seen.has(current)) break;
+      seen.add(current);
+      if (current instanceof Error) {
+        parts.push(current.message);
+        current = (current as Error & { cause?: unknown }).cause;
+      } else {
+        const record = current as { message?: unknown; cause?: unknown };
+        if (typeof record.message === 'string') {
+          parts.push(record.message);
+        } else if (record.cause === undefined) {
+          try {
+            parts.push(String(current));
+          } catch {
+            // Ignore non-stringifiable null-prototype objects
+          }
+        }
+        current = record.cause;
+      }
+    } else {
+      parts.push(String(current));
+      break;
+    }
+    depth += 1;
+  }
+  return /duplicate column name/i.test(parts.join(' '));
+}
+
+async function runEnsureSchema(db: D1Database): Promise<void> {
   await db.batch([
     db.prepare(`
       CREATE TABLE IF NOT EXISTS block_reports (
@@ -101,7 +142,8 @@ async function ensureSchema(db: D1Database): Promise<void> {
         max_followers_exempt INTEGER DEFAULT NULL,
         note TEXT,
         enabled INTEGER NOT NULL DEFAULT 1,
-        updated_at INTEGER NOT NULL
+        updated_at INTEGER NOT NULL,
+        lang_group TEXT NOT NULL DEFAULT 'universal'
       )
     `),
     db.prepare(`
@@ -112,7 +154,37 @@ async function ensureSchema(db: D1Database): Promise<void> {
       )
     `),
   ]);
-  initializedDatabases.add(db);
+
+  const tableInfo = await db
+    .prepare('PRAGMA table_info(cloud_keywords)')
+    .all<{ name: string }>();
+  const hasLangGroup = (tableInfo.results ?? []).some(
+    (col) => col.name === 'lang_group'
+  );
+  if (!hasLangGroup) {
+    try {
+      await db
+        .prepare(
+          "ALTER TABLE cloud_keywords ADD COLUMN lang_group TEXT NOT NULL DEFAULT 'universal'"
+        )
+        .run();
+    } catch (error) {
+      if (!isDuplicateColumnError(error)) {
+        throw error;
+      }
+    }
+  }
+}
+
+async function ensureSchema(db: D1Database): Promise<void> {
+  const existing = schemaInitPromises.get(db);
+  if (existing) return existing;
+  const initPromise = runEnsureSchema(db).catch((error) => {
+    schemaInitPromises.delete(db);
+    throw error;
+  });
+  schemaInitPromises.set(db, initPromise);
+  return initPromise;
 }
 
 async function checkRateLimit(
@@ -188,6 +260,41 @@ function parsePositiveInt(raw: string | undefined, fallback: number): number {
   return Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : fallback;
 }
 
+export function splitIntoSurrogateSafeChunks(
+  text: string,
+  chunkSize: number
+): string[] {
+  if (text.length === 0) return [];
+  const step =
+    Number.isFinite(chunkSize) && chunkSize >= 1
+      ? Math.floor(chunkSize)
+      : chunkSize === Number.POSITIVE_INFINITY
+        ? text.length
+        : 1;
+  if (text.length <= step) return [text];
+
+  const parts: string[] = [];
+  let offset = 0;
+  while (offset < text.length) {
+    let end = Math.min(offset + step, text.length);
+    if (end < text.length) {
+      const lastCode = text.charCodeAt(end - 1);
+      const nextCode = text.charCodeAt(end);
+      if (
+        lastCode >= 0xd800 &&
+        lastCode <= 0xdbff &&
+        nextCode >= 0xdc00 &&
+        nextCode <= 0xdfff
+      ) {
+        end = end - offset > 1 ? end - 1 : Math.min(end + 1, text.length);
+      }
+    }
+    parts.push(text.slice(offset, end));
+    offset = end;
+  }
+  return parts;
+}
+
 async function writeSnapshotToD1(
   db: D1Database,
   serialized: string,
@@ -208,10 +315,7 @@ async function writeSnapshotToD1(
     return;
   }
 
-  const parts: string[] = [];
-  for (let offset = 0; offset < serialized.length; offset += chunkSize) {
-    parts.push(serialized.slice(offset, offset + chunkSize));
-  }
+  const parts = splitIntoSurrogateSafeChunks(serialized, chunkSize);
   const manifest: ChunkedSnapshotManifest = {
     __chunked: true,
     chunks: parts.length,
@@ -290,7 +394,7 @@ export async function buildAndSaveSnapshot(
 
   // Load any custom cloud keywords / emergency pauses from D1 and merge with DEFAULT_CLOUD_KEYWORDS
   const kwRows = await env.DB.prepare(
-    'SELECT id, pattern, is_regex, scopes, only_in_replies, max_followers_exempt, note, enabled FROM cloud_keywords'
+    'SELECT id, pattern, is_regex, scopes, only_in_replies, max_followers_exempt, note, enabled, lang_group FROM cloud_keywords ORDER BY id ASC'
   ).all<{
     id: string;
     pattern: string;
@@ -300,34 +404,77 @@ export async function buildAndSaveSnapshot(
     max_followers_exempt: number | null;
     note: string | null;
     enabled: number;
+    lang_group: string | null;
   }>();
 
   let cloudKeywords: KeywordRuleItem[] = DEFAULT_CLOUD_KEYWORDS;
   if (kwRows.results && kwRows.results.length > 0) {
-    const dbKeywords: KeywordRuleItem[] = kwRows.results.map((r) => {
+    const dbKeywords: KeywordRuleItem[] = [];
+    for (const r of kwRows.results) {
+      if (
+        typeof r.id !== 'string' ||
+        r.id.trim().length === 0 ||
+        r.id.length > 200 ||
+        typeof r.pattern !== 'string' ||
+        r.pattern.trim().length === 0 ||
+        r.pattern.length > 2000
+      ) {
+        continue;
+      }
+      const isRegex = Boolean(r.is_regex);
+      if (isRegex) {
+        try {
+          new RegExp(r.pattern, 'i');
+        } catch {
+          continue;
+        }
+      }
       let parsedScopes: KeywordMatchScope[] = ['text', 'bio'];
       try {
-        const parsed = JSON.parse(r.scopes);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          parsedScopes = parsed as KeywordMatchScope[];
+        const parsed: unknown = JSON.parse(r.scopes);
+        if (Array.isArray(parsed)) {
+          const filtered = Array.from(
+            new Set(
+              parsed.filter(
+                (scope): scope is KeywordMatchScope =>
+                  typeof scope === 'string' &&
+                  VALID_KEYWORD_SCOPES.has(scope as KeywordMatchScope)
+              )
+            )
+          );
+          if (filtered.length > 0) {
+            parsedScopes = filtered;
+          }
         }
       } catch {
         // Fallback to default scopes
       }
-      return {
+      const langGroup = isCloudKeywordLangGroup(r.lang_group)
+        ? r.lang_group
+        : 'universal';
+      const maxFollowersExempt =
+        typeof r.max_followers_exempt === 'number' &&
+        Number.isFinite(r.max_followers_exempt) &&
+        r.max_followers_exempt >= 1 &&
+        r.max_followers_exempt <= Number.MAX_SAFE_INTEGER
+          ? Math.floor(r.max_followers_exempt)
+          : undefined;
+      const note =
+        typeof r.note === 'string' && r.note.trim().length > 0
+          ? r.note.slice(0, 2000)
+          : undefined;
+      dbKeywords.push({
         id: r.id,
         pattern: r.pattern,
-        isRegex: Boolean(r.is_regex),
+        isRegex,
         scopes: parsedScopes,
         ...(r.only_in_replies ? { onlyInReplies: true } : {}),
-        maxFollowersExempt:
-          r.max_followers_exempt && r.max_followers_exempt > 0
-            ? r.max_followers_exempt
-            : undefined,
-        note: r.note ?? undefined,
+        maxFollowersExempt,
+        langGroup,
+        note,
         enabled: Boolean(r.enabled),
-      };
-    });
+      });
+    }
     cloudKeywords = mergeCloudKeywords(dbKeywords, true);
   }
 

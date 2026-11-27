@@ -3,25 +3,25 @@ KeepXClean ist eine kostenlose Open-Source-Erweiterung für eine aufgeräumte Ti
 FUNKTIONEN
 
 • Mehr Platz für gute Beiträge.
-Spam-Antworten, falsche Profile und Werbung filtern. Drei Filterstufen für deinen Alltag.
+Spam-Antworten, kopierte Antwort-Duplikate im selben Thread, falsche Profile und Werbung filtern. Offizielle @grok-Antworten standardmäßig schützen, kurze @grok-Aufrufe optional ausblenden und getrennte Modi für „Für dich“ und „Folge ich“ festlegen.
 
 • Dein Feed. Deine Regeln.
-24 öffentliche Stichwortregeln, eigene Begriffe und Regex. Du bestimmst, was gefiltert wird.
+Öffentliche 10-Sprachen-Keyword-Pakete (45 integrierte Regeln), strukturierter Filter für externe Domains, eigene Begriffe und Regex sowie offline teilbare .kxc-pack.json-Regelpakete.
 
 • Weniger Störungen. Mehr Kontext.
-Unerwünschte Beiträge einklappen, den Grund prüfen und bei Bedarf wieder öffnen.
+Unerwünschte Beiträge einklappen, den Grund prüfen, direkt zur passenden Regel springen oder einen Treffer per Klick deaktivieren sowie Regel-Statistiken lokal als PNG-Bericht exportieren.
 
 • Behalte die Menschen, denen du vertraust.
-Sperr- und Freigabelisten mit dauerhaften Konto-IDs. Importiere deine vorhandene X-Sperrliste.
+Sperr- und Freigabelisten mit dauerhaften Konto-IDs verwalten und vorhandene X-Sperrlisten direkt über die Schnellstart-Karte oder die Konten-Seite importieren.
 
 • Lokal filtern. Bewusst entscheiden.
-10 Sprachen und helle oder dunkle Designs. X-Sperrsynchronisierung und Community-Meldungen sind optional.
+10 Sprachen, helle oder dunkle Designs und lokaler Parse-Gesundheitscheck. Optionale Geräte-Synchronisierung (chrome.storage.sync), X-Sperrsynchronisierung und Community-Meldungen sind standardmäßig ausgeschaltet.
 
 LOKALE VERARBEITUNG UND DATENSCHUTZ
 
 KeepXClean fordert keine Passwörter oder Direktnachrichten an. X-Cookies werden lokal zur Kontoerkennung und für vom Nutzer ausgelöste X-Aktionen gelesen. Sitzungscookies und Autorisierungswerte werden nur gegenüber X verwendet und nie an KeepXClean-Server gesendet. Optionale Community-Meldungen sind in der Datenschutzerklärung beschrieben.
 
-Optionale Meldungen enthalten öffentliche Daten des gemeldeten Kontos, den Grund sowie eine SHA-256-Kennung und das Kontoalter des Meldenden. X-Sitzungscookies und Autorisierungswerte werden nicht an KeepXClean gesendet.
+Optionale Meldungen enthalten öffentliche Daten des gemeldeten Kontos, den Grund sowie eine SHA-256-Kennung und das Kontoalter des Meldenden. X-Sitzungscookies und Autorisierungswerte werden nicht an KeepXClean gesendet. Optionale Synchronisierung über chrome.storage.sync (standardmäßig aus) gleicht nur Filterregeln und Einstellungen ab, während lokale Sperrlisten, Whitelists und Protokolle auf dem Gerät bleiben; der Gesundheitscheck läuft rein lokal ohne Telemetrie.
 
 KeepXClean ist ein unabhängiges Projekt und steht in keiner Verbindung zu X Corp. Es wird nicht von X Corp. empfohlen oder hergestellt.
 

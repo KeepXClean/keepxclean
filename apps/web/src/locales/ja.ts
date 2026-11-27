@@ -16,7 +16,7 @@ export const ja: TranslationDictionary = {
     faq: 'よくある質問',
     privacy: 'プライバシーポリシー',
     github: 'GitHub ソース',
-    downloadCta: 'v0.1.2 を入手',
+    downloadCta: 'v0.2.0 を入手',
     addToChrome: 'Chrome に追加',
     cwsBadge: 'Chrome Web Store 審査中',
     cwsReviewBadge: 'Chrome Web Store 審査中',
@@ -31,9 +31,9 @@ export const ja: TranslationDictionary = {
     headlinePrefix: '快適で高シグナルな',
     headlineHighlight: 'X のタイムラインとリプライ欄を取り戻す',
     subheadline:
-      'X の GraphQL レスポンスをブラウザ内で直接決定論的に処理。追加登録不要、1ms 未満の超高速判定、完全公開ルールで AI ボットや詐欺アカウントを排除します。',
-    ctaDownload: 'GitHub 先行版 (v0.1.2) をダウンロード',
-    ctaPrimary: 'GitHub 先行版 (v0.1.2) をダウンロード',
+      'X の GraphQL レスポンスをブラウザ内で 1ms 未満で決定論的に処理。公式 @grok 保護、同一スレッドのコピペ連投対策、10言語パブリック辞書パック、オフラインルールパック、任意の同期機能を追加権限ゼロで提供します。',
+    ctaDownload: 'GitHub リリース版 (v0.2.0) をダウンロード',
+    ctaPrimary: 'GitHub リリース版 (v0.2.0) をダウンロード',
     ctaStore: 'Chrome に追加',
     ctaSecondary: 'GitHub でソースを見る',
     ctaGitHub: 'GitHub でソースを見る',
@@ -65,7 +65,7 @@ export const ja: TranslationDictionary = {
     counterLabel: '遮断済みノイズ',
     counterSuffix: '件',
     quickCleanTooltip: 'クイック浄化（4.5秒以内なら元に戻せます）',
-    discussionHeader: '注目のリプライ (7 件)',
+    discussionHeader: '注目のリプライ (10 件)',
     foldedBar: {
       expand: '遮断されたポストを表示',
       collapse: '折りたたむ',
@@ -83,7 +83,7 @@ export const ja: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.2 をリリースしました！完全ローカルファースト、1ms 未満の決定論的エンジン、ローカル処理、10言語対応。本来のクリーンな X 体験を。',
+        'KeepXClean v0.2.0 をリリースしました！ローカルファースト・1ms 未満の決定論的エンジンに、公式 @grok 保護、重複リプライ対策、10言語辞書パックを追加権限ゼロで搭載。',
       time: '2時間前',
       replies: '142',
       reposts: '389',
@@ -93,14 +93,14 @@ export const ja: TranslationDictionary = {
   bento: {
     badge: 'コア機能',
     title: 'アカウント情報を一切預けず、タイムラインを完全掌握',
-    sub: '外部のブラックボックスに依存しない、4つのローカルファースト設計柱。',
+    sub: '外部のブラックボックスに依存しない4つのローカルファースト設計柱と v0.2.0 の新機能。',
     sectionTitle: 'コア機能一覧',
     sectionDesc:
-      '24 種の共有キーワード · 4.5 秒の誠実な3フェーズ · プロフィール注意喚起バッジ · 言語制御とメディア免除。',
+      '10言語パブリック辞書パック（45ルール） · 4.5秒の誠実な3フェーズ · プロフィール注意喚起バッジ · 言語・メディア免除 · オフラインルールパックとローカル戦績レポート。',
     card1: {
-      tag: '共有ルール',
-      title: '24 種の共有キーワードとインプレ構文辞書',
-      desc: 'インプレ稼ぎ定型文、仮想通貨煽り、相互フォロー企画、アダルト誘導、違法取引の5カテゴリを網羅。正規表現の確認や個別ON/OFFが可能です。',
+      tag: '10言語パック',
+      title: '10言語パブリックキーワードパックと定型構文辞書',
+      desc: '共通スパムパックと9言語パックに整理し、定型構文・仮想通貨煽り・相互フォロー・アダルト誘導・詐欺の5カテゴリを網羅。パック単位の一括切替と個別正規表現調整に対応します。',
       categoryAll: 'すべて',
       categoryCliche: '定型構文・釣り',
       categoryCrypto: '仮想通貨・ミーム',
@@ -111,11 +111,16 @@ export const ja: TranslationDictionary = {
       disabled: '無効',
       copyRegex: 'ルールをコピー',
       copied: 'コピー完了!',
-      searchPlaceholder: 'キーワードまたは正規表現で検索...',
+      searchPlaceholder: 'キーワード・言語パック・正規表現で検索...',
       searchAriaLabel: 'キーワードを検索',
       clearSearch: '検索をクリア',
       inspectRegex: '正規表現を確認',
       closeInspector: 'インスペクタを閉じる',
+      langPacksAriaLabel: '言語パックで絞り込み',
+      langPackAll: '全パック',
+      langPackUniversal: '共通',
+      enablePack: 'パックを有効化',
+      disablePack: 'パックを無効化',
     },
     card2: {
       tag: '誠実な3フェーズ',
@@ -177,6 +182,30 @@ export const ja: TranslationDictionary = {
       normalLangNotice: '通常表示（言語条件に一致）。',
       toggleMediaLabel: 'メディア添付・共通絵文字の切り替え：',
     },
+    v020Highlights: {
+      badge: 'v0.2.0 の新機能',
+      title: 'さらなる精密制御を追加権限ゼロで実現',
+      langPacks: {
+        tag: '10言語パック',
+        title: '言語別パブリックキーワードパック',
+        desc: '共通スパムパックと9地域言語パック（全45ルール）を収録。表示言語に合わせて自動有効化され、パック一括切替と個別調整が可能です。',
+      },
+      rulePacks: {
+        tag: 'オフライン .kxc-pack.json',
+        title: '共有可能なオフラインルールパック',
+        desc: 'ローカルの JSON ファイルやクリップボードでキーワード・外部ドメイン・UID を安全に共有。個人ルールと分離管理でき、リモート購読ゼロでワンクリック削除が可能です。',
+      },
+      battleReport: {
+        tag: 'ローカル Canvas 2D',
+        title: 'ルール別集計とローカル浄化レポート PNG',
+        desc: '履歴画面でルール別内訳と直近7日間の推移を確認し、個人情報ゼロの明るいレポート画像をブラウザ内で直接生成・保存できます。',
+      },
+      cloudSync: {
+        tag: '任意・初期状態 OFF',
+        title: '任意のデバイス間同期',
+        desc: 'chrome.storage.sync を使い6KB以下のチャンクでルール・シーン設定・ドメイン・パックを同期し、初回競合も3択で解決。大容量のローカルブロック一覧と履歴は端末内に留まります。',
+      },
+    },
   },
   architecture: {
     badge: 'ローカルファースト設計',
@@ -194,7 +223,7 @@ export const ja: TranslationDictionary = {
       'X クライアントが受信した通信データを直接フック。余分なスクレイピングやレート制限の心配はありません。',
     step2Title: '2. 決定論的ローカル評価エンジン',
     step2Desc:
-      '端末の CPU 上でルール、比率、キーワードを 1ms 未満で評価。クラウド待ち時間ゼロ。',
+      '端末の CPU 上でプリセット、Grok 保護、重複リプライ検出、ドメイン制御、10言語パック、オフラインルールパックを 1ms 未満で評価します。',
     step3Title: '3. 非侵入的 DOM レンダリング',
     step3Desc:
       '設定に応じてスムーズな CSS アニメーションで折りたたみ、または完全消去します。',
@@ -235,10 +264,10 @@ export const ja: TranslationDictionary = {
     sectionDesc:
       'リリース ZIP を入手 · 解凍 · Chrome 拡張機能管理画面でデベロッパーモード有効化。',
     copyTooltip: 'chrome://extensions をコピー',
-    readyStatus: 'KeepXClean v0.1.2 · 準備完了',
+    readyStatus: 'KeepXClean v0.2.0 · 準備完了',
     step1Title: 'ステップ 1: 配布パッケージ (.zip) をダウンロード',
     step1Desc:
-      'GitHub Releases から最新の keepxclean-v0.1.2.zip をダウンロードし、任意のフォルダに解凍します。',
+      'GitHub Releases から最新の keepxclean-v0.2.0.zip をダウンロードし、任意のフォルダに解凍します。',
     step1Action: 'リリース版 ZIP を入手',
     step2Title: 'ステップ 2: デベロッパーモードを有効化',
     step2Desc:
@@ -281,6 +310,14 @@ export const ja: TranslationDictionary = {
         q: 'KeepXClean は本当に完全無料でオープンソースですか？',
         a: 'はい。MIT ライセンスの下で提供されており、拡張機能本体、共有ライブラリ、Web サイトの全ソースコードが GitHub で一般公開されています。',
       },
+      {
+        q: '10言語パブリック辞書パックとオフライン .kxc-pack.json ルールパックの仕組みは？',
+        a: '標準パブリック辞書は「共通」と9言語パック（全45ルール）に分かれ、パック一括切替と個別調整が可能です。テーマ別ルールパックは .kxc-pack.json ファイルやクリップボード経由で完全オフラインに共有でき、リモート URL 購読なしで独立管理・ワンクリック削除ができます。',
+      },
+      {
+        q: '任意のデバイス間同期（chrome.storage.sync）は新しいブラウザ権限を必要としますか？',
+        a: 'いいえ。同期は初期状態で OFF となっており、新しい権限は一切追加しません（storage と alarms のみ）。設定から有効化するとルール・シーン設定・ドメイン・ルールパックを 6KB 以下のチャンクで同期し、初回競合時は3択で統合できます。ローカルブロック一覧や履歴、解析ヘルス状態は端末内にのみ保存されます。',
+      },
     ],
   },
   footer: {
@@ -299,7 +336,7 @@ export const ja: TranslationDictionary = {
     install: 'インストールガイド',
     faq: 'よくある質問',
     githubRepo: 'GitHub リポジトリ',
-    releaseZip: '最新リリース v0.1.2 (.zip)',
+    releaseZip: '最新リリース v0.2.0 (.zip)',
     statsApi: 'コミュニティ統計 API',
     issues: '問題報告・Issue',
     privacyPolicy: 'プライバシーポリシー（日英）',

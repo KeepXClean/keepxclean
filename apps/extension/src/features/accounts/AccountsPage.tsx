@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ArrowUpRight,
   Download,
@@ -31,6 +31,7 @@ import {
   Tabs,
   usePagination,
 } from '../../ui/components';
+import { useHashQuery } from '../../ui/useHashQuery';
 import { ImportWizard } from './ImportWizard';
 
 export function accountProfileUrl(uid: string, screenName?: string) {
@@ -185,6 +186,11 @@ export function AccountsPage() {
   const { m, locale } = useI18n();
   const { config, snapshot, imports, logs } = data!;
   const reasonLabels = getBlockReasonLabels(locale);
+  const hashQuery = useHashQuery();
+  const actionParam = hashQuery.get('action');
+  const focusParam = hashQuery.get('focus');
+  const tabParam = hashQuery.get('tab');
+
   const [tab, setTab] = useState<'black' | 'white' | 'community'>('black'),
     [query, setQuery] = useState(''),
     [editor, setEditor] = useState(false),
@@ -192,6 +198,46 @@ export function AccountsPage() {
     [removing, setRemoving] = useState<AccountListEntry | null>(null),
     [whitelisting, setWhitelisting] = useState<AccountListEntry | null>(null),
     [notice, setNotice] = useState('');
+
+  useEffect(() => {
+    if (
+      tabParam === 'black' ||
+      tabParam === 'white' ||
+      tabParam === 'community'
+    ) {
+      setTab(tabParam);
+    }
+  }, [hashQuery, tabParam]);
+
+  useEffect(() => {
+    if (actionParam === 'import' || focusParam === 'import') {
+      setWizard((prev) => prev ?? 'new');
+    }
+  }, [actionParam, focusParam]);
+
+  function closeWizard() {
+    setWizard(null);
+    if (actionParam === 'import' || focusParam === 'import') {
+      const next = new URLSearchParams(hashQuery);
+      if (next.get('action') === 'import') next.delete('action');
+      if (next.get('focus') === 'import') next.delete('focus');
+      const qs = next.toString();
+      const nextHash = `#/accounts${qs ? `?${qs}` : ''}`;
+      try {
+        if (
+          typeof history !== 'undefined' &&
+          typeof history.replaceState === 'function'
+        ) {
+          history.replaceState(null, '', nextHash);
+          window.dispatchEvent(new Event('hashchange'));
+        } else {
+          location.hash = nextHash;
+        }
+      } catch {
+        location.hash = nextHash;
+      }
+    }
+  }
 
   const knownMeta = new Map<string, { screenName: string; name?: string }>();
   for (const log of logs) {
@@ -536,7 +582,7 @@ export function AccountsPage() {
       {wizard && (
         <ImportWizard
           initialJobId={wizard === 'new' ? undefined : wizard}
-          onClose={() => setWizard(null)}
+          onClose={closeWizard}
         />
       )}
       {removing && (

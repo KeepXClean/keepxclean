@@ -7,8 +7,10 @@ import {
   SUPPORTED_LOCALES,
   UI_LOCALE_OPTIONS,
   type FilterRulesConfig,
+  type TriggeredRuleId,
 } from '@keepxclean/shared';
 import {
+  ERROR_LOCALES,
   getI18n,
   LOCALES,
   setActiveLocaleSetting,
@@ -18,29 +20,60 @@ import { validateKeyword } from '../src/services/validation';
 import { applyConfigCommand } from '../src/background/config';
 import { digest } from '../src/services/model';
 
-function sampleArgs(fn: (...args: never[]) => unknown): unknown[] {
-  const src = fn.toString();
-  const paramsRaw = src.slice(src.indexOf('(') + 1, src.indexOf(')'));
-  if (!paramsRaw.trim()) return [];
-  return paramsRaw.split(',').map((param) => {
-    const name = param.trim().split(/[:=\s]/)[0]!;
+function extractParamNames(fn: (...args: never[]) => unknown): string[] {
+  const src = fn.toString().trim();
+  const arrowIdx = src.indexOf('=>');
+  const openParen = src.indexOf('(');
+  if (arrowIdx !== -1 && (openParen === -1 || arrowIdx < openParen)) {
+    const single = src
+      .slice(0, arrowIdx)
+      .replace(/^async\s+/, '')
+      .trim();
+    return single ? [single] : [];
+  }
+  const closeParen = src.indexOf(')', openParen + 1);
+  if (openParen === -1 || closeParen === -1) return [];
+  const paramsRaw = src.slice(openParen + 1, closeParen).trim();
+  if (!paramsRaw) return [];
+  return paramsRaw
+    .split(',')
+    .map((param) => param.trim().replace(/^\.\.\./, '').split(/[:=\s]/)[0]!)
+    .filter(Boolean);
+}
+
+function sampleArgSets(fn: (...args: never[]) => unknown): unknown[][] {
+  const names = extractParamNames(fn);
+  if (names.length === 0) return [[]];
+  const perParamOptions: unknown[][] = names.map((name) => {
     if (
       /^(open|integer|windowEnabled|truncated|usingBuiltin|isWhite|positive)$/.test(
         name
       )
     ) {
-      return true;
+      return [true, false];
     }
-    if (name === 'mode') return 'allow';
+    if (name === 'mode') return ['allow', 'block'];
     if (
-      /^(active|total|weight|cjkApprox|daily|hours|maxWindow|min|count|hashtags|cashtags|days|ratio|added|changed|removed|skipped|notCounted|completed|failed|seconds|months|status)$/.test(
+      /^(active|total|weight|cjkApprox|daily|hours|maxWindow|min|count|hashtags|cashtags|days|ratio|added|changed|removed|skipped|notCounted|completed|failed|seconds|months|status|chunks|keywordsCount|domainsCount|accountsCount|pages|followers|d|mo)$/.test(
         name
       )
     ) {
-      return 3;
+      return [3];
     }
-    return 'sample';
+    return ['sample'];
   });
+
+  let combos: unknown[][] = [[]];
+  for (const options of perParamOptions) {
+    const next: unknown[][] = [];
+    for (const prefix of combos) {
+      for (const opt of options) {
+        next.push([...prefix, opt]);
+      }
+    }
+    combos = next;
+  }
+  return combos;
 }
 
 function assertCompleteDictionary(
@@ -67,15 +100,34 @@ function assertCompleteDictionary(
         `Empty string at ${fullPath} in ${locale}`
       ).toBeGreaterThan(0);
     } else if (typeof refVal === 'function') {
-      const args = sampleArgs(refVal as (...args: never[]) => unknown);
-      const out = (targetVal as (...a: unknown[]) => string)(...args);
-      expect(typeof out, `Non-string return at ${fullPath} in ${locale}`).toBe(
-        'string'
-      );
-      expect(
-        out.trim().length,
-        `Empty formatted output at ${fullPath} in ${locale}`
-      ).toBeGreaterThan(0);
+      const argSets = sampleArgSets(refVal as (...args: never[]) => unknown);
+      for (const args of argSets) {
+        const out = (targetVal as (...a: unknown[]) => string)(...args);
+        expect(
+          typeof out,
+          `Non-string return at ${fullPath}(${JSON.stringify(args)}) in ${locale}`
+        ).toBe('string');
+        expect(
+          out.trim().length,
+          `Empty formatted output at ${fullPath}(${JSON.stringify(args)}) in ${locale}`
+        ).toBeGreaterThan(0);
+        expect(
+          out,
+          `Output contains "undefined" at ${fullPath}(${JSON.stringify(args)}) in ${locale}`
+        ).not.toContain('undefined');
+        expect(
+          out,
+          `Output contains "NaN" at ${fullPath}(${JSON.stringify(args)}) in ${locale}`
+        ).not.toContain('NaN');
+        expect(
+          out,
+          `Output contains "[object Object]" at ${fullPath}(${JSON.stringify(args)}) in ${locale}`
+        ).not.toContain('[object Object]');
+        expect(
+          out,
+          `Output contains uninterpolated "\${" at ${fullPath}(${JSON.stringify(args)}) in ${locale}`
+        ).not.toContain('${');
+      }
     } else if (refVal && typeof refVal === 'object') {
       assertCompleteDictionary(
         refVal as Record<string, unknown>,
@@ -106,13 +158,15 @@ describe('extension internationalization (10 locales)', () => {
     }
   });
 
-  it('summarizes all 9 filter rules cleanly in every supported locale', () => {
+  it('summarizes all 11 filter rules cleanly in every supported locale', () => {
     const ruleKeys: (keyof FilterRulesConfig)[] = [
       'replySpam',
+      'grokFilter',
       'engagementBait',
       'highFrequency',
       'crowdBlock',
       'keywords',
+      'domainFilter',
       'tagSpam',
       'accountQuality',
       'languageFilter',
@@ -190,5 +244,76 @@ describe('extension internationalization (10 locales)', () => {
         expected: staleDigest,
       })
     ).toThrow(getI18n('ru').m.errors.configChangedReconfirmReset);
+  });
+
+  it('maintains 100% ERROR_LOCALES parity, 11 rules.defs, and 16 localized history.ruleLabels across all 10 locales', () => {
+    const ruleDefKeys: (keyof FilterRulesConfig)[] = [
+      'replySpam',
+      'grokFilter',
+      'engagementBait',
+      'highFrequency',
+      'crowdBlock',
+      'keywords',
+      'domainFilter',
+      'tagSpam',
+      'accountQuality',
+      'languageFilter',
+      'hidePromotedAds',
+    ];
+    const ruleLabelKeys: TriggeredRuleId[] = [
+      'local_blocklist',
+      'reply_spam',
+      'engagement_bait',
+      'high_frequency_daily',
+      'high_frequency_window',
+      'crowd_block',
+      'keyword',
+      'cloud_keyword',
+      'tag_spam',
+      'account_quality',
+      'language_filter',
+      'promoted_ad',
+      'impersonation',
+      'grok_filter',
+      'domain_filter',
+      'rule_pack',
+    ];
+
+    for (const locale of SUPPORTED_LOCALES) {
+      const errDict = ERROR_LOCALES[locale];
+      expect(errDict, `Missing ERROR_LOCALES for ${locale}`).toBeDefined();
+      assertCompleteDictionary(
+        ERROR_LOCALES.en as unknown as Record<string, unknown>,
+        errDict as unknown as Record<string, unknown>,
+        locale,
+        'ERROR_LOCALES'
+      );
+
+      const dict = LOCALES[locale];
+      expect(Object.keys(dict.rules.defs).sort()).toEqual([...ruleDefKeys].sort());
+      for (const defKey of ruleDefKeys) {
+        const def = dict.rules.defs[defKey];
+        expect(def, `Missing rules.defs.${defKey} in ${locale}`).toBeDefined();
+        expect(def.title.trim().length, `Empty rules.defs.${defKey}.title in ${locale}`).toBeGreaterThan(0);
+        expect(def.desc.trim().length, `Empty rules.defs.${defKey}.desc in ${locale}`).toBeGreaterThan(0);
+        expect(def.note.trim().length, `Empty rules.defs.${defKey}.note in ${locale}`).toBeGreaterThan(0);
+      }
+
+      expect(Object.keys(dict.history.ruleLabels).sort()).toEqual([...ruleLabelKeys].sort());
+      for (const lblKey of ruleLabelKeys) {
+        const label = dict.history.ruleLabels[lblKey];
+        expect(typeof label, `Non-string history.ruleLabels.${lblKey} in ${locale}`).toBe('string');
+        expect(label.trim().length, `Empty history.ruleLabels.${lblKey} in ${locale}`).toBeGreaterThan(0);
+      }
+    }
+
+    for (const v2RuleId of ['grok_filter', 'domain_filter', 'rule_pack'] as const) {
+      expect(LOCALES['zh-CN'].history.ruleLabels[v2RuleId]).not.toBe(
+        LOCALES.en.history.ruleLabels[v2RuleId]
+      );
+      expect(LOCALES.ja.history.ruleLabels[v2RuleId]).not.toBe(
+        LOCALES.en.history.ruleLabels[v2RuleId]
+      );
+    }
   });
 });

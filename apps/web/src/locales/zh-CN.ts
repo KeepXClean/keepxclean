@@ -16,7 +16,7 @@ export const zhCN: TranslationDictionary = {
     faq: '常见问答',
     privacy: '隐私政策',
     github: 'GitHub 源码',
-    downloadCta: '获取 v0.1.2',
+    downloadCta: '获取 v0.2.0',
     addToChrome: '添加至 Chrome',
     cwsBadge: 'Chrome 商店审核中',
     cwsReviewBadge: 'Chrome 商店审核中',
@@ -31,9 +31,9 @@ export const zhCN: TranslationDictionary = {
     headlinePrefix: '重获清爽、高信噪比的',
     headlineHighlight: 'X 时间线与评论区',
     subheadline:
-      '直接解析 X 自身 GraphQL 响应，在浏览器本地执行确定性过滤。无需额外注册、<1ms 匹配、透明规则，全网协同防范 AI 水军、杀猪盘与恶意引流。',
-    ctaDownload: '下载 GitHub 抢先版 (v0.1.2)',
-    ctaPrimary: '下载 GitHub 抢先版 (v0.1.2)',
+      '直接解析 X 自身 GraphQL 响应，在浏览器本地以 <1ms 确定性执行。新增官方 @grok 保护、同贴复读水军拦截、10 语种公共词库包、离线规则包与可选跨设备同步，零新增扩展权限。',
+    ctaDownload: '下载 GitHub 发布版 (v0.2.0)',
+    ctaPrimary: '下载 GitHub 发布版 (v0.2.0)',
     ctaStore: '添加至 Chrome',
     ctaSecondary: '查看 GitHub 源码',
     ctaGitHub: '查看 GitHub 源码',
@@ -65,7 +65,7 @@ export const zhCN: TranslationDictionary = {
     counterLabel: '已过滤噪音',
     counterSuffix: '条',
     quickCleanTooltip: '立即净空（支持 4.5 秒撤销）',
-    discussionHeader: '热门评论 (7 条回复)',
+    discussionHeader: '热门评论 (10 条回复)',
     foldedBar: {
       expand: '展开已拦截推文',
       collapse: '收起',
@@ -83,7 +83,7 @@ export const zhCN: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.2 正式发布！采用本地优先架构，<1ms 确定性规则匹配，本地过滤，支持 10 种语言。还你纯净高信噪比的 X 体验。',
+        'KeepXClean v0.2.0 正式发布！本地优先架构，<1ms 确定性规则匹配，新增官方 @grok 保护、同贴复读去重与 10 语种公共词库包，零新增权限。',
       time: '2小时前',
       replies: '142',
       reposts: '389',
@@ -93,14 +93,14 @@ export const zhCN: TranslationDictionary = {
   bento: {
     badge: '核心能力',
     title: '深度掌控推文生态，本地处理账号会话',
-    sub: '四大本地优先架构支柱，无需信任黑盒云端，还你干净推特。',
+    sub: '四大本地优先交互支柱配合 v0.2.0 全新升级，无需信任黑盒云端，还你清爽推特。',
     sectionTitle: '核心能力展示',
     sectionDesc:
-      '24 条云端关键词预览 · 4.5 秒诚实三阶段反馈 · 个人主页风险徽章 · 语种精准黑白名单与媒体豁免。',
+      '10 语种公共词库包（45 条规则）· 4.5 秒诚实三阶段反馈 · 个人主页风险徽章 · 语种与媒体豁免 · 离线规则包与本地净空战报。',
     card1: {
-      tag: '公共规则库',
-      title: '24 条公共词库与烂梗精细过滤',
-      desc: '覆盖营销套话、币圈喊单、互关车队、色情私域与黑灰产交易五大分类。规则全透明，支持逐条开关与正则查看复制。',
+      tag: '10 语种词库包',
+      title: '10 语种公共词库包与烂梗精细过滤',
+      desc: '拆分为通用硬垃圾包与 9 大语种分包，覆盖营销套话、币圈喊单、互关车队、色情私域与黑产诈骗五大分类，支持整包一键启停与单条正则查看微调。',
       categoryAll: '全部',
       categoryCliche: '烂梗营销套话',
       categoryCrypto: '币圈喊单',
@@ -111,11 +111,16 @@ export const zhCN: TranslationDictionary = {
       disabled: '已停用',
       copyRegex: '复制规则',
       copied: '已复制!',
-      searchPlaceholder: '过滤关键词或正则表达式...',
+      searchPlaceholder: '过滤关键词、语种包或正则表达式...',
       searchAriaLabel: '过滤关键词',
       clearSearch: '清空搜索',
       inspectRegex: '查看正则表达式',
       closeInspector: '关闭检查器',
+      langPacksAriaLabel: '按语种词库包筛选',
+      langPackAll: '全部语种包',
+      langPackUniversal: '通用',
+      enablePack: '启用整包',
+      disablePack: '停用整包',
     },
     card2: {
       tag: '诚实三阶段',
@@ -177,6 +182,30 @@ export const zhCN: TranslationDictionary = {
       normalLangNotice: '正常可见（符合语言规则）。',
       toggleMediaLabel: '模拟图片多媒体与通用表情：',
     },
+    v020Highlights: {
+      badge: 'v0.2.0 全新升级',
+      title: '精细化控噪进阶，依然零新增扩展权限',
+      langPacks: {
+        tag: '10 语种分包',
+        title: '分语种公共词库包',
+        desc: '通用硬垃圾包叠加 9 个语种分包（内置 45 条透明规则），自动适配界面语言，支持整包一键启停与单条微调。',
+      },
+      rulePacks: {
+        tag: '离线 .kxc-pack.json',
+        title: '纯离线可分享主题规则包',
+        desc: '通过本地文件或剪贴板导入导出关键词、外链域名与可选 UID 规则包，独立托管、一键卸载不污染个人词条，零远程订阅。',
+      },
+      battleReport: {
+        tag: '本地 Canvas 2D',
+        title: '按规则统计与本地净空战报 PNG',
+        desc: '在拦截日志页查看按规则分布条与近 7 日趋势，并纯本地渲染浅色品牌风格战报图（零隐私信息），一键复制或保存。',
+      },
+      cloudSync: {
+        tag: '默认关闭 · 按需开启',
+        title: '可选跨设备配置同步',
+        desc: '通过 chrome.storage.sync 分片（≤6 KB）同步规则、分场景策略、外链域名与规则包并提供三选一冲突处理；大体积本地黑名单与日志始终留存本机。',
+      },
+    },
   },
   architecture: {
     badge: '本地优先架构',
@@ -194,7 +223,7 @@ export const zhCN: TranslationDictionary = {
       '直接复用 X 客户端已接收的数据流，零额外爬虫请求，零后台标签页轮询，零速率限制。',
     step2Title: '2. 本地高速确定性规则引擎',
     step2Desc:
-      '本地 CPU 毫秒级匹配预设、关键词、粉丝比例与水军特征，无需等待云端 AI 延迟。',
+      '本地 CPU 毫秒级匹配预设、Grok 保护、同贴复读去重、外链域名、10 语种词库包与离线规则包，无需等待云端 AI 延迟。',
     step3Title: '3. 非侵入式 DOM 优雅降级',
     step3Desc:
       '根据您的显示偏好无缝折叠或抹除噪音元素，配合丝滑平稳的 CSS 高度过渡动效。',
@@ -235,10 +264,10 @@ export const zhCN: TranslationDictionary = {
     sectionDesc:
       '下载 Release 压缩包 · 本地解压 · 打开 Chrome 开发者模式加载已解压程序。',
     copyTooltip: '复制 chrome://extensions',
-    readyStatus: 'KeepXClean v0.1.2 · 就绪可用',
+    readyStatus: 'KeepXClean v0.2.0 · 就绪可用',
     step1Title: '第一步：下载发布包 (.zip)',
     step1Desc:
-      '从 GitHub Releases 下载最新的 keepxclean-v0.1.2.zip 并解压到本地固定文件夹。',
+      '从 GitHub Releases 下载最新的 keepxclean-v0.2.0.zip 并解压到本地固定文件夹。',
     step1Action: '下载发布包 (.zip)',
     step2Title: '第二步：开启扩展开发者模式',
     step2Desc:
@@ -281,6 +310,14 @@ export const zhCN: TranslationDictionary = {
         q: 'KeepXClean 真的完全免费并且开源吗？',
         a: '是的。KeepXClean 采用极其宽松的 MIT 开源协议，插件端、共享工具包和官网所有源码 100% 公开在 GitHub 上，任何人都可以审计、Fork 或参与贡献。',
       },
+      {
+        q: '10 语种公共词库包和离线 .kxc-pack.json 主题规则包是如何工作的？',
+        a: '内置公共词库按通用包与 9 个语种分包组织（共 45 条透明规则），支持整包启停与单条微调。主题规则包支持纯离线 .kxc-pack.json 文件与剪贴板导入导出关键词、外链域名和可选 UID 列表，独立托管并支持一键干净卸载，不提供远程 URL 自动订阅。',
+      },
+      {
+        q: '可选跨设备同步（chrome.storage.sync）怎么运作？需要新增浏览器权限吗？',
+        a: '跨设备同步默认关闭，且零新增任何浏览器权限（仍仅需 storage 与 alarms）。在偏好设置手动开启后，规则参数、分场景策略、自定义词条/域名和已安装规则包会按 ≤6 KB 分片同步并在首次冲突时提供三选一策略；大体积本地黑名单、白名单、日志和解析自检状态始终留在本地设备。',
+      },
     ],
   },
   footer: {
@@ -299,7 +336,7 @@ export const zhCN: TranslationDictionary = {
     install: '安装指南',
     faq: '常见问答',
     githubRepo: 'GitHub 仓库',
-    releaseZip: '发布包 v0.1.2 (.zip)',
+    releaseZip: '发布包 v0.2.0 (.zip)',
     statsApi: '社区防线 API',
     issues: '问题反馈',
     privacyPolicy: '隐私政策（双语）',

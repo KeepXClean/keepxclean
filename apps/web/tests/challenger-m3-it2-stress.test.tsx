@@ -540,5 +540,58 @@ describe('Empirical Challenger Iteration 2: Deep Stress & Adversarial Suite', ()
         expect(html).not.toContain('@<!-- -->@');
       }
     });
+
+    it('rapid For You <-> Following scene tab toggling (20 clicks) converges deterministically with zero @@', () => {
+      window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+        matches: query.includes('prefers-reduced-motion: reduce'),
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }));
+
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const localRoot = createRoot(host);
+
+      try {
+        act(() => {
+          localRoot.render(<HeroSandbox locale="en" />);
+        });
+
+        const forYouTab = host.querySelector(
+          '[data-testid="scene-tab-for-you"]'
+        ) as HTMLButtonElement;
+        const followingTab = host.querySelector(
+          '[data-testid="scene-tab-following"]'
+        ) as HTMLButtonElement;
+        expect(forYouTab).not.toBeNull();
+        expect(followingTab).not.toBeNull();
+
+        for (let i = 0; i < 20; i++) {
+          act(() => {
+            if (i % 2 === 0) {
+              followingTab.click();
+            } else {
+              forYouTab.click();
+            }
+          });
+        }
+
+        // 20th click (i=19) lands on For You -> standard preset 5 / 7, zero bypass banner, zero @@
+        const summary = host.querySelector('.category-stats-summary');
+        expect(summary?.textContent).toContain('5 / 7');
+        expect(host.querySelector('[data-testid="sandbox-scene-bypass-banner"]')).toBeNull();
+        expect(host.innerHTML).not.toContain('@@');
+      } finally {
+        act(() => {
+          localRoot.unmount();
+        });
+        host.remove();
+      }
+    });
   });
 });

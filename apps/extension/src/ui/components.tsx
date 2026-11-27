@@ -320,6 +320,7 @@ export function Tabs<T extends string>({
           role="tab"
           type="button"
           key={option.value}
+          data-tab={option.value}
           aria-selected={value === option.value}
           tabIndex={value === option.value ? 0 : -1}
           onKeyDown={(event) => {
@@ -735,19 +736,27 @@ export function Pagination({
 }
 export function usePagination<T>(items: T[], resetKey: string) {
   const [page, setPage] = useState(1);
-  const pages = Math.max(1, Math.ceil(items.length / 25));
-  useEffect(() => setPage(1), [resetKey]);
+  const pageSize = 25;
+  const pages = Math.max(1, Math.ceil(items.length / pageSize));
+  const prevResetKey = useRef(resetKey);
+  useEffect(() => {
+    if (prevResetKey.current !== resetKey) {
+      prevResetKey.current = resetKey;
+      setPage(1);
+    }
+  }, [resetKey]);
   useEffect(() => {
     if (page > pages) setPage(pages);
   }, [page, pages]);
+  const current = Math.min(page, pages);
   return {
-    items: items.slice(
-      (Math.min(page, pages) - 1) * 25,
-      Math.min(page, pages) * 25
-    ),
+    page: current,
+    setPage,
+    pageSize,
+    items: items.slice((current - 1) * pageSize, current * pageSize),
     control: (
       <Pagination
-        page={Math.min(page, pages)}
+        page={current}
         pages={pages}
         count={items.length}
         onChange={setPage}

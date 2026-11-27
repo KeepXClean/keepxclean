@@ -1,5 +1,18 @@
+import type {
+  CloudKeywordLangGroup,
+  DomainRuleItem,
+  MatchedTarget,
+  RulePackPayload,
+} from '@keepxclean/shared';
 import { getActiveErrors } from '../i18n/errors';
-import type { Command, Result } from './model';
+import type {
+  CloudSyncMeta,
+  CloudSyncStrategy,
+  Command,
+  ParseHealthReport,
+  ParseHealthState,
+  Result,
+} from './model';
 import { normalizeServiceUrl } from './validation';
 
 export function isExtensionContextValid(): boolean {
@@ -70,9 +83,59 @@ export async function authorizeService(input: string) {
   }
   return normalized;
 }
-export function openOptions(page = 'rules') {
-  return command({ type: 'options.open', page });
+export function openOptions(page = 'rules', query?: Record<string, string>) {
+  return command({
+    type: 'options.open',
+    page,
+    ...(query ? { query } : {}),
+  });
 }
 export function reloadXTabs() {
   return command<{ reloaded: number }>({ type: 'tabs.reloadX' });
+}
+export function saveDomain(item: DomainRuleItem, expected?: string) {
+  return command({
+    type: 'domain.save',
+    item,
+    ...(expected !== undefined ? { expected } : {}),
+  });
+}
+export function deleteDomain(id: string, expected: string) {
+  return command({ type: 'domain.delete', id, expected });
+}
+export function toggleCloudLangGroup(
+  group: CloudKeywordLangGroup,
+  enabled: boolean
+) {
+  return command({ type: 'cloudLangGroup.toggle', group, enabled });
+}
+export function disableMatchedTarget(target: MatchedTarget) {
+  return command({ type: 'target.disable', target });
+}
+export function installRulePack(pack: RulePackPayload | string | unknown) {
+  return command({ type: 'pack.install', pack });
+}
+export function toggleRulePack(id: string, enabled: boolean) {
+  return command({ type: 'pack.toggle', id, enabled });
+}
+export function uninstallRulePack(id: string) {
+  return command({ type: 'pack.uninstall', id });
+}
+export function enableCloudSync() {
+  return command<CloudSyncMeta>({ type: 'cloudSync.enable' });
+}
+export function resolveCloudSync(strategy: CloudSyncStrategy) {
+  return command<CloudSyncMeta>({ type: 'cloudSync.resolve', strategy });
+}
+export function disableCloudSync() {
+  return command<CloudSyncMeta>({ type: 'cloudSync.disable' });
+}
+export function pushCloudSyncNow() {
+  return command<CloudSyncMeta>({ type: 'cloudSync.pushNow' });
+}
+export function updateParseHealth(report: ParseHealthReport) {
+  return command<ParseHealthState>({ type: 'health.update', report });
+}
+export function dismissParseHealth() {
+  return command<ParseHealthState>({ type: 'health.dismiss' });
 }

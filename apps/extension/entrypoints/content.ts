@@ -2,11 +2,14 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   resolveLocale,
-  type ViewerProfile,
-  type FilterConfig,
   type CrowdBlockSnapshot,
+  type ExtractedAuthor,
+  type ExtractedTweet,
+  type FilterConfig,
+  type ViewerProfile,
 } from '@keepxclean/shared';
 import { command, isExtensionContextValid } from '../src/services/client';
+import { sanitizeParseHealthReport } from '../src/services/parse-health';
 import { getState, subscribe } from '../src/state/store';
 import { ContentApp } from '../src/content/ContentApp';
 import { DomController } from '../src/content/dom-controller';
@@ -45,6 +48,7 @@ export default defineContentScript({
       window.removeEventListener('KXC_VIEWER_DETECTED', viewer);
       window.removeEventListener('KXC_GRAPHQL_PROCESSED', graphql);
       window.removeEventListener('KXC_NATIVE_BLOCK_DETECTED', nativeBlock);
+      window.removeEventListener('KXC_PARSE_HEALTH', parseHealth);
       window.removeEventListener('KXC_INTERCEPTOR_READY', ready);
     };
 
@@ -95,7 +99,13 @@ export default defineContentScript({
     const viewer = (event: Event) => {
       if (!guardContext()) return;
       const profile = (event as CustomEvent<ViewerProfile>).detail;
-      if (profile?.restId) {
+      if (
+        profile &&
+        typeof profile === 'object' &&
+        !Array.isArray(profile) &&
+        typeof profile.restId === 'string' &&
+        /^\d{1,25}$/.test(profile.restId)
+      ) {
         lastViewerUid = profile.restId;
         controller?.setViewer(profile.restId);
         void command({ type: 'viewer.set', viewer: profile }).catch(
@@ -105,24 +115,59 @@ export default defineContentScript({
     };
     const graphql = (event: Event) => {
       if (!guardContext()) return;
-      const detail = (event as CustomEvent).detail;
+      let detail: Record<string, unknown> | null | undefined;
+      try {
+        detail = (event as CustomEvent).detail;
+      } catch {
+        return;
+      }
       if (!detail || typeof detail !== 'object') return;
       if (!controller) {
         buffer.push(event as CustomEvent);
         if (buffer.length > 20) buffer.shift();
         return;
       }
-      controller.ingest(
-        detail.decisionsByTweetId ?? {},
-        detail.authorsByScreenName ?? {}
-      );
-      if (
-        Array.isArray(detail.interceptedLogs) &&
-        detail.interceptedLogs.length
-      )
+      let decisions: Record<string, { tweet: ExtractedTweet }> = {};
+      let authors: Record<string, { author: ExtractedAuthor }> = {};
+      try {
+        const rawDecisions = detail.decisionsByTweetId;
+        if (
+          rawDecisions &&
+          typeof rawDecisions === 'object' &&
+          !Array.isArray(rawDecisions)
+        ) {
+          decisions = rawDecisions as Record<string, { tweet: ExtractedTweet }>;
+        }
+      } catch {
+        decisions = {};
+      }
+      try {
+        const rawAuthors = detail.authorsByScreenName;
+        if (
+          rawAuthors &&
+          typeof rawAuthors === 'object' &&
+          !Array.isArray(rawAuthors)
+        ) {
+          authors = rawAuthors as Record<string, { author: ExtractedAuthor }>;
+        }
+      } catch {
+        authors = {};
+      }
+      try {
+        controller.ingest(decisions, authors);
+      } catch {
+        // Never allow untrusted MAIN-world payloads to abort content processing
+      }
+      let interceptedLogs: unknown;
+      try {
+        interceptedLogs = detail.interceptedLogs;
+      } catch {
+        interceptedLogs = undefined;
+      }
+      if (Array.isArray(interceptedLogs) && interceptedLogs.length)
         void command({
           type: 'logs.append',
-          entries: detail.interceptedLogs,
+          entries: interceptedLogs,
         }).catch(() => undefined);
     };
     const nativeBlock = (event: Event) => {
@@ -143,9 +188,21 @@ export default defineContentScript({
       }).catch(() => undefined);
     };
 
+    const parseHealth = (event: Event) => {
+      if (!guardContext()) return;
+      const report = sanitizeParseHealthReport((event as CustomEvent).detail);
+      if (!report) return;
+      const state = getState();
+      if (report.status === 'ok' && state.data?.health?.status === 'ok') {
+        return;
+      }
+      void command({ type: 'health.update', report }).catch(() => undefined);
+    };
+
     window.addEventListener('KXC_VIEWER_DETECTED', viewer);
     window.addEventListener('KXC_GRAPHQL_PROCESSED', graphql);
     window.addEventListener('KXC_NATIVE_BLOCK_DETECTED', nativeBlock);
+    window.addEventListener('KXC_PARSE_HEALTH', parseHealth);
     window.addEventListener('KXC_INTERCEPTOR_READY', ready);
     ctx.onInvalidated(cleanup);
     // Proactively detect extension reloads so orphaned observers tear down cleanly

@@ -16,7 +16,7 @@ export const pt: TranslationDictionary = {
     faq: 'Perguntas',
     privacy: 'Privacidade',
     github: 'GitHub',
-    downloadCta: 'Obter v0.1.2',
+    downloadCta: 'Obter v0.2.0',
     addToChrome: 'Adicionar ao Chrome',
     cwsBadge: 'Em análise na Chrome Web Store',
     cwsReviewBadge: 'Em análise na Chrome Web Store',
@@ -31,9 +31,9 @@ export const pt: TranslationDictionary = {
     headlinePrefix: 'Recupere uma timeline limpa e de alto sinal',
     headlineHighlight: 'nas respostas e no feed do X',
     subheadline:
-      'Filtragem determinística local executada diretamente sobre as respostas GraphQL do X. Sem cadastro adicional, processamento em < 1ms, regras abertas e defesa comunitária contra bots de IA e golpes.',
-    ctaDownload: 'Baixar versão prévia (v0.1.2)',
-    ctaPrimary: 'Baixar versão prévia (v0.1.2)',
+      'Filtragem determinística local sobre as respostas GraphQL do X em < 1ms. Proteção oficial do @grok, bloqueio de respostas repetidas, pacotes públicos em 10 idiomas, pacotes offline e sincronização opcional sem permissões novas.',
+    ctaDownload: 'Baixar versão (v0.2.0)',
+    ctaPrimary: 'Baixar versão (v0.2.0)',
     ctaStore: 'Adicionar ao Chrome',
     ctaSecondary: 'Ver código no GitHub',
     ctaGitHub: 'Ver código no GitHub',
@@ -65,7 +65,7 @@ export const pt: TranslationDictionary = {
     counterLabel: 'Ruído filtrado',
     counterSuffix: 'itens',
     quickCleanTooltip: 'Limpeza rápida (janela de desfazer de 4.5s)',
-    discussionHeader: 'Respostas em destaque (7)',
+    discussionHeader: 'Respostas em destaque (10)',
     foldedBar: {
       expand: 'Exibir resposta filtrada',
       collapse: 'Recolher',
@@ -83,7 +83,7 @@ export const pt: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.2 está disponível! Arquitetura local-first, avaliação em < 1ms, filtragem local e suporte a 10 idiomas. Uma experiência limpa no X.',
+        'KeepXClean v0.2.0 está disponível! Motor determinístico local em < 1ms com proteção oficial do @grok, filtro de respostas repetidas e pacotes públicos em 10 idiomas, sem novas permissões.',
       time: '2h',
       replies: '142',
       reposts: '389',
@@ -93,14 +93,14 @@ export const pt: TranslationDictionary = {
   bento: {
     badge: 'Recursos Principais',
     title: 'Controle total da sua timeline sem expor seus dados',
-    sub: 'Quatro pilares de privacidade local para manter seu feed limpo sem depender de servidores externos.',
+    sub: 'Quatro pilares interativos de privacidade local e recursos da v0.2.0 para manter seu feed limpo sem caixas-pretas externas.',
     sectionTitle: 'Grade Bento: 4 pilares essenciais',
     sectionDesc:
-      '24 palavras-chave na nuvem · 3 fases transparentes · Selo de risco no perfil · Filtro de idiomas e mídia.',
+      'Pacotes públicos em 10 idiomas (45 regras) · 3 fases transparentes · Selo no perfil · Filtro de idiomas · Pacotes offline e relatório PNG local.',
     card1: {
-      tag: 'Regras Públicas',
-      title: '24 palavras-chave na nuvem e pacotes de clichês',
-      desc: '5 categorias transparentes que cobrem jargões de marketing, cripto, correntes de seguidores, conteúdo adulto e comércio ilícito. Inspecione e ative regras individualmente.',
+      tag: 'Pacotes em 10 idiomas',
+      title: 'Pacotes públicos de palavras-chave em 10 idiomas',
+      desc: 'Um pacote universal mais 9 pacotes regionais em 5 categorias transparentes: clichês, cripto, troca de seguidores, conteúdo adulto e golpes. Ative pacotes inteiros ou ajuste cada regex.',
       categoryAll: 'Todos',
       categoryCliche: 'Clichês de marketing',
       categoryCrypto: 'Cripto e memecoins',
@@ -111,11 +111,16 @@ export const pt: TranslationDictionary = {
       disabled: 'Desativado',
       copyRegex: 'Copiar padrão',
       copied: 'Copiado!',
-      searchPlaceholder: 'Filtrar palavras-chave ou regex...',
+      searchPlaceholder: 'Filtrar palavras-chave, pacotes ou regex...',
       searchAriaLabel: 'Filtrar palavras-chave',
       clearSearch: 'Limpar pesquisa',
       inspectRegex: 'Inspecionar regex',
       closeInspector: 'Fechar inspetor',
+      langPacksAriaLabel: 'Filtrar por pacote de idioma',
+      langPackAll: 'Todos os pacotes',
+      langPackUniversal: 'Universal',
+      enablePack: 'Ativar pacote',
+      disablePack: 'Desativar pacote',
     },
     card2: {
       tag: 'Execução Transparente',
@@ -177,6 +182,30 @@ export const pt: TranslationDictionary = {
       normalLangNotice: 'Visibilidade normal (Atende aos critérios de idioma).',
       toggleMediaLabel: 'Alternar mídia do post e emojis universais:',
     },
+    v020Highlights: {
+      badge: 'Novidades da v0.2.0',
+      title: 'Controle ainda mais preciso, mantendo zero permissões novas',
+      langPacks: {
+        tag: '10 pacotes de idioma',
+        title: 'Pacotes públicos por idioma',
+        desc: 'Regras universais antispam mais 9 pacotes linguísticos (45 regras integradas). Ativa automaticamente o idioma da interface com controle por pacote e por regra.',
+      },
+      rulePacks: {
+        tag: 'Offline .kxc-pack.json',
+        title: 'Pacotes de regras offline compartilháveis',
+        desc: 'Importe ou exporte palavras-chave, domínios externos e listas de UID via arquivo JSON ou área de transferência — isolados das suas regras pessoais e sem assinaturas remotas.',
+      },
+      battleReport: {
+        tag: 'Canvas 2D local',
+        title: 'Estatísticas por regra e relatório PNG local',
+        desc: 'Veja a distribuição por regra e a tendência de 7 dias no histórico e gere localmente um relatório PNG claro sem dados pessoais.',
+      },
+      cloudSync: {
+        tag: 'Opcional · Desativado',
+        title: 'Sincronização opcional entre dispositivos',
+        desc: 'Sincronize regras, modos por cena, domínios e pacotes via chrome.storage.sync em blocos de <=6 KB com escolha de conflito em 3 vias; listas de bloqueio locais e registros ficam apenas no dispositivo.',
+      },
+    },
   },
   architecture: {
     badge: 'Arquitetura Local-First',
@@ -194,7 +223,7 @@ export const pt: TranslationDictionary = {
       'Reutiliza as respostas que o cliente web do X já recebeu. Zero raspagem extra de dados e sem limites de taxa.',
     step2Title: '2. Motor determinístico local de alta velocidade',
     step2Desc:
-      'Avalia regras, proporções e padrões de spam em < 1ms na sua CPU. Sem latência de nuvem.',
+      'Avalia predefinições, proteção do @grok, duplicatas em tópicos, domínios externos, pacotes em 10 idiomas e pacotes offline em < 1ms na sua CPU.',
     step3Title: '3. Apresentação limpa no DOM',
     step3Desc:
       'Recolhe ou remove o ruído suavemente com animações CSS de transição de altura.',
@@ -235,10 +264,10 @@ export const pt: TranslationDictionary = {
     sectionDesc:
       'Baixar arquivo ZIP · Descompactar pasta · Ativar Modo de desenvolvedor no Chrome e carregar.',
     copyTooltip: 'Copiar chrome://extensions',
-    readyStatus: 'KeepXClean v0.1.2 · Pronto para limpar',
+    readyStatus: 'KeepXClean v0.2.0 · Pronto para limpar',
     step1Title: 'Passo 1: Baixar o pacote (.zip)',
     step1Desc:
-      'Baixe o arquivo keepxclean (v0.1.2) mais recente no GitHub Releases e descompacte em uma pasta permanente.',
+      'Baixe o arquivo keepxclean (v0.2.0) mais recente no GitHub Releases e descompacte em uma pasta permanente.',
     step1Action: 'Baixar arquivo ZIP',
     step2Title: 'Passo 2: Ativar o Modo de desenvolvedor',
     step2Desc:
@@ -281,6 +310,14 @@ export const pt: TranslationDictionary = {
         q: 'O KeepXClean é realmente gratuito e de código aberto?',
         a: 'Sim. Publicado sob a permissiva licença MIT, todo o código-fonte da extensão, pacotes compartilhados e site está 100% público no GitHub para auditoria e contribuições.',
       },
+      {
+        q: 'Como funcionam os pacotes públicos em 10 idiomas e os pacotes offline .kxc-pack.json?',
+        a: 'As regras públicas são organizadas em um pacote universal e 9 pacotes regionais (45 regras integradas) com alternância por pacote e por regra. Os pacotes temáticos .kxc-pack.json são compartilhados exclusivamente offline por arquivo ou área de transferência, sem assinaturas remotas e com desinstalação limpa em 1 clique.',
+      },
+      {
+        q: 'Como funciona a sincronização opcional (chrome.storage.sync) e ela exige novas permissões?',
+        a: 'A sincronização começa desativada e não solicita nenhuma permissão nova (continua usando apenas storage e alarms). Ao ativá-la nas Preferências, regras, modos por cena, domínios e pacotes instalados são sincronizados em blocos de <=6 KB com resolução de conflitos em 3 opções, enquanto listas locais de bloqueio, permissões, logs e diagnósticos permanecem apenas no dispositivo.',
+      },
     ],
   },
   footer: {
@@ -299,7 +336,7 @@ export const pt: TranslationDictionary = {
     install: 'Guia de Instalação',
     faq: 'Perguntas Frequentes',
     githubRepo: 'Repositório no GitHub',
-    releaseZip: 'Versão v0.1.2 (.zip)',
+    releaseZip: 'Versão v0.2.0 (.zip)',
     statsApi: 'API de Estatísticas',
     issues: 'Rastreador de Problemas',
     privacyPolicy: 'Política de Privacidade (Bilíngue)',

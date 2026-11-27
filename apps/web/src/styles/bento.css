@@ -161,7 +161,74 @@
   margin: 0;
 }
 
-/* --- Card 1: Cloud Keywords --- */
+/* --- Card 1: Cloud Keywords (10-Language Public Packs) --- */
+
+.keywords-lang-packs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.keywords-lang-pack-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.keywords-lang-pack-btn:hover {
+  color: var(--text);
+  background: var(--surface-subtle);
+  border-color: var(--control-border);
+}
+
+.keywords-lang-pack-btn.active {
+  background: var(--selected);
+  color: var(--green);
+  border-color: var(--green);
+}
+
+.keywords-pack-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 12px;
+  margin-bottom: 12px;
+  border-radius: var(--radius-md);
+  background: var(--selected);
+  border: 1px solid rgba(19, 134, 95, 0.2);
+}
+
+.keywords-pack-bar-summary {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green);
+}
+
+.keywords-pack-toggle-btn {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid rgba(19, 134, 95, 0.35);
+  color: var(--green);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.keywords-pack-toggle-btn:hover {
+  background: var(--green);
+  color: #ffffff;
+  border-color: var(--green);
+}
 
 .keywords-meta-bar {
   display: flex;
@@ -283,9 +350,19 @@
 .keyword-item-meta {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
   font-size: 11px;
   color: var(--muted);
+}
+
+.keyword-lang-pill {
+  background: var(--selected);
+  border: 1px solid rgba(19, 134, 95, 0.24);
+  color: var(--green);
+  padding: 1px 6px;
+  border-radius: var(--radius-xs);
+  font-weight: 600;
 }
 
 .keyword-scope-pill {
@@ -1586,4 +1663,109 @@
   font-size: 14px;
   line-height: 1.6;
   color: var(--muted);
+}
+
+/* ==========================================================================
+   v0.2.0 Capabilities Highlight Strip (BentoGrid)
+   ========================================================================== */
+
+.bento-highlights-section {
+  margin-top: 36px;
+}
+
+.bento-highlights-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.bento-highlights-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: var(--text);
+  margin: 0;
+}
+
+.bento-highlights-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 960px) {
+  .bento-highlights-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 540px) {
+  .bento-highlights-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.bento-highlight-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.bento-highlight-card:hover {
+  border-color: var(--green);
+  box-shadow: var(--shadow-md);
+}
+
+.bento-highlight-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.bento-highlight-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  background: var(--selected);
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.bento-highlight-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.bento-highlight-card-title {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.35;
+}
+
+.bento-highlight-card-desc {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin: 0;
 }

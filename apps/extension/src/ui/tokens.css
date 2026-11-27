@@ -25,6 +25,7 @@
   --accent-stat: #13865f;
   --selected: #eaf6ef;
   --selected-subtle: #f2faf5;
+  --focus-ring: rgba(19, 134, 95, 0.28);
   --switch-off-bg: #a7b5ad;
   --switch-off-border: #899c91;
   --switch-thumb: #fff;
@@ -102,6 +103,7 @@
   --accent-stat: #43c99b;
   --selected: #163026;
   --selected-subtle: #142820;
+  --focus-ring: rgba(82, 209, 166, 0.3);
   --switch-off-bg: #34423b;
   --switch-off-border: #4c5e55;
   --switch-thumb: #f2f7f4;

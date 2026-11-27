@@ -166,4 +166,16 @@ describe('Feature 20: 10-Language Translation Matrix & Completeness', () => {
       expect(dict.hero.ctaPrimary.length).toBeGreaterThan(0);
     }
   });
+
+  it('contains zero stale previous release versions and zero hardcoded 24 cloud keyword counts across all 10 locales', () => {
+    const legacyVersionPattern = new RegExp(`(?:^|[^0-9.])0\\.${1}\\.${2}(?![0-9])`);
+    for (const code of SUPPORTED_LOCALES) {
+      const dict = DICTIONARIES[code];
+      const serialized = JSON.stringify(dict);
+      expect(serialized, `${code} contains stale previous release version`).not.toMatch(legacyVersionPattern);
+      expect(dict.bento.sectionDesc, `${code}.bento.sectionDesc still hardcodes 24`).not.toMatch(/\b24\b/);
+      expect(dict.bento.card1.title, `${code}.bento.card1.title still hardcodes 24`).not.toMatch(/\b24\b/);
+      expect(dict.faq.items.length).toBeGreaterThanOrEqual(8);
+    }
+  });
 });

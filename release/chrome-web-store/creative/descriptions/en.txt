@@ -3,25 +3,25 @@ A free, open-source browser extension for a cleaner X (Twitter) timeline, search
 FEATURES
 
 • Make room for better posts.
-Filter spam replies, impersonators and promoted ads. Start with one of three presets.
+Filter spam replies, same-thread copy-paste duplicates, impersonators and promoted ads. Protect official @grok replies by default, optionally filter short @grok summons, and configure For You vs. Following scene modes.
 
 • Your feed. Your rules.
-24 public keyword rules, custom keywords and regex. Choose what gets filtered.
+10-language public keyword packs (45 built-in rules), structured external-link domain filtering, custom keywords and regex, plus offline shareable .kxc-pack.json rule packs.
 
 • Clean up without losing context.
-Collapse unwanted posts, inspect the reason and expand them whenever you want.
+Collapse unwanted posts, inspect the reason, jump straight to adjust the matched rule or disable a specific item in one click, and view per-rule stats with local Battle Report PNG export.
 
 • Keep the people you trust.
-Manage block and allow lists by permanent account ID. Import your existing X blocklist.
+Manage block and allow lists by permanent account ID. Import your existing X blocklist directly from the quick-start card or Accounts page.
 
 • Local filtering. Clear choices.
-Choose your language and theme. X block sync and community reporting are optional.
+10 languages and light or dark themes, plus local-only parse health self-check. Optional chrome.storage.sync cross-device settings sync, X block sync and community reporting are all off by default.
 
 LOCAL-FIRST PRIVACY
 
 KeepXClean does not request passwords or DMs. It reads X account cookies locally for account identification and user-triggered X operations. Session cookies and web-client authorization values are used only with X, never sent to KeepXClean servers. Optional community reporting is described in the privacy policy.
 
-Optional reports include public details of the reported account, a reason, and a SHA-256-derived reporter identifier with account age. X session cookies and authorization values are not sent to KeepXClean servers.
+Optional reports include public details of the reported account, a reason, and a SHA-256-derived reporter identifier with account age. X session cookies and authorization values are not sent to KeepXClean servers. Optional chrome.storage.sync (off by default) syncs only filter rules and settings while local blocklists, allowlists and logs stay on device; parse health checks run strictly locally with zero telemetry.
 
 KeepXClean is an independent project. It is not affiliated with, endorsed by, or produced by X Corp.
 

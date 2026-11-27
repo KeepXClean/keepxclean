@@ -25,6 +25,8 @@ describe('Adversarial & Stress Harness: Hero Sandbox Simulator (Milestone 3)', (
     'ads',
     'giveaway',
     'crypto',
+    'duplicate_reply',
+    'grok_summon',
     'short_reply',
   ];
 
@@ -33,11 +35,14 @@ describe('Adversarial & Stress Harness: Hero Sandbox Simulator (Milestone 3)', (
       masterEnabled: true,
       preset: 'standard',
       displayMode: 'folded',
+      scene: 'for_you',
       categories: {
         impersonator: true,
         ads: true,
         giveaway: true,
         crypto: true,
+        duplicate_reply: true,
+        grok_summon: true,
         short_reply: true,
       },
       manuallyBlockedIds: new Set(),
@@ -47,23 +52,25 @@ describe('Adversarial & Stress Harness: Hero Sandbox Simulator (Milestone 3)', (
   }
 
   // ==========================================================================
-  // Dimension 1: Combinatorial Category States (All 32 Combinations)
+  // Dimension 1: Combinatorial Category States (All 128 Combinations)
   // ==========================================================================
-  describe('Dimension 1: Combinatorial Category States (2^5 = 32 combinations)', () => {
-    // Generate all 32 combinations: 00000 to 11111
+  describe('Dimension 1: Combinatorial Category States (2^7 = 128 combinations)', () => {
+    // Generate all 128 combinations: 0000000 to 1111111
     const combinations: Record<SandboxNoiseCategory, boolean>[] = [];
-    for (let i = 0; i < 32; i++) {
+    for (let i = 0; i < 128; i++) {
       combinations.push({
         impersonator: Boolean(i & 1),
         ads: Boolean(i & 2),
         giveaway: Boolean(i & 4),
         crypto: Boolean(i & 8),
-        short_reply: Boolean(i & 16),
+        duplicate_reply: Boolean(i & 16),
+        grok_summon: Boolean(i & 32),
+        short_reply: Boolean(i & 64),
       });
     }
 
-    it('generates exactly 32 distinct category toggle combinations', () => {
-      expect(combinations).toHaveLength(32);
+    it('generates exactly 128 distinct category toggle combinations', () => {
+      expect(combinations).toHaveLength(128);
     });
 
     const datasets = [
@@ -74,9 +81,9 @@ describe('Adversarial & Stress Harness: Hero Sandbox Simulator (Milestone 3)', (
 
     datasets.forEach(({ locale, data }) => {
       describe(`Combinatorial evaluation for locale: ${locale}`, () => {
-        // Test in extreme preset (all categories eligible)
-        it(`extreme preset: filtered count strictly matches active enabled categories across all 32 states`, () => {
-          for (let i = 0; i < 32; i++) {
+        // Test in extreme preset (all 7 categories eligible)
+        it(`extreme preset: filtered count strictly matches active enabled categories across all 128 states`, () => {
+          for (let i = 0; i < 128; i++) {
             const catConfig = combinations[i];
             const state: FilterState = {
               ...createBaseState(),
@@ -89,10 +96,10 @@ describe('Adversarial & Stress Harness: Hero Sandbox Simulator (Milestone 3)', (
 
             expect(
               intercepted.length,
-              `Combination ${i} (mask: ${i.toString(2).padStart(5, '0')}): expected ${expectedCount} intercepted items, got ${intercepted.length}`
+              `Combination ${i} (mask: ${i.toString(2).padStart(7, '0')}): expected ${expectedCount} intercepted items, got ${intercepted.length}`
             ).toBe(expectedCount);
 
-            // Clean discussion tweets must NEVER be intercepted under any combination
+            // Clean discussion tweets (including official @grok & 1st kept) must NEVER be intercepted
             const cleanIntercepted = data.replies
               .filter((r) => !r.filterReason)
               .filter((r) => isTweetIntercepted(r, state));
@@ -108,9 +115,9 @@ describe('Adversarial & Stress Harness: Hero Sandbox Simulator (Milestone 3)', (
           }
         });
 
-        // Test in standard preset (mild + standard eligible: impersonator, ads, giveaway, crypto)
-        it(`standard preset: filters only active categories within {impersonator, ads, giveaway, crypto}`, () => {
-          for (let i = 0; i < 32; i++) {
+        // Test in standard preset (mild + standard eligible: impersonator, ads, giveaway, crypto, duplicate_reply)
+        it(`standard preset: filters only active categories within {impersonator, ads, giveaway, crypto, duplicate_reply}`, () => {
+          for (let i = 0; i < 128; i++) {
             const catConfig = combinations[i];
             const state: FilterState = {
               ...createBaseState(),
@@ -124,6 +131,7 @@ describe('Adversarial & Stress Harness: Hero Sandbox Simulator (Milestone 3)', (
               'ads',
               'giveaway',
               'crypto',
+              'duplicate_reply',
             ];
             const expectedCount = standardEligible.filter((c) => catConfig[c]).length;
 
@@ -132,17 +140,19 @@ describe('Adversarial & Stress Harness: Hero Sandbox Simulator (Milestone 3)', (
               `Standard preset combo ${i}: expected ${expectedCount}, got ${intercepted.length}`
             ).toBe(expectedCount);
 
-            // short_reply must NEVER be intercepted in standard, even if toggled on
-            const shortReplyItem = data.replies.find((r) => r.filterReason?.category === 'short_reply');
-            if (shortReplyItem) {
-              expect(isTweetIntercepted(shortReplyItem, state)).toBe(false);
+            // extreme-only items (grok_summon, short_reply) must NEVER be intercepted in standard
+            for (const extremeCat of ['grok_summon', 'short_reply'] as const) {
+              const item = data.replies.find((r) => r.filterReason?.category === extremeCat);
+              if (item) {
+                expect(isTweetIntercepted(item, state)).toBe(false);
+              }
             }
           }
         });
 
         // Test in mild preset (mild only eligible: impersonator, ads)
         it(`mild preset: filters only active categories within {impersonator, ads}`, () => {
-          for (let i = 0; i < 32; i++) {
+          for (let i = 0; i < 128; i++) {
             const catConfig = combinations[i];
             const state: FilterState = {
               ...createBaseState(),
@@ -159,9 +169,11 @@ describe('Adversarial & Stress Harness: Hero Sandbox Simulator (Milestone 3)', (
               `Mild preset combo ${i}: expected ${expectedCount}, got ${intercepted.length}`
             ).toBe(expectedCount);
 
-            // giveaway, crypto, short_reply must NEVER be intercepted in mild
+            // Higher-tier categories must NEVER be intercepted in mild
             const higherTierItems = data.replies.filter((r) =>
-              ['giveaway', 'crypto', 'short_reply'].includes(r.filterReason?.category || '')
+              ['giveaway', 'crypto', 'duplicate_reply', 'grok_summon', 'short_reply'].includes(
+                r.filterReason?.category || ''
+              )
             );
             for (const item of higherTierItems) {
               expect(isTweetIntercepted(item, state)).toBe(false);
@@ -190,7 +202,7 @@ describe('Adversarial & Stress Harness: Hero Sandbox Simulator (Milestone 3)', (
     const testLocales = ['zh-CN', 'zh-TW', 'en', 'ja', 'es', 'fr', 'de', 'ru', 'ko', 'pt'];
 
     testLocales.forEach((loc) => {
-      it(`locale "${loc}" strictly obeys mild=2, standard=4, extreme=5`, () => {
+      it(`locale "${loc}" strictly obeys mild=2, standard=5, extreme=7`, () => {
         const dataset = getSandboxData(loc);
         const base = createBaseState();
 
@@ -204,20 +216,34 @@ describe('Adversarial & Stress Harness: Hero Sandbox Simulator (Milestone 3)', (
         // 2. Standard preset
         const standardState: FilterState = { ...base, preset: 'standard' };
         const stdIntercepted = dataset.replies.filter((r) => isTweetIntercepted(r, standardState));
-        expect(stdIntercepted, `${loc} standard must intercept exactly 4`).toHaveLength(4);
+        expect(stdIntercepted, `${loc} standard must intercept exactly 5`).toHaveLength(5);
         const stdCategories = stdIntercepted.map((r) => r.filterReason?.category).sort();
-        expect(stdCategories).toEqual(['ads', 'crypto', 'giveaway', 'impersonator']);
+        expect(stdCategories).toEqual([
+          'ads',
+          'crypto',
+          'duplicate_reply',
+          'giveaway',
+          'impersonator',
+        ]);
 
         // 3. Extreme preset
         const extremeState: FilterState = { ...base, preset: 'extreme' };
         const extremeIntercepted = dataset.replies.filter((r) => isTweetIntercepted(r, extremeState));
-        expect(extremeIntercepted, `${loc} extreme must intercept exactly 5`).toHaveLength(5);
+        expect(extremeIntercepted, `${loc} extreme must intercept exactly 7`).toHaveLength(7);
         const extCategories = extremeIntercepted.map((r) => r.filterReason?.category).sort();
-        expect(extCategories).toEqual(['ads', 'crypto', 'giveaway', 'impersonator', 'short_reply']);
+        expect(extCategories).toEqual([
+          'ads',
+          'crypto',
+          'duplicate_reply',
+          'giveaway',
+          'grok_summon',
+          'impersonator',
+          'short_reply',
+        ]);
 
-        // Clean replies are always untouched
+        // Clean replies are always untouched (3 clean: arch, official @grok, 1st kept)
         const cleanDiscussion = dataset.replies.filter((r) => !isTweetIntercepted(r, extremeState));
-        expect(cleanDiscussion, `${loc} must retain exactly 2 clean replies`).toHaveLength(2);
+        expect(cleanDiscussion, `${loc} must retain exactly 3 clean replies`).toHaveLength(3);
         expect(cleanDiscussion.every((r) => !r.filterReason)).toBe(true);
 
         // OP is untouched
@@ -230,7 +256,7 @@ describe('Adversarial & Stress Harness: Hero Sandbox Simulator (Milestone 3)', (
   // Dimension 3: Master Switch ON vs OFF Invariants
   // ==========================================================================
   describe('Dimension 3: Master Switch ON vs OFF Invariants', () => {
-    it('in OFF mode, 0 items are intercepted and all 8 tweets render as regular visible tweets', () => {
+    it('in OFF mode, 0 items are intercepted and all 11 tweets render as regular visible tweets', () => {
       const state: FilterState = {
         ...createBaseState(),
         masterEnabled: false,
@@ -256,12 +282,11 @@ describe('Adversarial & Stress Harness: Hero Sandbox Simulator (Milestone 3)', (
         })
       );
 
-      // Total 8 tweet cards: 1 OP in tweet-main + 7 replies in tweet-card
-      // Check OP is rendered
+      // Total 11 tweet cards: 1 OP in tweet-main + 10 replies in tweet-card
       expect(html).toContain('tweet-main');
       expect(html).toContain(dataset.originalPost.author.name);
 
-      // Check all 7 replies are rendered as normal visible tweet cards
+      // Check all 10 replies are rendered as normal visible tweet cards
       for (const reply of dataset.replies) {
         expect(html).toContain(reply.author.name);
         expect(html).toContain(reply.content.slice(0, 15));
@@ -277,7 +302,7 @@ describe('Adversarial & Stress Harness: Hero Sandbox Simulator (Milestone 3)', (
       expect(html).not.toContain('sandbox-empty-clean-banner');
     });
 
-    it('toggling master switch from OFF to ON instantly applies filtering to 4 items in standard preset', () => {
+    it('toggling master switch from OFF to ON instantly applies filtering to 5 items in standard preset', () => {
       const offState: FilterState = {
         ...createBaseState(),
         masterEnabled: false,
@@ -291,7 +316,7 @@ describe('Adversarial & Stress Harness: Hero Sandbox Simulator (Milestone 3)', (
 
       const replies = enSandboxData.replies;
       expect(replies.filter((r) => isTweetIntercepted(r, offState))).toHaveLength(0);
-      expect(replies.filter((r) => isTweetIntercepted(r, onState))).toHaveLength(4);
+      expect(replies.filter((r) => isTweetIntercepted(r, onState))).toHaveLength(5);
     });
   });
 
@@ -673,6 +698,67 @@ describe('Adversarial & Stress Harness: Hero Sandbox Simulator (Milestone 3)', (
       expect(formatHandle('')).toBe('');
       expect(formatHandle(null)).toBe('');
       expect(formatHandle(undefined)).toBe('');
+      expect(formatHandle('@')).toBe('@');
+      expect(formatHandle('@@')).toBe('@');
+    });
+  });
+
+  // ==========================================================================
+  // Dimension 7: v0.2.0 Following Scene Bypass Combinatorial Invariants
+  // ==========================================================================
+  describe('Dimension 7: v0.2.0 Following Scene Bypass Combinatorial Invariants', () => {
+    it('Following scene bypasses all 6 heuristic categories across all 128 states x 3 presets while preserving ads & manual block override', () => {
+      const presets = ['mild', 'standard', 'extreme'] as const;
+      const dataset = enSandboxData;
+      const cleanReply = dataset.replies.find((r) => !r.filterReason)!;
+
+      for (const preset of presets) {
+        for (let i = 0; i < 128; i++) {
+          const categories: Record<SandboxNoiseCategory, boolean> = {
+            impersonator: Boolean(i & 1),
+            ads: Boolean(i & 2),
+            giveaway: Boolean(i & 4),
+            crypto: Boolean(i & 8),
+            duplicate_reply: Boolean(i & 16),
+            grok_summon: Boolean(i & 32),
+            short_reply: Boolean(i & 64),
+          };
+          const state: FilterState = {
+            ...createBaseState(),
+            preset,
+            scene: 'following',
+            categories,
+          };
+          const intercepted = dataset.replies.filter((r) => isTweetIntercepted(r, state));
+          expect(intercepted).toHaveLength(categories.ads ? 1 : 0);
+          if (categories.ads) {
+            expect(intercepted[0].filterReason?.category).toBe('ads');
+          }
+        }
+      }
+
+      // Manual block still overrides bypass
+      const manualState: FilterState = {
+        ...createBaseState(),
+        preset: 'extreme',
+        scene: 'following',
+        manuallyBlockedIds: new Set([cleanReply.id]),
+      };
+      expect(isTweetIntercepted(cleanReply, manualState)).toBe(true);
+
+      // SSR TweetFeed shows bypass banner and suppresses empty-clean banner
+      const html = renderToString(
+        React.createElement(TweetFeed, {
+          originalPost: dataset.originalPost,
+          replies: dataset.replies,
+          filterState: { ...createBaseState(), preset: 'extreme', scene: 'following' },
+          onQuickClean: () => {},
+          onWhitelist: () => {},
+          locale: 'en',
+        })
+      );
+      expect(html).toContain('sandbox-scene-bypass-banner');
+      expect(html).not.toContain('sandbox-empty-clean-banner');
     });
   });
 });

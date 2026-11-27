@@ -31,11 +31,12 @@ import type {
   SandboxDisplayMode,
   SandboxNoiseCategory,
   SandboxPreset,
+  SandboxScene,
   SandboxTweet,
   UndoOperation,
 } from './types';
-import { formatHandle, isTweetIntercepted } from './types';
-import { getSandboxData } from './sampleData';
+import { formatHandle, isTweetIntercepted, normalizeSandboxHandle } from './types';
+import { getSandboxData, SAMPLE_DATASETS } from './sampleData';
 import { Controls } from './Controls';
 import { TweetFeed } from './TweetFeed';
 import { UndoToast } from './UndoToast';
@@ -45,6 +46,7 @@ import {
   AUTHOR_30STO_URL,
   AUTHOR_X_HANDLE,
   AUTHOR_X_URL,
+  CURRENT_VERSION,
   getActiveCtaConfig,
 } from '../../config';
 import { getDictionary } from '../../locales';
@@ -101,6 +103,7 @@ export function HeroSandbox({ locale = 'en' }: HeroSandboxProps) {
   // Filter configuration states
   const [preset, setPreset] = useState<SandboxPreset>('standard');
   const [displayMode, setDisplayMode] = useState<SandboxDisplayMode>('folded');
+  const [scene, setScene] = useState<SandboxScene>('for_you');
   const [categories, setCategories] = useState<
     Record<SandboxNoiseCategory, boolean>
   >({
@@ -108,6 +111,8 @@ export function HeroSandbox({ locale = 'en' }: HeroSandboxProps) {
     ads: true,
     giveaway: true,
     crypto: true,
+    duplicate_reply: true,
+    grok_summon: true,
     short_reply: true,
   });
 
@@ -220,13 +225,52 @@ export function HeroSandbox({ locale = 'en' }: HeroSandboxProps) {
 
   // Whitelist author handler
   const handleWhitelist = useCallback((authorHandle: string) => {
-    const cleanHandle = authorHandle.replace(/^@/, '').toLowerCase();
+    const cleanHandle = normalizeSandboxHandle(authorHandle);
+    if (!cleanHandle) {
+      return;
+    }
+
     setWhitelistedHandles((prev) => {
       const next = new Set(prev);
       next.add(cleanHandle);
-      next.add(authorHandle);
       return next;
     });
+
+    const matchingTweetIds = new Set<string>();
+    for (const dataset of Object.values(SAMPLE_DATASETS)) {
+      const allTweets = [dataset.originalPost, ...dataset.replies];
+      for (const tweet of allTweets) {
+        if (normalizeSandboxHandle(tweet.author.handle) === cleanHandle) {
+          matchingTweetIds.add(tweet.id);
+        }
+      }
+    }
+
+    if (matchingTweetIds.size > 0) {
+      setManuallyBlockedIds((prev) => {
+        let changed = false;
+        for (const id of matchingTweetIds) {
+          if (prev.has(id)) {
+            changed = true;
+            break;
+          }
+        }
+        if (!changed) {
+          return prev;
+        }
+        const next = new Set(prev);
+        for (const id of matchingTweetIds) {
+          next.delete(id);
+        }
+        return next;
+      });
+    }
+
+    setActiveOperation((prev) =>
+      prev && normalizeSandboxHandle(prev.authorHandle) === cleanHandle
+        ? null
+        : prev
+    );
   }, []);
 
   // Retrieve current dataset
@@ -235,22 +279,32 @@ export function HeroSandbox({ locale = 'en' }: HeroSandboxProps) {
     [datasetLang]
   );
 
-  // Interleave spam near the top of the X thread so the 0.9s cleanup is immediately visible above the fold
+  // Semantic thread ordering so v0.2.0 highlights (impersonator, protected @grok + summon,
+  // 1st kept + duplicate spam, promoted ad) appear cleanly above the fold at 0.9s
   const threadReplies = useMemo(() => {
     const replies = currentDataset.replies;
-    if (replies.length !== 7) return replies;
-    const clean = replies.filter((r) => !r.filterReason);
-    const noisy = replies.filter((r) => Boolean(r.filterReason));
-    if (clean.length !== 2 || noisy.length !== 5) return replies;
-    return [
-      noisy[0],
-      noisy[1],
-      clean[0],
-      noisy[2],
-      noisy[3],
-      clean[1],
-      noisy[4],
-    ];
+    const byCategory = (cat: SandboxNoiseCategory) =>
+      replies.find((r) => r.filterReason?.category === cat);
+    const grokOfficial = replies.find((r) => !r.filterReason && r.author.isOfficialGrok);
+    const firstKept = replies.find((r) => !r.filterReason && r.duplicateRole === 'first_kept');
+    const cleanArch = replies.find(
+      (r) => !r.filterReason && !r.author.isOfficialGrok && r.duplicateRole !== 'first_kept'
+    );
+
+    const ordered = [
+      byCategory('impersonator'),
+      grokOfficial,
+      byCategory('grok_summon'),
+      firstKept,
+      byCategory('duplicate_reply'),
+      byCategory('ads'),
+      cleanArch,
+      byCategory('giveaway'),
+      byCategory('crypto'),
+      byCategory('short_reply'),
+    ].filter((item): item is SandboxTweet => Boolean(item));
+
+    return ordered.length === replies.length ? ordered : replies;
   }, [currentDataset.replies]);
 
   // Current consolidated filter state
@@ -259,6 +313,7 @@ export function HeroSandbox({ locale = 'en' }: HeroSandboxProps) {
       masterEnabled,
       preset,
       displayMode,
+      scene,
       categories,
       manuallyBlockedIds,
       restoredTweetIds,
@@ -268,6 +323,7 @@ export function HeroSandbox({ locale = 'en' }: HeroSandboxProps) {
       masterEnabled,
       preset,
       displayMode,
+      scene,
       categories,
       manuallyBlockedIds,
       restoredTweetIds,
@@ -307,6 +363,7 @@ export function HeroSandbox({ locale = 'en' }: HeroSandboxProps) {
         latency: 'GraphQL 流耗時',
         blocked: '本帖攔截噪音',
         extraReq: '額外 X 請求',
+        sceneLabel: '時間線場景',
       }
     : isDatasetZh
     ? {
@@ -324,6 +381,7 @@ export function HeroSandbox({ locale = 'en' }: HeroSandboxProps) {
         latency: 'GraphQL 流耗时',
         blocked: '本帖拦截噪音',
         extraReq: '额外 X 请求',
+        sceneLabel: '时间线场景',
       }
     : {
         home: 'Home',
@@ -340,11 +398,12 @@ export function HeroSandbox({ locale = 'en' }: HeroSandboxProps) {
         latency: 'GraphQL Latency',
         blocked: 'Noise Intercepted',
         extraReq: 'Extra X API Calls',
+        sceneLabel: 'Timeline Scene',
       };
 
   const browserTabTitle = isDatasetZh
-    ? `${currentDataset.originalPost.author.name} 在 X 上：“KeepXClean v0.1.2...” / X`
-    : `${currentDataset.originalPost.author.name} on X: "KeepXClean v0.1.2..." / X`;
+    ? `${currentDataset.originalPost.author.name} 在 X 上：“KeepXClean ${CURRENT_VERSION}...” / X`
+    : `${currentDataset.originalPost.author.name} on X: "KeepXClean ${CURRENT_VERSION}..." / X`;
 
   return (
     <div className="hero-section-wrapper">
@@ -576,14 +635,26 @@ export function HeroSandbox({ locale = 'en' }: HeroSandboxProps) {
                 <span className="sandbox-status-dot" />
                 <span>
                   {isEntranceAnimating
-                    ? isZh
+                    ? isDatasetZhTW
+                      ? '⚡ 感知原始評論區噪音中 (0.9s)...'
+                      : isDatasetZh
                       ? '⚡ 感知原始评论区噪音中 (0.9s)...'
                       : '⚡ Sensing raw timeline noise (0.9s)...'
                     : masterEnabled
-                    ? isZh
+                    ? scene === 'following'
+                      ? isDatasetZhTW
+                        ? '✨ 淨空引擎已就緒 · 正在跟隨場景跳過自動過濾 (Bypass)'
+                        : isDatasetZh
+                        ? '✨ 净空引擎已就绪 · 正在关注场景跳过自动过滤 (Bypass)'
+                        : '✨ Clean Engine Active · Following Scene Bypass'
+                      : isDatasetZhTW
+                      ? '✨ 淨空引擎已就緒 · 即時保護中'
+                      : isDatasetZh
                       ? '✨ 净空引擎已就绪 · 实时保护中'
                       : '✨ Clean Engine Active · Real-time Protection'
-                    : isZh
+                    : isDatasetZhTW
+                    ? '⏸️ 淨化已暫停 · 呈現未過濾原貌'
+                    : isDatasetZh
                     ? '⏸️ 净化已暂停 · 呈现未过滤原貌'
                     : '⏸️ Filtering Paused · Raw Timeline View'}
                 </span>
@@ -621,6 +692,7 @@ export function HeroSandbox({ locale = 'en' }: HeroSandboxProps) {
             onChangePreset={setPreset}
             displayMode={displayMode}
             onChangeDisplayMode={setDisplayMode}
+            scene={scene}
             categories={categories}
             onToggleCategory={handleToggleCategory}
             datasetLang={datasetLang}
@@ -685,6 +757,7 @@ export function HeroSandbox({ locale = 'en' }: HeroSandboxProps) {
                 filterState={filterState}
                 onQuickClean={handleQuickClean}
                 onWhitelist={handleWhitelist}
+                onChangeScene={setScene}
                 locale={datasetLang}
               />
             </div>
@@ -736,6 +809,14 @@ export function HeroSandbox({ locale = 'en' }: HeroSandboxProps) {
                     <span>{xNavLabels.blocked}</span>
                     <strong className="tabular-nums">
                       {masterEnabled ? filteredCount : 0} / {totalNoiseCount}
+                    </strong>
+                  </div>
+                  <div className="x-telemetry-row">
+                    <span>{xNavLabels.sceneLabel}</span>
+                    <strong>
+                      {scene === 'following'
+                        ? 'HomeLatestTimeline · Bypass'
+                        : 'HomeTimeline · For You'}
                     </strong>
                   </div>
                   <div className="x-telemetry-row">

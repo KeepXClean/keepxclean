@@ -90,15 +90,19 @@ async function main() {
 
   if (!args.tier || args.tier === 1) {
     await import('./tier1_features.test');
+    await import('./tier1_v020_features.test');
   }
   if (!args.tier || args.tier === 2) {
     await import('./tier2_boundaries.test');
+    await import('./tier2_v020_boundaries.test');
   }
   if (!args.tier || args.tier === 3) {
     await import('./tier3_pairwise.test');
+    await import('./tier3_v020_pairwise.test');
   }
   if (!args.tier || args.tier === 4) {
     await import('./tier4_workloads.test');
+    await import('./tier4_v020_workloads.test');
   }
   if (!args.tier || args.tier === 5) {
     await import('./tier5_adversarial.test');
@@ -122,13 +126,13 @@ async function main() {
         currentTierPrinting = item.tier;
         const tierName =
           currentTierPrinting === 1
-            ? 'Tier 1: Feature Coverage (Features 1 – 34)'
+            ? 'Tier 1: Feature Coverage (Features 1 – 34 + v0.2.0 M01–M12)'
             : currentTierPrinting === 2
-            ? 'Tier 2: Boundary & Corner Cases (Features 1 – 34)'
+            ? 'Tier 2: Boundary & Corner Cases (Features 1 – 34 + v0.2.0 M01–M12)'
             : currentTierPrinting === 3
-            ? 'Tier 3: Pairwise Combinations (35 Tests)'
+            ? 'Tier 3: Pairwise Combinations (35 Legacy + 30 v0.2.0 Tests)'
             : currentTierPrinting === 4
-            ? 'Tier 4: Real-World Workloads (18 Journeys)'
+            ? 'Tier 4: Real-World Workloads (18 Legacy + 10 v0.2.0 Journeys)'
             : 'Tier 5: Adversarial Hardening (30 Tests)';
         console.log(`\n${ANSI.bold}─── ${tierName} ───────────────────────────────────────${ANSI.reset}`);
       }

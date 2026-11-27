@@ -4,7 +4,7 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React, { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { DEFAULT_CLOUD_KEYWORDS } from '@keepxclean/shared';
+import { CLOUD_KEYWORD_LANG_GROUPS, DEFAULT_CLOUD_KEYWORDS } from '@keepxclean/shared';
 import { I18nProvider } from '../src/locales';
 import { BentoGrid } from '../src/components/BentoGrid/BentoGrid';
 import { CloudKeywordsCard, getCategoryForRule } from '../src/components/BentoGrid/CloudKeywordsCard';
@@ -33,8 +33,9 @@ describe('Feature 24: Bento Card 1 - Cloud Keywords Preview', () => {
     document.body.innerHTML = '';
   });
 
-  it('categorizes all 24 DEFAULT_CLOUD_KEYWORDS correctly into 5 categories', () => {
-    expect(DEFAULT_CLOUD_KEYWORDS).toHaveLength(24);
+  it('categorizes all 45 DEFAULT_CLOUD_KEYWORDS correctly into 5 categories and 10 language packs', () => {
+    const total = DEFAULT_CLOUD_KEYWORDS.length;
+    expect(total).toBe(45);
 
     const counts: Record<string, number> = {
       cliche: 0,
@@ -43,21 +44,31 @@ describe('Feature 24: Bento Card 1 - Cloud Keywords Preview', () => {
       nsfw: 0,
       scam: 0,
     };
+    const langCounts: Record<string, number> = {};
 
     for (const rule of DEFAULT_CLOUD_KEYWORDS) {
-      const cat = getCategoryForRule(rule.id);
+      const cat = getCategoryForRule(rule);
+      expect(getCategoryForRule(rule.id)).toBe(cat);
       counts[cat] = (counts[cat] || 0) + 1;
+      const grp = rule.langGroup ?? 'universal';
+      langCounts[grp] = (langCounts[grp] || 0) + 1;
     }
 
     expect(counts.cliche).toBe(9);
     expect(counts.crypto).toBe(5);
-    expect(counts.follow).toBe(2);
-    expect(counts.nsfw).toBe(2);
-    expect(counts.scam).toBe(6);
-    expect(counts.cliche + counts.crypto + counts.follow + counts.nsfw + counts.scam).toBe(24);
+    expect(counts.follow).toBe(9);
+    expect(counts.nsfw).toBe(9);
+    expect(counts.scam).toBe(13);
+    expect(counts.cliche + counts.crypto + counts.follow + counts.nsfw + counts.scam).toBe(total);
+
+    expect(CLOUD_KEYWORD_LANG_GROUPS).toHaveLength(10);
+    for (const group of CLOUD_KEYWORD_LANG_GROUPS) {
+      expect(langCounts[group], `missing rules for langGroup ${group}`).toBeGreaterThanOrEqual(3);
+    }
   });
 
-  it('renders all 24 keyword items and category tabs in CloudKeywordsCard', async () => {
+  it('renders all 45 keyword items, 10 language packs, and 6 category tabs in CloudKeywordsCard', async () => {
+    const total = DEFAULT_CLOUD_KEYWORDS.length;
     await act(async () => {
       root!.render(
         <I18nProvider initialLocale="en">
@@ -66,14 +77,18 @@ describe('Feature 24: Bento Card 1 - Cloud Keywords Preview', () => {
       );
     });
 
-    // Initial badge shows 24 / 24
+    // Initial badge shows 45 / 45
     const badge = container.querySelector('[data-testid="keywords-active-badge"]');
     expect(badge).not.toBeNull();
-    expect(badge?.textContent).toContain('24 / 24');
+    expect(badge?.textContent).toContain(`${total} / ${total}`);
 
-    // Category tabs exist
+    // All 10 language pack filter pills + All Packs button
+    const langButtons = container.querySelectorAll('.keywords-lang-pack-btn');
+    expect(langButtons.length).toBe(CLOUD_KEYWORD_LANG_GROUPS.length + 1);
+
+    // Category tabs exist (strictly 6)
     const tabs = Array.from(container.querySelectorAll<HTMLButtonElement>('.keywords-tab-btn'));
-    expect(tabs.length).toBe(6); // All (24), Cliche (9), Crypto (5), Follow (2), Nsfw (2), Scam (6)
+    expect(tabs.length).toBe(6);
 
     // Category filter click: Crypto (5)
     const cryptoTab = tabs.find((t) => t.textContent?.includes('(5)'));
@@ -83,13 +98,12 @@ describe('Feature 24: Bento Card 1 - Cloud Keywords Preview', () => {
       cryptoTab!.click();
     });
 
-    // Should now show 5 crypto rules
     const cryptoItems = container.querySelectorAll('.keyword-item');
     expect(cryptoItems.length).toBe(5);
 
-    // Filter by Follow (2)
+    // Filter by Follow (9)
     const followTab = tabs.find(
-      (t) => t.textContent?.includes('(2)') && t.textContent?.toLowerCase().includes('follow')
+      (t) => t.textContent?.includes('(9)') && t.textContent?.toLowerCase().includes('follow')
     );
     expect(followTab).toBeDefined();
 
@@ -98,10 +112,11 @@ describe('Feature 24: Bento Card 1 - Cloud Keywords Preview', () => {
     });
 
     const followItems = container.querySelectorAll('.keyword-item');
-    expect(followItems.length).toBe(2);
+    expect(followItems.length).toBe(9);
   });
 
-  it('toggles rule enable state and updates active counter', async () => {
+  it('filters by each of the 10 language packs and supports whole-pack enable/disable toggle', async () => {
+    const total = DEFAULT_CLOUD_KEYWORDS.length;
     await act(async () => {
       root!.render(
         <I18nProvider initialLocale="en">
@@ -111,7 +126,68 @@ describe('Feature 24: Bento Card 1 - Cloud Keywords Preview', () => {
     });
 
     const badge = container.querySelector('[data-testid="keywords-active-badge"]');
-    expect(badge?.textContent).toContain('24 / 24');
+
+    for (const group of CLOUD_KEYWORD_LANG_GROUPS) {
+      const expectedCount = DEFAULT_CLOUD_KEYWORDS.filter(
+        (r) => (r.langGroup ?? 'universal') === group
+      ).length;
+      const btn = container.querySelector(
+        `[data-testid="lang-pack-btn-${group}"]`
+      ) as HTMLButtonElement;
+      expect(btn).not.toBeNull();
+
+      await act(async () => {
+        btn.click();
+      });
+
+      expect(container.querySelectorAll('.keyword-item').length).toBe(expectedCount);
+    }
+
+    // Focus Japanese pack (3 rules) and toggle whole pack OFF then ON
+    const jaBtn = container.querySelector('[data-testid="lang-pack-btn-ja"]') as HTMLButtonElement;
+    await act(async () => {
+      jaBtn.click();
+    });
+
+    const packBar = container.querySelector('[data-testid="lang-pack-action-bar"]');
+    expect(packBar).not.toBeNull();
+    const toggleBtn = container.querySelector(
+      '[data-testid="lang-pack-toggle-btn"]'
+    ) as HTMLButtonElement;
+    expect(toggleBtn).not.toBeNull();
+
+    await act(async () => {
+      toggleBtn.click();
+    });
+    expect(badge?.textContent).toContain(`${total - 3} / ${total}`);
+
+    await act(async () => {
+      toggleBtn.click();
+    });
+    expect(badge?.textContent).toContain(`${total} / ${total}`);
+
+    // Combined language pack + category filter (ja + scam = 1)
+    const tabs = Array.from(container.querySelectorAll<HTMLButtonElement>('.keywords-tab-btn'));
+    const scamTab = tabs.find((t) => t.textContent?.toLowerCase().includes('scam'));
+    expect(scamTab).toBeDefined();
+    await act(async () => {
+      scamTab!.click();
+    });
+    expect(container.querySelectorAll('.keyword-item').length).toBe(1);
+  });
+
+  it('toggles rule enable state and updates active counter', async () => {
+    const total = DEFAULT_CLOUD_KEYWORDS.length;
+    await act(async () => {
+      root!.render(
+        <I18nProvider initialLocale="en">
+          <CloudKeywordsCard />
+        </I18nProvider>
+      );
+    });
+
+    const badge = container.querySelector('[data-testid="keywords-active-badge"]');
+    expect(badge?.textContent).toContain(`${total} / ${total}`);
 
     // Toggle the first rule off
     const firstRule = DEFAULT_CLOUD_KEYWORDS[0];
@@ -124,7 +200,7 @@ describe('Feature 24: Bento Card 1 - Cloud Keywords Preview', () => {
     });
 
     expect(checkbox.checked).toBe(false);
-    expect(badge?.textContent).toContain('23 / 24');
+    expect(badge?.textContent).toContain(`${total - 1} / ${total}`);
 
     // Toggle back on
     await act(async () => {
@@ -132,7 +208,30 @@ describe('Feature 24: Bento Card 1 - Cloud Keywords Preview', () => {
     });
 
     expect(checkbox.checked).toBe(true);
-    expect(badge?.textContent).toContain('24 / 24');
+    expect(badge?.textContent).toContain(`${total} / ${total}`);
+  });
+
+  it('renders BentoGrid with all 4 interactive cards and v0.2.0 highlights strip', async () => {
+    await act(async () => {
+      root!.render(
+        <I18nProvider initialLocale="en">
+          <BentoGrid />
+        </I18nProvider>
+      );
+    });
+
+    expect(container.querySelector('[data-testid="bento-card-keywords"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="bento-card-honest"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="bento-card-profile"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="bento-card-lang"]')).not.toBeNull();
+
+    const highlights = container.querySelector('[data-testid="bento-v020-highlights"]');
+    expect(highlights).not.toBeNull();
+    expect(highlights?.querySelectorAll('.bento-highlight-card').length).toBe(4);
+    expect(container.querySelector('[data-testid="bento-highlight-lang-packs"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="bento-highlight-rule-packs"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="bento-highlight-battle-report"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="bento-highlight-cloud-sync"]')).not.toBeNull();
   });
 
   it('filters keywords via search input', async () => {

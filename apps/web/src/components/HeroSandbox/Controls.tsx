@@ -4,6 +4,7 @@ import type {
   SandboxDisplayMode,
   SandboxNoiseCategory,
   SandboxPreset,
+  SandboxScene,
 } from './types';
 import { CATEGORY_METAS } from './sampleData';
 
@@ -14,6 +15,7 @@ export interface ControlsProps {
   onChangePreset: (preset: SandboxPreset) => void;
   displayMode: SandboxDisplayMode;
   onChangeDisplayMode: (mode: SandboxDisplayMode) => void;
+  scene?: SandboxScene;
   categories: Record<SandboxNoiseCategory, boolean>;
   onToggleCategory: (category: SandboxNoiseCategory) => void;
   datasetLang: SandboxDatasetLocale;
@@ -30,6 +32,7 @@ export function Controls({
   onChangePreset,
   displayMode,
   onChangeDisplayMode,
+  scene = 'for_you',
   categories,
   onToggleCategory,
   datasetLang,
@@ -144,8 +147,8 @@ export function Controls({
               onClick={() => onChangePreset('standard')}
               title={
                 isZh
-                  ? '标准推荐：拦截高仿、广告、抽奖引流与币圈喊单 (4条)'
-                  : 'Standard: Intercept impersonators, ads, giveaways & crypto (4 items)'
+                  ? '标准推荐：拦截高仿、广告、抽奖引流、币圈喊单与同贴复读水军 (5条)'
+                  : 'Standard: Intercept impersonators, ads, giveaways, crypto & duplicate replies (5 items)'
               }
             >
               <span>{isZh ? '标准' : 'Standard'}</span>
@@ -158,8 +161,8 @@ export function Controls({
               onClick={() => onChangePreset('extreme')}
               title={
                 isZh
-                  ? '极致：拦截全部5类噪音，仅留深度技术讨论 (5条)'
-                  : 'Extreme: Intercept all 5 noise categories (5 items)'
+                  ? '极致：拦截全部7类噪音（含 @grok 短召唤与水评），保留官方 @grok 与深度讨论 (7条)'
+                  : 'Extreme: Intercept all 7 noise categories including short @grok summons while protecting official @grok (7 items)'
               }
             >
               <span>{isZh ? '极致' : 'Extreme'}</span>
@@ -206,7 +209,7 @@ export function Controls({
         </div>
       </div>
 
-      {/* Feature 16: 5 Noise Category Toggles */}
+      {/* Feature 16: 7 Noise Category Toggles */}
       <div className="controls-category-row">
         <div className="category-chips-list">
           {CATEGORY_METAS.map((cat) => {
@@ -241,6 +244,9 @@ export function Controls({
             <strong>
               {masterEnabled ? filteredCount : 0} / {totalNoiseCount}
             </strong>
+            {masterEnabled && scene === 'following' && (
+              <span className="stats-bypass-tag"> (Bypass)</span>
+            )}
           </span>
         </div>
       </div>

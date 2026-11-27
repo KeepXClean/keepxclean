@@ -1,13 +1,24 @@
 /**
- * Milestone 3: Hero Interactive Sandbox Simulator
- * Realistic Localized Tweet Datasets & Metadata
+ * Milestone 3 / KeepXClean v0.2.0: Hero Interactive Sandbox Simulator
+ * Realistic Localized Tweet Datasets & Metadata (1 OP + 3 Clean + 7 Noisy = 11 Tweets)
  */
 
+import { CURRENT_VERSION } from '../../config';
 import type {
   LocalizedSandboxData,
   SandboxDatasetLocale,
   SandboxNoiseCategory,
 } from './types';
+
+// Clean geometric avatar for official @grok (no X glyph, no forbidden decorative marks)
+const GROK_OFFICIAL_AVATAR =
+  'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="24" fill="%23111827"/><circle cx="24" cy="24" r="11" fill="none" stroke="%23F8FAFC" stroke-width="3.2"/><path d="M16 32L32 16" stroke="%2310B981" stroke-width="3.2" stroke-linecap="round"/></svg>';
+
+const DUPLICATE_BOT_AVATAR =
+  'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="24" fill="%23F1F5F9"/><rect x="14" y="16" width="14" height="14" rx="3" fill="%2394A3B8"/><rect x="20" y="20" width="14" height="14" rx="3" fill="%23475569"/></svg>';
+
+const GROK_PING_AVATAR =
+  'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="24" fill="%23FEF2F2"/><circle cx="19" cy="24" r="4" fill="%23DC2626"/><circle cx="29" cy="24" r="4" fill="%23F87171"/></svg>';
 
 // ============================================================================
 // 1. 中文简体数据集 (Simplified Chinese / zh-CN)
@@ -26,8 +37,7 @@ export const zhCNSandboxData: LocalizedSandboxData = {
       accountAge: '2024年3月',
       bio: '浏览器本地优先的 X (Twitter) 纯净阅读引擎。零账号登录，<1ms 确定性拦截，开源可审计。',
     },
-    content:
-      '🚀 KeepXClean v0.1.2 架构升级正式发布！\n\n基于本地优先（Local-First）确定性匹配引擎，直接复用浏览器既有 GraphQL 响应，实现低于 1ms 的零延迟净空。\n\n完全开源，本地过滤，无需额外注册。让你的推特时间线与热门评论区重回清爽纯净。🧵👇',
+    content: `🚀 KeepXClean ${CURRENT_VERSION} 架构升级正式发布！\n\n基于本地优先（Local-First）确定性匹配引擎，新增官方 @grok 保护与短召唤过滤、同贴复读水军去重、For You / Following 分场景策略与 10 语种公共词库包，零新增扩展权限，单条匹配低于 1ms。🧵👇`,
     createdAt: '2小时前',
     metrics: { replies: 128, retweets: 486, likes: 2130, views: '142.5K' },
   },
@@ -50,7 +60,26 @@ export const zhCNSandboxData: LocalizedSandboxData = {
       metrics: { replies: 3, retweets: 12, likes: 89 },
     },
 
-    // 正常回复 2：询问跨平台兼容细节与 MV3
+    // 正常回复 2（v0.2.0）：官方 @grok 回复受默认保护豁免高频误杀
+    {
+      id: 'reply-zh-grok-official',
+      author: {
+        name: 'Grok',
+        handle: '@grok',
+        avatar: GROK_OFFICIAL_AVATAR,
+        isVerified: true,
+        isOfficialGrok: true,
+        followersCount: '4.8M',
+        dailyPostsRate: '500+/day',
+        bio: 'Official Grok AI assistant on X.',
+      },
+      protectedNotice: '已保护官方 @grok',
+      content: `事实核查：KeepXClean ${CURRENT_VERSION} 完全在本地以 <1ms 解析现有 GraphQL 响应，零新增权限（仅 storage + alarms），并在全部预设下默认保护官方 @grok（UID 1720665183188922368）不被高频发帖规则误杀。`,
+      createdAt: '52分钟前',
+      metrics: { replies: 5, retweets: 19, likes: 214 },
+    },
+
+    // 正常回复 3（v0.2.0）：同贴首条正常评论保留，后续完全一致复读水军被拦截
     {
       id: 'reply-zh-clean-2',
       author: {
@@ -62,8 +91,10 @@ export const zhCNSandboxData: LocalizedSandboxData = {
         followersCount: '3.2K',
         bio: 'Building modern web apps & extensions. TS / React / Rust.',
       },
+      duplicateRole: 'first_kept',
+      duplicateNotice: '同贴首条 · 已保留',
       content:
-        '测试了一下在 Chrome MV3 环境下的运行表现，Alarms 调度和本地 Storage 索引非常轻量。请问后续有适配 Firefox 与 Safari (WebExtensions) 的计划吗？尤其是在 Firefox 上对于 declarativeNetRequest 与 WebRequest 结合处理动态注入的支持情况。',
+        '实测 Chrome MV3 和 Firefox 构建，本地拦截延迟不到 1ms，零新增权限非常克制。',
       createdAt: '45分钟前',
       metrics: { replies: 2, retweets: 5, likes: 64 },
     },
@@ -80,8 +111,7 @@ export const zhCNSandboxData: LocalizedSandboxData = {
         followersCount: '42',
         accountAge: '2026年11月',
       },
-      content:
-        '⚠️ 重要通知：为了答谢早期支持者，前 500 名转发本推文的用户将获得 KeepXClean Pro 终身授权与官方空投代币！请点击私信领取专属于你的兑换激活码 🎁 👇 [t.me/kxc_airdrop_bot]',
+      content: `⚠️ 重要通知：为庆祝 ${CURRENT_VERSION} 发布，前 500 名转发本推文的用户将获得 KeepXClean Pro 终身授权与官方空投代币！请点击私信领取专属于你的兑换激活码 🎁 👇 [t.me/kxc_airdrop_bot]`,
       createdAt: '30分钟前',
       metrics: { replies: 4, retweets: 1, likes: 7 },
       filterReason: {
@@ -171,7 +201,57 @@ export const zhCNSandboxData: LocalizedSandboxData = {
       },
     },
 
-    // 噪音 5：蓝标极短无意义水评 (Verified Short/AI Spam) -> extreme
+    // 噪音 5（v0.2.0）：同贴复读水军 (Same-Thread Duplicate Reply Spam) -> standard
+    {
+      id: 'reply-zh-duplicate',
+      author: {
+        name: 'EchoReply_88',
+        handle: '@echo_reply_bot',
+        avatar: DUPLICATE_BOT_AVATAR,
+        isBlueVerified: true,
+        followersCount: '310',
+        accountAge: '2026年8月',
+      },
+      duplicateRole: 'duplicate_blocked',
+      content:
+        '@keepxclean 实测 Chrome MV3 和 Firefox 构建，本地拦截延迟不到 1ms，零新增权限非常克制！',
+      createdAt: '38分钟前',
+      metrics: { replies: 0, retweets: 0, likes: 1 },
+      filterReason: {
+        category: 'duplicate_reply',
+        ruleId: 'reply_spam',
+        ruleName: '同贴复读水军 (第 2 条)',
+        evidence:
+          '归一化正文与同贴首条回复 @linche_dev 完全一致（加权长度 ≥ 12）：保留第 1 条，拦截第 2 条及以上复读',
+        presetLevel: 'standard',
+      },
+    },
+
+    // 噪音 6（v0.2.0）：@grok 短召唤刷屏 (Short @grok Summon Spam) -> extreme
+    {
+      id: 'reply-zh-grok-summon',
+      author: {
+        name: 'QuickPing_X',
+        handle: '@grok_ping_99',
+        avatar: GROK_PING_AVATAR,
+        isBlueVerified: true,
+        followersCount: '620',
+        accountAge: '2026年5月',
+      },
+      content: '@grok 真的吗？总结一下',
+      createdAt: '27分钟前',
+      metrics: { replies: 0, retweets: 0, likes: 1 },
+      filterReason: {
+        category: 'grok_summon',
+        ruleId: 'grok_filter',
+        ruleName: '@grok 短召唤刷屏',
+        evidence:
+          '命中 rules.grokFilter.blockShortMentions（去除 @grok 后加权长度 ≤ 16），同时官方 @grok 回复保持豁免保护',
+        presetLevel: 'extreme',
+      },
+    },
+
+    // 噪音 7：蓝标极短无意义水评 (Verified Short/AI Spam) -> extreme
     {
       id: 'reply-zh-short',
       author: {
@@ -214,8 +294,7 @@ export const zhTWSandboxData: LocalizedSandboxData = {
       accountAge: '2024年3月',
       bio: '瀏覽器本地優先的 X (Twitter) 純淨閱讀引擎。零帳號登入，<1ms 確定性攔截，開源可審計。',
     },
-    content:
-      '🚀 KeepXClean v0.1.2 架構升級正式發佈！\n\n基於本地優先（Local-First）確定性匹配引擎，直接複用瀏覽器既有 GraphQL 響應，實現低於 1ms 的零延遲淨空。\n\n完全開源，本機過濾，無需額外註冊。讓你的推特時間線與熱門評論區重回清爽純淨。🧵👇',
+    content: `🚀 KeepXClean ${CURRENT_VERSION} 架構升級正式發佈！\n\n基於本地優先（Local-First）確定性匹配引擎，新增官方 @grok 保護與短召喚過濾、同貼複讀水軍去重、For You / Following 分場景策略與 10 語種公共詞庫包，零新增擴充權限，單條匹配低於 1ms。🧵👇`,
     createdAt: '2小時前',
     metrics: { replies: 128, retweets: 486, likes: 2130, views: '142.5K' },
   },
@@ -237,6 +316,23 @@ export const zhTWSandboxData: LocalizedSandboxData = {
       metrics: { replies: 3, retweets: 12, likes: 89 },
     },
     {
+      id: 'reply-zh-tw-grok-official',
+      author: {
+        name: 'Grok',
+        handle: '@grok',
+        avatar: GROK_OFFICIAL_AVATAR,
+        isVerified: true,
+        isOfficialGrok: true,
+        followersCount: '4.8M',
+        dailyPostsRate: '500+/day',
+        bio: 'Official Grok AI assistant on X.',
+      },
+      protectedNotice: '已保護官方 @grok',
+      content: `事實查核：KeepXClean ${CURRENT_VERSION} 完全在本機以 <1ms 解析現有 GraphQL 回應，零新增權限（僅 storage + alarms），並在全部預設下預設保護官方 @grok（UID 1720665183188922368）不被高頻發帖規則誤殺。`,
+      createdAt: '52分鐘前',
+      metrics: { replies: 5, retweets: 19, likes: 214 },
+    },
+    {
       id: 'reply-zh-tw-clean-2',
       author: {
         name: '林澈 / 前端工程師',
@@ -247,8 +343,10 @@ export const zhTWSandboxData: LocalizedSandboxData = {
         followersCount: '3.2K',
         bio: 'Building modern web apps & extensions. TS / React / Rust.',
       },
+      duplicateRole: 'first_kept',
+      duplicateNotice: '同貼首條 · 已保留',
       content:
-        '測試了一下在 Chrome MV3 環境下的運行表現，Alarms 調度與本地 Storage 索引非常輕量。請問後續有適配 Firefox 與 Safari (WebExtensions) 的計劃嗎？尤其是在 Firefox 上對於 declarativeNetRequest 與 WebRequest 結合處理動態注入的支持情況。',
+        '實測 Chrome MV3 與 Firefox 建置，本機攔截延遲不到 1ms，零新增權限非常克制。',
       createdAt: '45分鐘前',
       metrics: { replies: 2, retweets: 5, likes: 64 },
     },
@@ -263,8 +361,7 @@ export const zhTWSandboxData: LocalizedSandboxData = {
         followersCount: '42',
         accountAge: '2026年11月',
       },
-      content:
-        '⚠️ 重要通知：為了答謝早期支持者，前 500 名轉發本推文的用戶將獲得 KeepXClean Pro 終身授權與官方空投代幣！請點擊私信領取專屬於你的兌換激活碼 🎁 👇 [t.me/kxc_airdrop_bot]',
+      content: `⚠️ 重要通知：為慶祝 ${CURRENT_VERSION} 發佈，前 500 名轉發本推文的用戶將獲得 KeepXClean Pro 終身授權與官方空投代幣！請點擊私信領取專屬於你的兌換激活碼 🎁 👇 [t.me/kxc_airdrop_bot]`,
       createdAt: '30分鐘前',
       metrics: { replies: 4, retweets: 1, likes: 7 },
       filterReason: {
@@ -348,6 +445,52 @@ export const zhTWSandboxData: LocalizedSandboxData = {
       },
     },
     {
+      id: 'reply-zh-tw-duplicate',
+      author: {
+        name: 'EchoReply_88',
+        handle: '@echo_reply_bot',
+        avatar: DUPLICATE_BOT_AVATAR,
+        isBlueVerified: true,
+        followersCount: '310',
+        accountAge: '2026年8月',
+      },
+      duplicateRole: 'duplicate_blocked',
+      content:
+        '@keepxclean 實測 Chrome MV3 與 Firefox 建置，本機攔截延遲不到 1ms，零新增權限非常克制！',
+      createdAt: '38分鐘前',
+      metrics: { replies: 0, retweets: 0, likes: 1 },
+      filterReason: {
+        category: 'duplicate_reply',
+        ruleId: 'reply_spam',
+        ruleName: '同貼複讀水軍 (第 2 條)',
+        evidence:
+          '歸一化正文與同貼首條回覆 @linche_dev 完全一致（加權長度 ≥ 12）：保留第 1 條，攔截第 2 條及以上複讀',
+        presetLevel: 'standard',
+      },
+    },
+    {
+      id: 'reply-zh-tw-grok-summon',
+      author: {
+        name: 'QuickPing_X',
+        handle: '@grok_ping_99',
+        avatar: GROK_PING_AVATAR,
+        isBlueVerified: true,
+        followersCount: '620',
+        accountAge: '2026年5月',
+      },
+      content: '@grok 真的嗎？總結一下',
+      createdAt: '27分鐘前',
+      metrics: { replies: 0, retweets: 0, likes: 1 },
+      filterReason: {
+        category: 'grok_summon',
+        ruleId: 'grok_filter',
+        ruleName: '@grok 短召喚洗版',
+        evidence:
+          '命中 rules.grokFilter.blockShortMentions（去除 @grok 後加權長度 ≤ 16），同時官方 @grok 回覆維持豁免保護',
+        presetLevel: 'extreme',
+      },
+    },
+    {
       id: 'reply-zh-tw-short',
       author: {
         name: 'CryptoGuru_Daily 🔥',
@@ -389,8 +532,7 @@ export const enSandboxData: LocalizedSandboxData = {
       accountAge: 'March 2024',
       bio: 'Local-first deterministic clean reading engine for X (Twitter). Zero login, <1ms interception, 100% open source & auditable.',
     },
-    content:
-      '🚀 KeepXClean v0.1.2 is officially released!\n\nBuilt on a local-first deterministic engine running directly on existing GraphQL streams in your browser. Local filtering, no separate registration required, and sub-millisecond execution.\n\nTake back control of your timeline and replies with honest, open-source cleanup. 🧵👇',
+    content: `🚀 KeepXClean ${CURRENT_VERSION} is officially released!\n\nBuilt on a <1ms local-first deterministic engine with official @grok protection & short-summon filtering, same-thread duplicate reply defense, For You / Following scene modes, and 10-language public packs—with zero new permissions. 🧵👇`,
     createdAt: '2h ago',
     metrics: { replies: 128, retweets: 486, likes: 2130, views: '142.5K' },
   },
@@ -413,7 +555,26 @@ export const enSandboxData: LocalizedSandboxData = {
       metrics: { replies: 4, retweets: 14, likes: 112 },
     },
 
-    // Clean Reply 2: Manifest V3 & Browser Standards
+    // Clean Reply 2 (v0.2.0): Official @grok reply protected by default
+    {
+      id: 'reply-en-grok-official',
+      author: {
+        name: 'Grok',
+        handle: '@grok',
+        avatar: GROK_OFFICIAL_AVATAR,
+        isVerified: true,
+        isOfficialGrok: true,
+        followersCount: '4.8M',
+        dailyPostsRate: '500+/day',
+        bio: 'Official Grok AI assistant on X.',
+      },
+      protectedNotice: 'Official @grok Protected',
+      content: `Verified: KeepXClean ${CURRENT_VERSION} evaluates X GraphQL payloads locally in <1ms with zero new permissions (storage + alarms only) and exempts official @grok (UID 1720665183188922368) from high-frequency false positives across all presets.`,
+      createdAt: '52m ago',
+      metrics: { replies: 5, retweets: 19, likes: 214 },
+    },
+
+    // Clean Reply 3 (v0.2.0): First copy kept; identical later copies blocked
     {
       id: 'reply-en-clean-2',
       author: {
@@ -425,8 +586,10 @@ export const enSandboxData: LocalizedSandboxData = {
         followersCount: '4.3K',
         bio: 'Web extensions developer & TypeScript contributor. Web standards enthusiast.',
       },
+      duplicateRole: 'first_kept',
+      duplicateNotice: '1st copy · Kept',
       content:
-        'Really appreciate the strict Manifest V3 conformance here. Offloading alarm-based sync to Service Workers while keeping client state synchronous avoids background page wake-up latency. Are there plans to ship a signed Firefox XPI alongside the Chrome Web Store release?',
+        'Tested the Chrome MV3 and Firefox builds—local filtering stays under 1ms with zero new permissions.',
       createdAt: '40m ago',
       metrics: { replies: 2, retweets: 6, likes: 78 },
     },
@@ -443,8 +606,7 @@ export const enSandboxData: LocalizedSandboxData = {
         followersCount: '38',
         accountAge: 'November 2026',
       },
-      content:
-        '🚨 AIRDROP ANNOUNCEMENT: To celebrate our v0.1.2 launch, we are distributing 5,000 $KXC governance tokens to early supporters! Connect your Web3 wallet and claim now before the claim pool closes 🎁 👇 [t.me/keepxclean_claim_bot]',
+      content: `🚨 AIRDROP ANNOUNCEMENT: To celebrate our ${CURRENT_VERSION} launch, we are distributing 5,000 $KXC governance tokens to early supporters! Connect your Web3 wallet and claim now before the claim pool closes 🎁 👇 [t.me/keepxclean_claim_bot]`,
       createdAt: '28m ago',
       metrics: { replies: 6, retweets: 2, likes: 9 },
       filterReason: {
@@ -534,7 +696,57 @@ export const enSandboxData: LocalizedSandboxData = {
       },
     },
 
-    // Noisy 5: Verified AI Cliché / Short Spam -> extreme
+    // Noisy 5 (v0.2.0): Same-Thread Duplicate Reply Spam -> standard
+    {
+      id: 'reply-en-duplicate',
+      author: {
+        name: 'EchoReply_88',
+        handle: '@echo_reply_bot',
+        avatar: DUPLICATE_BOT_AVATAR,
+        isBlueVerified: true,
+        followersCount: '310',
+        accountAge: 'August 2026',
+      },
+      duplicateRole: 'duplicate_blocked',
+      content:
+        '@keepxclean Tested the Chrome MV3 and Firefox builds—local filtering stays under 1ms with zero new permissions!',
+      createdAt: '34m ago',
+      metrics: { replies: 0, retweets: 0, likes: 1 },
+      filterReason: {
+        category: 'duplicate_reply',
+        ruleId: 'reply_spam',
+        ruleName: 'Same-Thread Duplicate Reply (2nd)',
+        evidence:
+          'Normalized text exactly matches 1st reply by @sarah_j_codes (weighted length >= 12): keeps 1st copy, blocks 2nd+ duplicates',
+        presetLevel: 'standard',
+      },
+    },
+
+    // Noisy 6 (v0.2.0): Short @grok Summon Spam -> extreme
+    {
+      id: 'reply-en-grok-summon',
+      author: {
+        name: 'QuickPing_X',
+        handle: '@grok_ping_99',
+        avatar: GROK_PING_AVATAR,
+        isBlueVerified: true,
+        followersCount: '620',
+        accountAge: 'May 2026',
+      },
+      content: '@grok is this real?',
+      createdAt: '27m ago',
+      metrics: { replies: 0, retweets: 0, likes: 1 },
+      filterReason: {
+        category: 'grok_summon',
+        ruleId: 'grok_filter',
+        ruleName: 'Short @grok Summon Spam',
+        evidence:
+          'Matched rules.grokFilter.blockShortMentions (stripped weighted length <= 16) while official @grok replies stay protected',
+        presetLevel: 'extreme',
+      },
+    },
+
+    // Noisy 7: Verified AI Cliché / Short Spam -> extreme
     {
       id: 'reply-en-short',
       author: {
@@ -617,6 +829,20 @@ export const CATEGORY_METAS: CategoryMeta[] = [
     labelEn: 'Crypto Shilling',
     shortDescZh: '土狗暴富喊单与合约地址',
     shortDescEn: 'Meme token shills & CA addresses',
+  },
+  {
+    id: 'duplicate_reply',
+    labelZh: '同贴复读水军',
+    labelEn: 'Duplicate Replies',
+    shortDescZh: '同贴保留首条，拦截第 2 条起完全一致复制刷屏',
+    shortDescEn: 'Keeps 1st reply, blocks 2nd+ normalized copy-paste spam',
+  },
+  {
+    id: 'grok_summon',
+    labelZh: '@grok 短召唤',
+    labelEn: 'Short @grok Pings',
+    shortDescZh: '拦截评论区短召唤刷屏，同时保护官方 @grok 回复',
+    shortDescEn: 'Filters short @grok reply summons while protecting official @grok',
   },
   {
     id: 'short_reply',

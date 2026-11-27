@@ -2,7 +2,9 @@ import {
   isUILocaleSetting,
   type AccountListEntry,
   type CrowdBlockSnapshot,
+  type DomainRuleItem,
   type FilterConfig,
+  type InstalledRulePack,
   type KeywordRuleItem,
 } from '@keepxclean/shared';
 import { getActiveErrors, getErrors } from '../i18n/errors';
@@ -15,6 +17,8 @@ import {
   UID,
   validateAccountWithErrors,
   validateConfigWithErrors,
+  validateDomainRuleWithErrors,
+  validateInstalledPackWithErrors,
   validateKeywordWithErrors,
   validateSnapshotWithErrors,
 } from './schema';
@@ -33,6 +37,14 @@ export function parseAccountQuery(
 
 export function validateKeyword(input: unknown): KeywordRuleItem {
   return validateKeywordWithErrors(input, getActiveErrors());
+}
+
+export function validateDomainRule(input: unknown): DomainRuleItem {
+  return validateDomainRuleWithErrors(input, getActiveErrors());
+}
+
+export function validateInstalledPack(input: unknown): InstalledRulePack {
+  return validateInstalledPackWithErrors(input, getActiveErrors());
 }
 
 export function validateAccount(input: unknown): AccountListEntry {

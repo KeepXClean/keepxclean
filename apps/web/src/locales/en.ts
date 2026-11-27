@@ -16,7 +16,7 @@ export const en: TranslationDictionary = {
     faq: 'FAQ',
     privacy: 'Privacy Policy',
     github: 'GitHub',
-    downloadCta: 'Get v0.1.2',
+    downloadCta: 'Get v0.2.0',
     addToChrome: 'Add to Chrome',
     cwsBadge: 'Chrome Web Store Under Review',
     cwsReviewBadge: 'Chrome Web Store Under Review',
@@ -31,9 +31,9 @@ export const en: TranslationDictionary = {
     headlinePrefix: 'Reclaim a Clean, High-Signal',
     headlineHighlight: 'Timeline & Replies on X',
     subheadline:
-      'Deterministic local filtering directly against X GraphQL responses. No separate registration, < 1ms execution, transparent rules, and community defense against AI bots, scams, and clout chasers.',
-    ctaDownload: 'Download Release (v0.1.2)',
-    ctaPrimary: 'Download Release (v0.1.2)',
+      'Deterministic local filtering directly against X GraphQL responses. No separate registration, < 1ms execution, official @grok protection, duplicate-reply defense, 10-language public packs, offline rule packs, and optional cross-device sync.',
+    ctaDownload: 'Download Release (v0.2.0)',
+    ctaPrimary: 'Download Release (v0.2.0)',
     ctaStore: 'Add to Chrome',
     ctaSecondary: 'View Source on GitHub',
     ctaGitHub: 'View Source on GitHub',
@@ -65,7 +65,7 @@ export const en: TranslationDictionary = {
     counterLabel: 'Filtered Noise',
     counterSuffix: 'items',
     quickCleanTooltip: 'Quick Clean (4.5s undo window)',
-    discussionHeader: 'Discussion (7 replies)',
+    discussionHeader: 'Discussion (10 replies)',
     foldedBar: {
       expand: 'Show filtered reply',
       collapse: 'Collapse',
@@ -83,7 +83,7 @@ export const en: TranslationDictionary = {
       author: 'KeepXClean',
       handle: '@keepxclean',
       content:
-        'KeepXClean v0.1.2 is live! Local-first architecture, <1ms deterministic evaluation, local filtering, 10-language matrix. Pure high-signal timeline on X.',
+        'KeepXClean v0.2.0 is live! Local-first architecture, <1ms deterministic evaluation, @grok protection, duplicate-reply defense, 10-language packs, and zero new permissions.',
       time: '2h',
       replies: '142',
       reposts: '389',
@@ -93,14 +93,14 @@ export const en: TranslationDictionary = {
   bento: {
     badge: 'Core Capabilities',
     title: 'Engineered for Complete Control, Zero Account Exposure',
-    sub: 'Four privacy-first architectural pillars that keep your feed pristine without trusting external black boxes.',
+    sub: 'Four interactive local-first pillars plus v0.2.0 upgrades that keep your feed pristine without trusting external black boxes.',
     sectionTitle: 'Bento Grid: 4 Core Capabilities',
     sectionDesc:
-      '24 Cloud Keywords Preview · 4.5s 3-Phase Honest Feedback · Profile Risk Badge · Language & Media Exemption.',
+      '10-Language Public Keyword Packs (45 Rules) · 4.5s 3-Phase Honest Feedback · Profile Risk Badge · Language Exemption · Offline Rule Packs & Local Battle Report.',
     card1: {
-      tag: 'Public Ruleset',
-      title: '24 Cloud Keywords & Cliche Packs',
-      desc: '5 transparent categories covering marketing cliches, crypto shilling, follow-for-follow pods, adult funnels, and illegal trades. Inspect regex rules and toggle each individually.',
+      tag: '10-Language Packs',
+      title: '10-Language Public Keyword Packs & Cliche Filters',
+      desc: 'Universal + 9 language packs across 5 transparent categories covering marketing cliches, crypto shilling, follow-back pods, adult funnels, and scams. Toggle whole language packs, inspect regex rules, or fine-tune individually.',
       categoryAll: 'All',
       categoryCliche: 'Marketing Cliches',
       categoryCrypto: 'Crypto & Memecoins',
@@ -111,11 +111,16 @@ export const en: TranslationDictionary = {
       disabled: 'Disabled',
       copyRegex: 'Copy Pattern',
       copied: 'Copied!',
-      searchPlaceholder: 'Filter keywords or regex...',
+      searchPlaceholder: 'Filter keywords, packs, or regex...',
       searchAriaLabel: 'Filter keywords',
       clearSearch: 'Clear search',
       inspectRegex: 'Inspect regex',
       closeInspector: 'Close inspector',
+      langPacksAriaLabel: 'Filter by language pack',
+      langPackAll: 'All Packs',
+      langPackUniversal: 'Universal',
+      enablePack: 'Enable pack',
+      disablePack: 'Disable pack',
     },
     card2: {
       tag: 'Transparent Execution',
@@ -177,6 +182,30 @@ export const en: TranslationDictionary = {
       normalLangNotice: 'Normal visibility (Matches language criteria).',
       toggleMediaLabel: 'Toggle post media & universal emojis:',
     },
+    v020Highlights: {
+      badge: 'New in v0.2.0',
+      title: 'Built for Precision Control — Still Zero New Permissions',
+      langPacks: {
+        tag: '10 Language Packs',
+        title: 'Segmented Public Keyword Packs',
+        desc: 'Universal hard-spam rules plus 9 regional language packs (45 built-in rules). Auto-activates your UI language with 1-click whole-pack and per-rule controls.',
+      },
+      rulePacks: {
+        tag: 'Offline .kxc-pack.json',
+        title: 'Shareable Offline Rule Packs',
+        desc: 'Import or export curated keyword, domain, and UID packs via local JSON file or clipboard—isolated from personal rules with clean 1-click uninstall and zero remote subscriptions.',
+      },
+      battleReport: {
+        tag: 'Local Canvas 2D',
+        title: 'Per-Rule Analytics & Battle Report PNG',
+        desc: 'Explore clickable per-rule stats and rolling 7-day trends in History, then render a clean light-theme PNG summary locally with zero personal data.',
+      },
+      cloudSync: {
+        tag: 'Opt-In · Default OFF',
+        title: 'Optional Cross-Device Sync',
+        desc: 'Sync rules, scene modes, domains, and packs via chrome.storage.sync in <=6 KB chunks with 3-way conflict choice—while large local blocklists and logs stay on device.',
+      },
+    },
   },
   architecture: {
     badge: 'Architecture & Security',
@@ -194,7 +223,7 @@ export const en: TranslationDictionary = {
       'Directly hooks the X web client’s existing responses. Zero extra API scraping, zero background tab polling, zero rate limits.',
     step2Title: '2. Deterministic Local Engine',
     step2Desc:
-      'Evaluates presets, keywords, follower ratios, and spam heuristics in < 1ms on your CPU. No cloud AI latency.',
+      'Evaluates presets, Grok protection, duplicate-reply dedup, domain filters, 10-language packs, and offline rule packs in < 1ms on your CPU. No cloud AI latency.',
     step3Title: '3. Non-Destructive DOM Presentation',
     step3Desc:
       'Seamlessly folds or removes noise elements according to your preferences with smooth CSS layout transitions.',
@@ -235,10 +264,10 @@ export const en: TranslationDictionary = {
     sectionDesc:
       'Download Release ZIP · Unpack · Load unpacked extension in Chrome Developer Mode.',
     copyTooltip: 'Copy chrome://extensions',
-    readyStatus: 'KeepXClean v0.1.2 · Ready to Clean',
+    readyStatus: 'KeepXClean v0.2.0 · Ready to Clean',
     step1Title: 'Step 1: Download Release (.zip)',
     step1Desc:
-      'Download the latest keepxclean release zip file (v0.1.2) from GitHub Releases and extract it to a local folder.',
+      'Download the latest keepxclean release zip file (v0.2.0) from GitHub Releases and extract it to a local folder.',
     step1Action: 'Download Release ZIP',
     step2Title: 'Step 2: Enable Developer Mode',
     step2Desc:
@@ -281,6 +310,14 @@ export const en: TranslationDictionary = {
         q: 'Is KeepXClean completely free and open source?',
         a: 'Yes. KeepXClean is released under the permissive MIT license. All source code for the extension, shared packages, and website is 100% public on GitHub for anyone to audit, fork, or contribute to.',
       },
+      {
+        q: 'How do 10-language public keyword packs and offline .kxc-pack.json rule packs work?',
+        a: 'Built-in public rules are organized into Universal plus 9 regional language packs (45 rules total) with whole-pack and per-rule toggles. You can also share curated keywords, external-link domains, and optional UID lists offline via .kxc-pack.json files or clipboard text—no remote URL subscriptions, isolated storage, and clean 1-click uninstall.',
+      },
+      {
+        q: 'How does optional cross-device sync (chrome.storage.sync) work, and does it require new permissions?',
+        a: 'Cross-device sync is OFF by default and requires zero new browser permissions (still strictly storage + alarms). When you opt in from Preferences, compact rules, scene modes, domains, and installed packs sync in <=6 KB chunks with a 3-way conflict prompt on first enable, while large local blocklists, allowlists, logs, and parse health diagnostics stay strictly on device.',
+      },
     ],
   },
   footer: {
@@ -299,7 +336,7 @@ export const en: TranslationDictionary = {
     install: 'Install Guide',
     faq: 'FAQ',
     githubRepo: 'GitHub Repository',
-    releaseZip: 'Release v0.1.2 (.zip)',
+    releaseZip: 'Release v0.2.0 (.zip)',
     statsApi: 'Community Stats API',
     issues: 'Issue Tracker',
     privacyPolicy: 'Privacy Policy (Bilingual)',

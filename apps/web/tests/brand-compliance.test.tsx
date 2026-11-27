@@ -31,6 +31,7 @@ describe('Milestone 5 AGENTS.md Brand Rules & Integrity Verification', () => {
   const bentoCssPath = resolve(__dirname, '../src/styles/bento.css');
   const tokensCssPath = resolve(__dirname, '../src/styles/tokens.css');
   const layoutCssPath = resolve(__dirname, '../src/styles/layout.css');
+  const sandboxCssPath = resolve(__dirname, '../src/styles/sandbox.css');
 
   beforeEach(() => {
     container = document.createElement('div');
@@ -55,7 +56,8 @@ describe('Milestone 5 AGENTS.md Brand Rules & Integrity Verification', () => {
 
     for (const filePath of files) {
       const content = readFileSync(filePath, 'utf-8');
-      expect(content).not.toMatch(/\bimport\s+{[^}]*\bShield\b[^}]*}\s+from/);
+      expect(content).not.toMatch(/\bimport\s+{[^}]*\bShield\w*[^}]*}\s+from/);
+      expect(content).not.toMatch(/<Shield\w*\b/);
       expect(content).not.toMatch(/<Shield\b/);
       expect(content).not.toMatch(/<ShieldAlert\b/);
       expect(content).not.toMatch(/<ShieldCheck\b/);
@@ -63,8 +65,8 @@ describe('Milestone 5 AGENTS.md Brand Rules & Integrity Verification', () => {
     }
   });
 
-  it('zero forbidden keywords in bento.css, tokens.css, and layout.css', () => {
-    const cssFiles = [bentoCssPath, tokensCssPath, layoutCssPath];
+  it('zero forbidden keywords in bento.css, tokens.css, layout.css, and sandbox.css', () => {
+    const cssFiles = [bentoCssPath, tokensCssPath, layoutCssPath, sandboxCssPath];
 
     for (const file of cssFiles) {
       const css = readFileSync(file, 'utf-8');

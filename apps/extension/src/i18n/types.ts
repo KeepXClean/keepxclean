@@ -1,4 +1,12 @@
-import type { FilterRulesConfig, KeywordMatchScope } from '@keepxclean/shared';
+import type {
+  CloudKeywordLangGroup,
+  FilterRulesConfig,
+  KeywordMatchScope,
+  SceneModeKey,
+  SceneModeOverride,
+  TriggeredRuleId,
+} from '@keepxclean/shared';
+import type { CloudSyncStatus } from '../services/model';
 
 export type ImportStatusKey =
   | 'reading'
@@ -109,6 +117,17 @@ export interface ExtensionMessages {
     enableRule: (title: string) => string;
     expandParams: (open: boolean, title: string) => string;
     manageKeywordsLink: string;
+    manageDomainsLink: string;
+    sceneModes: {
+      title: string;
+      desc: string;
+      allInherit: string;
+      overrideCount: (count: number) => string;
+      resetAllBtn: string;
+      bypassNote: string;
+      scenes: Record<SceneModeKey, string>;
+      modes: Record<SceneModeOverride, string>;
+    };
     exemptionsTitle: string;
     exemptionsDesc: string;
     exemptFollowingTitle: string;
@@ -139,10 +158,15 @@ export interface ExtensionMessages {
       minAccountAgeDays: { title: string; unit: string };
       maxFollowRatio: { title: string; unit: string };
       minFollowingForRatioCheck: { title: string; unit: string };
+      maxMentionWeightedLength: { title: string; unit: string };
       detectImpersonation: string;
       blockShortOrEmoji: string;
       blockBioLinkSpam: string;
       blockPureMediaReplies: string;
+      blockDuplicateReplies: string;
+      protectOfficialGrok: string;
+      blockShortMentions: string;
+      hideGrokReplies: string;
       blockCommentGiveaway: string;
       blockFollowBack: string;
       slidingWindowEnabled: string;
@@ -155,6 +179,13 @@ export interface ExtensionMessages {
       shortReply: (weight: number, cjkApprox: number) => string;
       bioLink: (followers: string) => string;
       pureMedia: string;
+      duplicateReplies: string;
+      grokProtectOfficial: string;
+      grokShortMentions: (weight: number, cjkApprox: number) => string;
+      grokHideReplies: string;
+      domainEmpty: string;
+      domainActive: (active: number) => string;
+      domainPartial: (active: number, total: number) => string;
       giveaway: string;
       followBack: string;
       engagementPrefix: (parts: string) => string;
@@ -224,11 +255,20 @@ export interface ExtensionMessages {
     tabLocal: (count: number) => string;
     tabCloudAll: (count: number) => string;
     tabCloudPartial: (active: number, total: number) => string;
+    tabDomains: (count: number) => string;
+    tabPacks: (count: number) => string;
     enableLocalTitle: string;
     enableLocalDesc: string;
     enableCloudTitle: string;
     enableCloudDesc: string;
     enableAllBtn: string;
+    resetLangGroupsBtn: string;
+    langGroupsHeading: string;
+    langGroupsHint: string;
+    langGroups: Record<CloudKeywordLangGroup, string>;
+    langGroupToggleAria: (label: string) => string;
+    langGroupCount: (active: number, total: number) => string;
+    langGroupExpandAria: (open: boolean, label: string) => string;
     categoryAria: string;
     categories: Record<CloudCategoryKey, string>;
     searchPlaceholder: string;
@@ -292,6 +332,124 @@ export interface ExtensionMessages {
       discardTitle: string;
       discardBtn: string;
       discardBody: string;
+    };
+    domains: {
+      addBtn: string;
+      enableTitle: string;
+      enableDesc: string;
+      searchPlaceholder: string;
+      count: (count: number) => string;
+      colDomain: string;
+      colCondition: string;
+      colExempt: string;
+      colActions: string;
+      allScenesPill: string;
+      urlAndBioPill: string;
+      subdomainCoveragePill: (domain: string) => string;
+      enableItemAria: (domain: string) => string;
+      editItemAria: (domain: string) => string;
+      deleteItemAria: (domain: string) => string;
+      emptySearchTitle: string;
+      emptySearchDesc: string;
+      emptyInitTitle: string;
+      emptyInitDesc: string;
+      deleteConfirmTitle: string;
+      deleteConfirmBtn: string;
+      editor: {
+        addTitle: string;
+        editTitle: string;
+        desc: string;
+        saveAddBtn: string;
+        saveEditBtn: string;
+        domainLabel: string;
+        domainHelp: string;
+        domainPlaceholder: string;
+        subdomainNote: string;
+        normalizedPreview: (domain: string) => string;
+        duplicateError: string;
+        invalidDomainError: string;
+        enableItemTitle: string;
+      };
+    };
+    packs: {
+      offlineBanner: string;
+      importBtn: string;
+      exportBtn: string;
+      emptyTitle: string;
+      emptyDesc: string;
+      packCounts: (
+        keywordsCount: number,
+        domainsCount: number,
+        accountsCount: number
+      ) => string;
+      disabledItemsPill: (count: number) => string;
+      enablePackAria: (name: string) => string;
+      expandPackAria: (open: boolean, name: string) => string;
+      viewItemsBtn: string;
+      hideItemsBtn: string;
+      reshareBtn: string;
+      reshareAria: (name: string) => string;
+      uninstallBtn: string;
+      uninstallAria: (name: string) => string;
+      uninstallConfirmTitle: string;
+      uninstallConfirmBtn: string;
+      uninstallConfirmBody: (name: string) => string;
+      sectionKeywords: string;
+      sectionDomains: string;
+      sectionBlockedAccounts: string;
+      itemDisabledPill: string;
+      disableItemBtn: string;
+      disableItemAria: (label: string) => string;
+      installedNotice: (name: string) => string;
+      uninstalledNotice: (name: string) => string;
+      itemDisabledNotice: string;
+      exportedNotice: (name: string) => string;
+      importModal: {
+        title: string;
+        desc: string;
+        uploadBtn: string;
+        selectFileAria: string;
+        pasteLabel: string;
+        pastePlaceholder: string;
+        previewBtn: string;
+        fileTooLargeError: string;
+        invalidJsonError: string;
+        previewHeading: string;
+        metaVersion: (version: string) => string;
+        metaAuthor: (author: string) => string;
+        overwriteWarning: (oldVersion: string, newVersion: string) => string;
+        whitelistConflictWarning: (count: number) => string;
+        safetyNote: string;
+        confirmInstallBtn: string;
+      };
+      exportModal: {
+        title: string;
+        desc: string;
+        nameLabel: string;
+        namePlaceholder: string;
+        idLabel: string;
+        idHelp: string;
+        versionLabel: string;
+        authorLabel: string;
+        authorPlaceholder: string;
+        descLabel: string;
+        descPlaceholder: string;
+        localeLabel: string;
+        localeUniversal: string;
+        selectKeywordsHeading: (count: number) => string;
+        selectDomainsHeading: (count: number) => string;
+        selectAccountsHeading: (count: number) => string;
+        accountsOptInHint: string;
+        selectAllBtn: string;
+        selectNoneBtn: string;
+        privacyNote: string;
+        nameRequiredError: string;
+        selectAtLeastOneError: string;
+        downloadBtn: string;
+        copyBtn: string;
+        copiedBtn: string;
+        copyFallbackNote: string;
+      };
     };
   };
   accounts: {
@@ -403,7 +561,8 @@ export interface ExtensionMessages {
     pageTitle: string;
     pageDesc: string;
     clearBtn: string;
-    ruleLabels: Record<string, string>;
+    reportBtn: string;
+    ruleLabels: Record<TriggeredRuleId, string>;
     sceneLabels: Record<'timeline' | 'reply' | 'search' | 'profile', string>;
     blockedFromLogReason: (ruleLabel: string) => string;
     addedWhiteNotice: (account: string) => string;
@@ -452,6 +611,37 @@ export interface ExtensionMessages {
     clearConfirmTitle: string;
     clearConfirmBtn: string;
     clearConfirmBody: (count: number) => string;
+    distributionTitle: string;
+    distributionHint: string;
+    distributionEmpty: string;
+    clearRuleFilterBtn: string;
+    adsNotLoggedHint: string;
+    trendTitle: string;
+    trendDesc: string;
+    trendTotal: (count: string) => string;
+    trendBlockedLegend: string;
+    trendAdsLegend: string;
+    report: {
+      modalTitle: string;
+      modalDesc: string;
+      privacyNote: string;
+      copyImageBtn: string;
+      copiedImageBtn: string;
+      copyFallbackNotice: string;
+      downloadPngBtn: string;
+      downloadedNotice: string;
+      renderError: string;
+      generating: string;
+      cardTitle: string;
+      cardSubtitle: string;
+      totalCleanedLabel: string;
+      sevenDayCleanedLabel: string;
+      adsHiddenLabel: string;
+      trendHeading: string;
+      topReasonsHeading: string;
+      noReasonsYet: string;
+      footerNote: string;
+    };
   };
   operations: {
     stages: Record<StageKey, string>;
@@ -537,6 +727,8 @@ export interface ExtensionMessages {
       changedRuleGroups: string;
       diffSummary: (added: number, changed: number, removed: number) => string;
       rowCustomKeywords: string;
+      rowDomains: string;
+      rowRulePacks: string;
       rowLocalBlack: string;
       rowWhite: string;
       rowDisabledCloud: string;
@@ -557,6 +749,44 @@ export interface ExtensionMessages {
       noPrefChanges: string;
       concurrentChangeWarning: string;
       refreshPreviewBtn: string;
+    };
+    cloudSync: {
+      panelTitle: string;
+      panelDesc: string;
+      enableTitle: string;
+      enableDesc: string;
+      statuses: Record<CloudSyncStatus, string>;
+      lastSync: (time: string) => string;
+      usageMeta: (sizeText: string, chunks: number) => string;
+      syncNowBtn: string;
+      resolveBtn: string;
+      quotaBanner: string;
+      conflictBanner: string;
+      localOnlyNotice: string;
+      resolvedNotice: string;
+      syncedNowNotice: string;
+      conflictModal: {
+        title: string;
+        desc: string;
+        remoteUpdatedAt: (time: string) => string;
+        colField: string;
+        colLocal: string;
+        colRemote: string;
+        rowPreset: string;
+        rowDisplayMode: string;
+        rowCustomKeywords: string;
+        rowDomains: string;
+        rowRulePacks: string;
+        rowLangPacks: string;
+        rowRuleDiffs: string;
+        localSafeNote: string;
+        mergeBtn: string;
+        mergeDesc: string;
+        keepLocalBtn: string;
+        keepLocalDesc: string;
+        useRemoteBtn: string;
+        useRemoteDesc: string;
+      };
     };
   };
   content: {
@@ -599,6 +829,31 @@ export interface ExtensionMessages {
     importXBlocklistBtn: string;
     enableCleanTitle: string;
     enableCleanDesc: string;
+    adjustRuleBtn: string;
+    adjustRuleTitle: string;
+    disableItemBtn: string;
+    disableItemTitle: string;
+    itemDisabledToast: string;
+    itemDisableFailedToast: string;
+  };
+  onboarding: {
+    title: string;
+    desc: string;
+    stepStrength: string;
+    stepDisplay: string;
+    stepImport: string;
+    importBtn: string;
+    privacyNote: string;
+    doneBtn: string;
+    dismissBtn: string;
+  };
+  health: {
+    degradedTitle: string;
+    degradedDesc: string;
+    copyDiagnosticBtn: string;
+    copiedBtn: string;
+    copyFailedMsg: string;
+    reportIssueBtn: string;
   };
   errors: {
     contextInvalidated: string;
@@ -686,5 +941,22 @@ export interface ExtensionMessages {
     cannotResolveHandle: (handle: string) => string;
     pageUnresponsive: string;
     pageClosed: string;
+    invalidDomain: string;
+    duplicateDomainId: string;
+    invalidCloudLangGroup: string;
+    invalidSceneMode: string;
+    invalidRulePack: (detail: string) => string;
+    duplicatePackId: string;
+    domainModifiedReopen: string;
+    domainChangedRefresh: string;
+    packNotFound: string;
+    invalidDisableTarget: string;
+    targetNotFound: string;
+    cloudSyncQuotaExceeded: string;
+    cloudSyncCorruptRemote: string;
+    cloudSyncNoPendingConflict: string;
+    cloudSyncInvalidStrategy: string;
+    cloudSyncUnavailable: string;
+    cloudSyncFailed: (detail: string) => string;
   };
 }

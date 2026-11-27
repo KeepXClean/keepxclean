@@ -1,4 +1,4 @@
-# KeepXClean — Chrome Web Store 提交与更新指南 (v0.1.2)
+# KeepXClean — Chrome Web Store 提交与更新指南 (v0.2.0)
 
 本文档整理了 Chrome Web Store Developer Dashboard 所需的全部产物路径、优化后的通俗商店标题/副标题/详情页文案、官方网址与开源说明、权限理由及隐私合规问卷答案，可直接复制粘贴使用。
 
@@ -8,7 +8,7 @@
 
 | 用途 | 规格要求 | 项目内文件路径 |
 | --- | --- | --- |
-| **扩展上传包 (ZIP)** | Manifest V3 `.zip` | `apps/extension/.output/keepxcleanextension-0.1.2-chrome.zip` |
+| **扩展上传包 (ZIP)** | Manifest V3 `.zip` | `apps/extension/.output/keepxcleanextension-0.2.0-chrome.zip` |
 | **商店图标 (Store Icon)** | `128×128` PNG | `apps/extension/public/icon/icon-128.png` |
 | **本地化截图（10 种语言 × 5 张）** | 每张 `1280×800`，RGB PNG | `release/chrome-web-store/assets/locales/<lang>/01-rules.png` 至 `05-preferences.png` |
 | **小型宣传图块** | `440×280`，RGB PNG | `release/chrome-web-store/assets/promo-small-440x280.png` |
@@ -59,25 +59,25 @@ A free, open-source browser extension for a cleaner X (Twitter) timeline, search
 FEATURES
 
 • Make room for better posts.
-Filter spam replies, impersonators and promoted ads. Start with one of three presets.
+Filter spam replies, same-thread copy-paste duplicates, impersonators and promoted ads. Protect official @grok replies by default, optionally filter short @grok summons, and configure For You vs. Following scene modes.
 
 • Your feed. Your rules.
-24 public keyword rules, custom keywords and regex. Choose what gets filtered.
+10-language public keyword packs (45 built-in rules), structured external-link domain filtering, custom keywords and regex, plus offline shareable .kxc-pack.json rule packs.
 
 • Clean up without losing context.
-Collapse unwanted posts, inspect the reason and expand them whenever you want.
+Collapse unwanted posts, inspect the reason, jump straight to adjust the matched rule or disable a specific item in one click, and view per-rule stats with local Battle Report PNG export.
 
 • Keep the people you trust.
-Manage block and allow lists by permanent account ID. Import your existing X blocklist.
+Manage block and allow lists by permanent account ID. Import your existing X blocklist directly from the quick-start card or Accounts page.
 
 • Local filtering. Clear choices.
-Choose your language and theme. X block sync and community reporting are optional.
+10 languages and light or dark themes, plus local-only parse health self-check. Optional chrome.storage.sync cross-device settings sync, X block sync and community reporting are all off by default.
 
 LOCAL-FIRST PRIVACY
 
 KeepXClean does not request passwords or DMs. It reads X account cookies locally for account identification and user-triggered X operations. Session cookies and web-client authorization values are used only with X, never sent to KeepXClean servers. Optional community reporting is described in the privacy policy.
 
-Optional reports include public details of the reported account, a reason, and a SHA-256-derived reporter identifier with account age. X session cookies and authorization values are not sent to KeepXClean servers.
+Optional reports include public details of the reported account, a reason, and a SHA-256-derived reporter identifier with account age. X session cookies and authorization values are not sent to KeepXClean servers. Optional chrome.storage.sync (off by default) syncs only filter rules and settings while local blocklists, allowlists and logs stay on device; parse health checks run strictly locally with zero telemetry.
 
 KeepXClean is an independent project. It is not affiliated with, endorsed by, or produced by X Corp.
 
@@ -107,25 +107,25 @@ KeepXClean 是免费开源的浏览器扩展，帮助你管理 X（Twitter）时
 功能亮点
 
 • 把注意力留给值得读的内容
-过滤垃圾回复、高仿账号与推广广告。三档强度，按你的习惯选择。
+过滤垃圾回复、同贴复读水军、高仿账号与推广广告；默认保护官方 @grok 回复并可选过滤短召唤，还支持区分「为你推荐」与「正在关注」分场景策略。
 
 • 你的信息流，你来定规则
-内置 24 条公共词库规则，支持自定义关键词与正则，逐条决定过滤范围。
+内置 10 语种公共词库包（45 条规则）、结构化外链域名过滤、自定义关键词与正则，并支持纯离线 .kxc-pack.json 主题规则包导入导出。
 
 • 收起噪音，也保留上下文
-折叠不想看的帖子，查看拦截原因；需要时，随时展开原文。
+折叠不想看的帖子，查看命中原因；展开后可直达调整规则或一键停用命中词条，还提供按规则统计与本地净空战报 PNG 导出。
 
 • 屏蔽骚扰，留住值得关注的人
-用永久账号 ID 管理黑白名单，也能导入你已有的 X 黑名单。
+用永久账号 ID 管理黑白名单，也可通过快速上手卡或名单页导入你已有的 X 黑名单。
 
 • 本地过滤，每项选择都清楚
-界面支持 10 种语言与明暗主题；同步 X 拉黑、社区举报均可自行选择。
+界面支持 10 种语言与明暗主题，并内置纯本地解析健康自检；可选 chrome.storage.sync 跨设备配置同步、同步 X 拉黑与社区举报均默认关闭。
 
 本地优先与隐私
 
 KeepXClean 不索取密码或私信。扩展会在本地读取 X 账号 Cookie，用于账号识别及用户触发的 X 操作；会话 Cookie 和网页客户端授权值仅用于与 X 通信，不会发送至 KeepXClean 服务器。可选社区举报的数据范围见隐私政策。
 
-可选举报包含被举报账号的公开资料、原因，以及提交者的 SHA-256 派生标识和账号年龄；X 会话 Cookie 与授权值不发送至 KeepXClean 服务器。
+可选举报包含被举报账号的公开资料、原因，以及提交者的 SHA-256 派生标识和账号年龄；X 会话 Cookie 与授权值不发送至 KeepXClean 服务器。可选跨设备同步（chrome.storage.sync，默认关闭）仅同步规则与偏好设置，本地黑白名单与日志始终留存本机；解析健康自检全程本地运行，零遥测。
 
 KeepXClean 是独立项目，与 X Corp. 无关联，未经其背书，也非其出品。
 
@@ -148,7 +148,7 @@ KeepXClean filters unwanted posts, reply spam, impersonators, engagement bait, a
 
 #### `storage`
 ```text
-Required to store the user's filter rules, preset selection, interface language, custom keywords, local UID allowlist/blocklist, cached public community snapshot, and the 200 most recent local interception log entries on the user's device via chrome.storage.local.
+Required to store the user's filter rules, preset selection, per-scene overrides, interface language, custom keywords, external-link domains, offline rule packs, local UID allowlist/blocklist, cached public community snapshot, 7-day aggregate stats, local-only parse health status, and the 200 most recent local interception log entries on the user's device via chrome.storage.local. If the user explicitly opts in to Cross-Device Sync (disabled by default, zero new permissions), only filter rules, preferences, domains, and rule packs are synced via chrome.storage.sync while local blocklists, allowlists, and logs remain strictly on device.
 ```
 
 #### `alarms`
@@ -187,7 +187,7 @@ Requested at runtime ONLY if an advanced user explicitly configures a custom sel
 | Website content | 勾选 | 本地处理 X 帖子和公开账号资料 |
 | Health / Financial / Personal communications / Web history | 不勾选 | 不处理这些类别，不收集一般浏览历史、私信或支付信息 |
 
-未开启社区共享时，不提交社区举报；公开快照请求不携带账号标识或 Cookie。开启后，用户触发的举报包含目标公开数字 UID、@handle、显示名称、粉丝数、原因、提交者 UID 的 SHA-256 派生标识及账号年龄。哈希标识用于去重，并非保证无法关联个人的匿名数据。
+未开启社区共享时，不提交社区举报；公开快照请求不携带账号标识或 Cookie。全新安装下，`syncNativeXBlock`、`enableCrowdReport` 与可选跨设备同步（`chrome.storage.sync`）均默认关闭，且本地解析健康自检不产生任何遥测。开启社区共享后，用户触发的举报包含目标公开数字 UID、@handle、显示名称、粉丝数、原因、提交者 UID 的 SHA-256 派生标识及账号年龄。哈希标识用于去重，并非保证无法关联个人的匿名数据。
 
 以下三项合规承诺均勾选：
 
@@ -208,8 +208,8 @@ https://keepxclean.com/privacy/
 每次重新打包上传前可执行：
 
 ```bash
-pnpm typecheck && pnpm test && pnpm test:e2e && pnpm --filter @keepxclean/extension zip
+pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e && pnpm --filter @keepxclean/extension zip && pnpm --filter @keepxclean/extension build:firefox && pnpm test:browser && pnpm --filter @keepxclean/web build
 ```
 
 生成的上传包位于：
-`apps/extension/.output/keepxcleanextension-0.1.2-chrome.zip`
+`apps/extension/.output/keepxcleanextension-0.2.0-chrome.zip`

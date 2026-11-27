@@ -3,25 +3,25 @@ KeepXClean es una extensión gratuita y de código abierto para reducir contenid
 FUNCIONES
 
 • Más espacio para lo que merece leerse.
-Filtra spam, suplantadores y anuncios. Empieza con uno de los tres niveles de filtrado.
+Filtra respuestas spam, duplicados copiados en el mismo hilo, suplantadores y anuncios. Protege las respuestas oficiales de @grok por defecto, filtra invocaciones cortas opcionalmente y define modos distintos para Para ti y Siguiendo.
 
 • Tu feed. Tus reglas.
-24 reglas públicas, palabras clave propias y expresiones regulares. Tú eliges qué filtrar.
+Paquetes públicos de palabras clave en 10 idiomas (45 reglas integradas), filtrado estructurado de dominios externos, palabras clave propias y regex, más paquetes de reglas sin conexión .kxc-pack.json.
 
 • Menos ruido, sin perder el contexto.
-Contrae publicaciones, revisa el motivo del filtro y vuelve a abrirlas cuando quieras.
+Contrae publicaciones, revisa el motivo, abre directamente la regla coincidente o desactiva el elemento en un clic, y consulta estadísticas por regla con exportación local de informe PNG.
 
 • Conserva a las personas en quienes confías.
-Gestiona listas con IDs permanentes e importa tu lista de cuentas bloqueadas en X.
+Gestiona listas con IDs permanentes e importa tu lista de cuentas bloqueadas en X desde la tarjeta de inicio rápido o la página de Cuentas.
 
 • Filtrado local. Opciones claras.
-10 idiomas y temas claro y oscuro. Sincronizar bloqueos con X y enviar informes es opcional.
+10 idiomas, temas claro y oscuro, y autodiagnóstico local del analizador. La sincronización opcional entre dispositivos (chrome.storage.sync), la sincronización de bloqueos con X y los informes comunitarios vienen desactivados por defecto.
 
 PRIVACIDAD Y PROCESAMIENTO LOCAL
 
 KeepXClean no solicita contraseñas ni mensajes privados. Lee cookies de X localmente para identificar la cuenta y realizar operaciones solicitadas por el usuario. Las cookies de sesión y los valores de autorización se usan solo con X y nunca se envían a los servidores de KeepXClean. La política de privacidad detalla los informes comunitarios opcionales.
 
-Los informes opcionales incluyen datos públicos de la cuenta denunciada, el motivo, un identificador SHA-256 del informante y la antigüedad de su cuenta. No se envían cookies de sesión ni valores de autorización de X a KeepXClean.
+Los informes opcionales incluyen datos públicos de la cuenta denunciada, el motivo, un identificador SHA-256 del informante y la antigüedad de su cuenta. No se envían cookies de sesión ni valores de autorización de X a KeepXClean. La sincronización opcional con chrome.storage.sync (desactivada por defecto) solo sincroniza reglas y ajustes mientras las listas negras, listas blancas y registros permanecen en el dispositivo; el autodiagnóstico se ejecuta localmente sin telemetría.
 
 KeepXClean es un proyecto independiente. No está afiliado a X Corp. ni ha sido aprobado o producido por esa empresa.
 

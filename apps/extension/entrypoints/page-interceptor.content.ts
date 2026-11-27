@@ -1,3 +1,4 @@
+import { ParseHealthTracker } from '../src/services/parse-health';
 import {
   validateConfigSilent,
   validateSnapshotSilent,
@@ -11,6 +12,7 @@ import {
   processGraphqlResponsePayload,
   resolveLocale,
   SlidingWindowTracker,
+  ThreadDuplicateTracker,
   type CrowdBlockSnapshot,
   type FilterConfig,
 } from '@keepxclean/shared';
@@ -28,6 +30,8 @@ export default defineContentScript({
     let currentConfig: FilterConfig = createDefaultConfig('standard');
     let currentSnapshot: CrowdBlockSnapshot = createDefaultCrowdSnapshot();
     const windowTracker = new SlidingWindowTracker();
+    const duplicateTracker = new ThreadDuplicateTracker();
+    const healthTracker = new ParseHealthTracker({ emitOnFirstHealthy: true });
     let capturedBearerToken = DEFAULT_X_BEARER;
     const knownAuthorsByHandle = new Map<
       string,
@@ -49,15 +53,49 @@ export default defineContentScript({
       // Ignore storage access errors
     }
 
+    function duplicateStateFingerprint(
+      config: FilterConfig,
+      snapshot: CrowdBlockSnapshot
+    ): string {
+      return JSON.stringify({
+        enabled: config.enabled,
+        exemptFollowing: config.exemptFollowing,
+        whitelistUids: config.whitelistUids,
+        localBlocklistUids: config.localBlocklistUids,
+        sceneModes: config.sceneModes,
+        enableCloudKeywords: config.enableCloudKeywords,
+        enabledCloudLangGroups: config.enabledCloudLangGroups,
+        disabledCloudKeywordIds: config.disabledCloudKeywordIds,
+        rules: config.rules,
+        installedPacks: config.installedPacks,
+        snapshotCounts: snapshot.counts,
+        snapshotCloudKeywords: snapshot.cloudKeywords,
+      });
+    }
+
+    let lastDuplicateStateFp = duplicateStateFingerprint(
+      currentConfig,
+      currentSnapshot
+    );
+
     // Listen for config & crowd snapshot updates from ISOLATED content script
     window.addEventListener('KXC_SYNC_STATE', ((e: CustomEvent) => {
+      let nextConfig = currentConfig;
+      let nextSnapshot = currentSnapshot;
       try {
         if (e.detail?.config)
-          currentConfig = validateConfigSilent(e.detail.config);
+          nextConfig = validateConfigSilent(e.detail.config);
         if (e.detail?.crowdSnapshot)
-          currentSnapshot = validateSnapshotSilent(e.detail.crowdSnapshot);
+          nextSnapshot = validateSnapshotSilent(e.detail.crowdSnapshot);
       } catch {
         return;
+      }
+      currentConfig = nextConfig;
+      currentSnapshot = nextSnapshot;
+      const nextFp = duplicateStateFingerprint(currentConfig, currentSnapshot);
+      if (nextFp !== lastDuplicateStateFp) {
+        lastDuplicateStateFp = nextFp;
+        duplicateTracker.clear();
       }
       try {
         window.localStorage.setItem(
@@ -196,7 +234,11 @@ export default defineContentScript({
       }
     }
 
-    function transformGraphqlJsonText(rawText: string, url: string): string {
+    function transformGraphqlJsonText(
+      rawText: string,
+      url: string,
+      httpStatus?: number
+    ): string {
       if (!rawText) return rawText;
       try {
         const parsed = JSON.parse(rawText);
@@ -210,8 +252,24 @@ export default defineContentScript({
           window.location.pathname,
           currentConfig,
           currentSnapshot,
-          windowTracker
+          windowTracker,
+          duplicateTracker
         );
+
+        const healthReport = healthTracker.observe({
+          url,
+          rawText,
+          parsed,
+          extractedTweetCount: processed.extractedTweetCount,
+          httpStatus,
+        });
+        if (healthReport) {
+          window.dispatchEvent(
+            new CustomEvent('KXC_PARSE_HEALTH', {
+              detail: healthReport,
+            })
+          );
+        }
 
         const ownAuthor = Object.values(processed.authorsByScreenName).find(
           ({ author }) => author.restId === getTwidUid()
@@ -381,7 +439,11 @@ export default defineContentScript({
               originalText = JSON.stringify(rawJsonObj);
             }
           }
-          cachedModifiedText = transformGraphqlJsonText(originalText, url);
+          cachedModifiedText = transformGraphqlJsonText(
+            originalText,
+            url,
+            this.status
+          );
           return cachedModifiedText;
         };
 
@@ -452,7 +514,11 @@ export default defineContentScript({
       try {
         const cloned = response.clone();
         const rawText = await cloned.text();
-        const modifiedText = transformGraphqlJsonText(rawText, url);
+        const modifiedText = transformGraphqlJsonText(
+          rawText,
+          url,
+          response.status
+        );
         if (modifiedText === rawText) {
           return response;
         }

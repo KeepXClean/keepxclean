@@ -20,11 +20,42 @@ export type InterceptionMode = 'strip' | 'collapse';
 
 export type TweetScene = 'timeline' | 'reply' | 'search' | 'profile';
 
+export type TimelineFeed = 'for_you' | 'following';
+
+export type SceneModeKey = 'for_you' | 'following' | 'reply' | 'search';
+
+export type SceneModeOverride = 'inherit' | 'collapse' | 'strip' | 'bypass';
+
 export type KeywordMatchScope = 'text' | 'bio' | 'name' | 'url';
 
 export type LanguageFilterMode = 'allow' | 'block';
 
 export type BlockReasonTag = 'spam' | 'nsfw' | 'scam' | 'ad' | 'bot' | 'other';
+
+export type CloudKeywordLangGroup =
+  | 'universal'
+  | 'zh'
+  | 'en'
+  | 'ja'
+  | 'ko'
+  | 'es'
+  | 'pt'
+  | 'fr'
+  | 'de'
+  | 'ru';
+
+export const CLOUD_KEYWORD_LANG_GROUPS: readonly CloudKeywordLangGroup[] = [
+  'universal',
+  'zh',
+  'en',
+  'ja',
+  'ko',
+  'es',
+  'pt',
+  'fr',
+  'de',
+  'ru',
+] as const;
 
 export const TWEET_LANGUAGE_CODES = [
   'zh',
@@ -58,6 +89,17 @@ export interface KeywordRuleItem {
    * (prevents accidentally blocking normal discussions by established creators)
    */
   maxFollowersExempt?: number;
+  langGroup?: CloudKeywordLangGroup;
+  packCategory?: string;
+  note?: string;
+  enabled: boolean;
+}
+
+export interface DomainRuleItem {
+  id: string;
+  domain: string;
+  onlyInReplies?: boolean;
+  maxFollowersExempt?: number;
   note?: string;
   enabled: boolean;
 }
@@ -72,6 +114,28 @@ export interface AccountListEntry {
   addedAt: number;
 }
 
+export const RULE_PACK_FORMAT = 'kxc-pack-v1' as const;
+
+export interface RulePackPayload {
+  format: typeof RULE_PACK_FORMAT;
+  id: string;
+  name: string;
+  description: string;
+  author?: string;
+  version: string;
+  locale?: SupportedLocale | 'universal';
+  updatedAt: string;
+  keywords?: KeywordRuleItem[];
+  domains?: DomainRuleItem[];
+  blockedUids?: AccountListEntry[];
+}
+
+export interface InstalledRulePack extends RulePackPayload {
+  enabled: boolean;
+  installedAt: number;
+  disabledItemIds?: string[];
+}
+
 export interface FilterRulesConfig {
   /**
    * 1. 评论区水评与高仿过滤 (Behavior-based reply spam & impersonator detection)
@@ -84,6 +148,7 @@ export interface FilterRulesConfig {
     blockBioLinkSpam: boolean;
     bioLinkMaxFollowers: number;
     blockPureMediaReplies: boolean;
+    blockDuplicateReplies: boolean;
   };
   /**
    * 2. 诱导互动与口令引流过滤 (DM-keyword bait, RT+Follow giveaways, follow-for-follow)
@@ -149,6 +214,23 @@ export interface FilterRulesConfig {
   hidePromotedAds: {
     enabled: boolean;
   };
+  /**
+   * 10. Grok 互动控制 (Protect official @grok, filter short @grok summons, optionally hide @grok replies)
+   */
+  grokFilter: {
+    enabled: boolean;
+    protectOfficialGrok: boolean;
+    blockShortMentions: boolean;
+    maxMentionWeightedLength: number;
+    hideGrokReplies: boolean;
+  };
+  /**
+   * 11. 结构化外链域名过滤 (Root domain & subdomain matching across tweet URLs, quoted URLs, and bio URLs)
+   */
+  domainFilter: {
+    enabled: boolean;
+    items: DomainRuleItem[];
+  };
 }
 
 export interface FilterConfig {
@@ -158,6 +240,10 @@ export interface FilterConfig {
   theme: UIThemeSetting;
   preset: FilterPresetId;
   interceptionMode: InterceptionMode;
+  /**
+   * Per-Scene Presentation Overrides (for_you, following, reply, search)
+   */
+  sceneModes?: Partial<Record<SceneModeKey, SceneModeOverride>>;
   /**
    * Smart Scene Exemptions
    */
@@ -170,11 +256,17 @@ export interface FilterConfig {
   enableCrowdReport: boolean;
   enableCloudKeywords: boolean;
   disabledCloudKeywordIds: string[];
+  enabledCloudLangGroups?: CloudKeywordLangGroup[];
   customApiBaseUrl?: string;
+  onboardingDismissed?: boolean;
   /**
    * Rule Configurations
    */
   rules: FilterRulesConfig;
+  /**
+   * Offline Shareable Topic Rule Packs (kxc-pack-v1)
+   */
+  installedPacks?: InstalledRulePack[];
   /**
    * Local Whitelist & Blocklist keyed by immutable numeric X rest_id
    */
@@ -213,19 +305,24 @@ export interface FocalTweetAuthor {
 export interface ExtractedTweet {
   tweetId: string;
   text: string;
+  retweetedText?: string;
   quotedText?: string;
   lang?: string;
   hasMedia?: boolean;
   urls: string[];
+  retweetedUrls?: string[];
+  quotedUrls?: string[];
   hashtagCount: number;
   cashtagCount: number;
   isPromoted: boolean;
   isReply: boolean;
   inReplyToTweetId?: string;
+  focalTweetId?: string;
   replyCount: number;
   favoriteCount: number;
   viewCount: number;
   scene: TweetScene;
+  timelineFeed?: TimelineFeed;
   author: ExtractedAuthor;
   retweetedAuthor?: ExtractedAuthor;
   quotedAuthor?: ExtractedAuthor;
@@ -245,7 +342,23 @@ export type TriggeredRuleId =
   | 'tag_spam'
   | 'account_quality'
   | 'language_filter'
-  | 'promoted_ad';
+  | 'promoted_ad'
+  | 'grok_filter'
+  | 'domain_filter'
+  | 'rule_pack';
+
+export type MatchedTargetKind =
+  | 'rule'
+  | 'keyword'
+  | 'cloud_keyword'
+  | 'domain'
+  | 'pack_item';
+
+export interface MatchedTarget {
+  kind: MatchedTargetKind;
+  id: string;
+  packId?: string;
+}
 
 export interface InterceptionDecision {
   blocked: boolean;
@@ -254,6 +367,7 @@ export interface InterceptionDecision {
   reasonText?: string;
   riskBadges: string[];
   evidence?: RuleEvidence[];
+  matchedTarget?: MatchedTarget;
 }
 
 /** Values captured at decision time, never reconstructed from today's settings. */

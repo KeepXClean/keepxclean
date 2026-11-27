@@ -41,11 +41,11 @@
 
 ## Highlights
 
-- **Local-First & `< 1ms` Deterministische Engine**: Wertet die von X bereits gesendeten GraphQL-Antworten direkt im Arbeitsspeicher aus — kein Login und keine zusätzlichen X-API-Abfragen.
-- **Mehrstufiger Spamschutz**: Erkennt verifizierte Kurzantwort-Bots, OP-Nachahmer, Gewinnspiel-Köder, Massen-Poster, Hashtag-Überladung, **24 integrierte öffentliche Keyword-Regeln**, Sprachfilter und gesponserte Werbung.
-- **Eingeklappte Leiste oder Stilles Ausblenden + Zitat-Durchdringung**: Gefilterte Beiträge als prüfbare Einzeiler-Leiste einklappen oder komplett entfernen; bei Zitaten durch gefolgte Konten wird gezielt der zitierte Spammer erfasst.
-- **4,5 s Rückgängig-Fenster & Ehrliches 3-Phasen-Feedback**: Sofortige lokale Sperre mit **4,5 Sekunden Rückgängig-Option**, optional gefolgt von nativer X-Blockierung und anonymer gesalzener `SHA-256`-Community-Meldung (`1 Konto = 1 Stimme`, `5×` Schutzschwelle ab 50.000 Followern).
-- **10 Native Oberflächensprachen**: Deutsch, Englisch, Chinesisch (Vereinfacht/Traditionell), Japanisch, Koreanisch, Spanisch, Portugiesisch, Französisch und Russisch.
+- **Local-First, `< 1ms` Engine & Parse-Gesundheitscheck**: Wertet bereits empfangene X-GraphQL-Antworten ohne neue Berechtigungen (`storage` + `alarms`), ohne Login und mit lokalem GraphQL-Selbstcheck (redigierte Diagnose-Zusammenfassung, automatische Erholung, null Telemetrie) aus.
+- **Mehrstufiger Spamschutz**: Erkennt verifizierte Kurzantwort-Bots, **kopierte Antwort-Duplikate im selben Thread** (behält die 1. Antwort), **offiziellen `@grok`-Schutz & optionalen Kurzaufruf-Filter**, OP-Nachahmer, Gewinnspiel-Köder, Massen-Poster, **strukturierten Filter für externe Domains**, **öffentliche 10-Sprachen-Keyword-Pakete (45 Regeln)**, **offline teilbare `.kxc-pack.json`-Regelpakete**, Sprachfilter und Werbung.
+- **Szenenmodi, Direktlinks in der Klappleiste & Zitat-Durchdringung**: Unterscheidet **Für dich** und **Folge ich** (`inherit` / `collapse` / `strip` / `bypass`), durchdringt Zitate und erlaubt direkt aus der aufgeklappten Leiste das Anpassen der Regel oder Ein-Klick-Deaktivieren einzelner Treffer.
+- **Schnellstart, Regel-Statistiken & Optionale Synchronisierung**: Unaufdringliche Schnellstart-Karte, Regel-Statistiken + 7-Tage-Trend + **lokaler Canvas-2D-PNG-Bericht** (null PII), **4,5 s Rückgängig-Fenster** und **optionale `chrome.storage.sync`-Synchronisierung** (standardmäßig AUS; lokale Sperrlisten und Protokolle bleiben auf dem Gerät).
+- **10 Native Oberflächensprachen & Chrome / Firefox MV3**: Deutsch, Englisch, Chinesisch (Vereinfacht/Traditionell), Japanisch, Koreanisch, Spanisch, Portugiesisch, Französisch und Russisch.
 
 ## Installation
 
@@ -62,17 +62,19 @@ Mit 1 Klick über den [**Chrome Web Store**](https://chromewebstore.google.com/d
 ## Datenschutz & Sicherheit
 
 - KeepXClean fordert keine Passwörter oder Direktnachrichten an. X-Cookies werden lokal zur Kontoerkennung und für vom Nutzer ausgelöste X-Aktionen gelesen. Sitzungscookies und Autorisierungswerte werden nur gegenüber X verwendet und nie an KeepXClean-Server gesendet. Optionale Community-Meldungen sind in der Datenschutzerklärung beschrieben.
+- **Opt-In-Standards & Geräte-lokale Listen**: Bei Neuinstallationen sind `syncNativeXBlock`, `enableCrowdReport` und optionale Synchronisierung (`chrome.storage.sync`) standardmäßig **AUS**; große lokale Sperrlisten und Protokolle werden nicht synchronisiert, und Parse-Diagnosen senden null Telemetrie oder PII.
 - **Null Telemetrie**: Keine Drittanbieter-Analyse-SDKs oder Werbe-Tracker.
 - Vollständige [**Datenschutzerklärung**](https://keepxclean.com/privacy/).
 
 ## Projektstruktur & Entwicklung
 
 ```text
-packages/shared/   Deterministische Regel-Engine, X-GraphQL-Parser, 24 Regeln & i18n
-apps/extension/    WXT (Manifest V3) Browser-Erweiterung & Hintergrund-Jobs
-apps/server/       Cloudflare Workers API, D1-Aggregation & R2-Snapshot-Cache
+packages/shared/   Deterministische Regel-Engine, X-GraphQL-Parser, 10-Sprachen-Keyword-Pakete (45 Regeln), Offline-Pack-Validator & i18n
+apps/extension/    WXT (Manifest V3 — Chrome & Firefox) Erweiterung, Shadow DOM UI, Canvas-2D-Bericht & Hintergrund-Jobs
+apps/server/       Cloudflare Workers API, D1-Aggregation, Snapshot-Cache & Maintainer-CLI cloud-rules
 apps/web/          Offizielle Webseite & interaktive Browser-Sandbox (keepxclean.com)
 tests/e2e/         5-stufige End-to-End- & Adversarial-Testsuite
+tests/browser-e2e/ Echte Chromium-MV3-Erweiterungs-E2E-Testsuite
 ```
 
 Voraussetzungen: **Node.js ≥ 20** und **pnpm**
@@ -80,13 +82,15 @@ Voraussetzungen: **Node.js ≥ 20** und **pnpm**
 ```bash
 pnpm install
 pnpm dev:ext      # Erweiterung im Entwicklungsmodus starten
+pnpm lint         # ESLint im gesamten Workspace ausführen
 pnpm typecheck    # TypeScript-Typprüfung
 pnpm test         # Unit- und Integrationstests ausführen
 pnpm test:e2e     # 5-stufige E2E-Testsuite ausführen
 pnpm build        # Produktions-Build erstellen
+pnpm test:browser # Echte Chromium-MV3-E2E-Tests ausführen
 ```
 
-Informationen zu Self-Hosting und CI/CD finden Sie unter [docs/DEPLOYMENT.md](../DEPLOYMENT.md).
+Release-Hinweise finden Sie in [CHANGELOG.md](../../CHANGELOG.md). Informationen zu Self-Hosting und CI/CD finden Sie unter [docs/DEPLOYMENT.md](../DEPLOYMENT.md).
 
 ## Autor & Lizenz
 

@@ -48,7 +48,7 @@ describe('Feature 23: CTA Configuration & CWS Reservation', () => {
     expect(PRIVACY_EMAIL).toBe('privacy@keepxclean.com');
     expect(AUTHOR_X_URL).toBe('https://x.com/linheitu');
     expect(AUTHOR_30STO_URL).toBe('https://30s.to/@linmo');
-    expect(CURRENT_VERSION).toBe('v0.1.2');
+    expect(CURRENT_VERSION).toBe('v0.2.0');
   });
 
   it('CURRENT_VERSION stays aligned with monorepo package versions and all 10 locale dictionaries', async () => {
@@ -71,10 +71,19 @@ describe('Feature 23: CTA Configuration & CWS Reservation', () => {
       expect(`v${pkg.version}`, `Version drift detected in ${relPath}`).toBe(CURRENT_VERSION);
     }
 
+    const legacyVersionPattern = new RegExp(`(?:^|[^0-9.])0\\.${1}\\.${2}(?![0-9])`);
     for (const [locale, dict] of Object.entries(DICTIONARIES)) {
       expect(dict.nav.downloadCta, `${locale}.nav.downloadCta`).toContain(CURRENT_VERSION);
+      expect(dict.hero.ctaDownload, `${locale}.hero.ctaDownload`).toContain(CURRENT_VERSION);
+      expect(dict.hero.ctaPrimary, `${locale}.hero.ctaPrimary`).toContain(CURRENT_VERSION);
+      expect(dict.sandbox.focalTweet.content, `${locale}.sandbox.focalTweet.content`).toContain(CURRENT_VERSION);
       expect(dict.install.readyStatus, `${locale}.install.readyStatus`).toContain(CURRENT_VERSION);
+      expect(dict.install.step1Desc, `${locale}.install.step1Desc`).toContain(CURRENT_VERSION);
       expect(dict.footer.releaseZip, `${locale}.footer.releaseZip`).toContain(CURRENT_VERSION);
+      expect(
+        JSON.stringify(dict),
+        `${locale} contains stale previous release version`
+      ).not.toMatch(legacyVersionPattern);
     }
   });
 

@@ -4,10 +4,12 @@ import {
   mergeAuthors,
   RESERVED_X_PATHS,
   SlidingWindowTracker,
+  ThreadDuplicateTracker,
   type CrowdBlockSnapshot,
   type ExtractedAuthor,
   type ExtractedTweet,
   type FilterConfig,
+  type FocalTweetAuthor,
   type InterceptionDecision,
 } from '@keepxclean/shared';
 import { detectXPageDark } from '../ui/theme';
@@ -25,6 +27,133 @@ export interface InlineItem {
   isSelf?: boolean;
   hasGrokGap?: boolean;
   toggle?: () => void;
+}
+
+const NUMERIC_UID_RE = /^\d{1,25}$/;
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+
+function hasOnlyOwnDataProps(obj: object): boolean {
+  if (Object.getOwnPropertySymbols(obj).length > 0) return false;
+  for (const key of Object.getOwnPropertyNames(obj)) {
+    const desc = Object.getOwnPropertyDescriptor(obj, key);
+    if (desc && (desc.get !== undefined || desc.set !== undefined)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function readOwnData(
+  obj: object,
+  key: string
+): { ok: true; value: unknown } | { ok: false } {
+  const desc = Object.getOwnPropertyDescriptor(obj, key);
+  if (desc === undefined) return { ok: true, value: undefined };
+  if (desc.get !== undefined || desc.set !== undefined || !('value' in desc)) {
+    return { ok: false };
+  }
+  return { ok: true, value: desc.value };
+}
+
+function safeObjectKeys(obj: object): string[] {
+  try {
+    return Object.keys(obj);
+  } catch {
+    return [];
+  }
+}
+
+function isOptionalString(value: unknown): boolean {
+  return value === undefined || typeof value === 'string';
+}
+
+function isOptionalNumber(value: unknown): boolean {
+  return value === undefined || typeof value === 'number';
+}
+
+function isStringArray(value: unknown): value is string[] {
+  if (
+    !Array.isArray(value) ||
+    Object.getPrototypeOf(value) !== Array.prototype ||
+    !hasOnlyOwnDataProps(value)
+  ) {
+    return false;
+  }
+  for (let i = 0; i < value.length; i++) {
+    const desc = Object.getOwnPropertyDescriptor(value, i);
+    if (!desc || !('value' in desc) || typeof desc.value !== 'string') {
+      return false;
+    }
+  }
+  return true;
+}
+
+function isValidFocalAuthor(value: unknown): value is FocalTweetAuthor {
+  if (!isPlainObject(value) || !hasOnlyOwnDataProps(value)) {
+    return false;
+  }
+  return (
+    typeof value.restId === 'string' &&
+    typeof value.screenName === 'string' &&
+    typeof value.name === 'string' &&
+    (value.followersCount === undefined ||
+      (typeof value.followersCount === 'number' &&
+        Number.isFinite(value.followersCount)))
+  );
+}
+
+function isValidAuthor(value: unknown): value is ExtractedAuthor {
+  if (!isPlainObject(value) || !hasOnlyOwnDataProps(value)) {
+    return false;
+  }
+  return (
+    typeof value.restId === 'string' &&
+    NUMERIC_UID_RE.test(value.restId) &&
+    typeof value.screenName === 'string' &&
+    typeof value.name === 'string' &&
+    typeof value.bio === 'string' &&
+    isStringArray(value.bioUrls) &&
+    isOptionalString(value.avatarUrl) &&
+    isOptionalString(value.createdAt) &&
+    isOptionalNumber(value.followersCount) &&
+    isOptionalNumber(value.friendsCount) &&
+    isOptionalNumber(value.statusesCount) &&
+    isOptionalNumber(value.dailyTweetRate) &&
+    isOptionalNumber(value.accountAgeDays) &&
+    isOptionalNumber(value.followRatio)
+  );
+}
+
+function isValidTweet(value: unknown): value is ExtractedTweet {
+  if (!isPlainObject(value) || !hasOnlyOwnDataProps(value)) {
+    return false;
+  }
+  return (
+    isOptionalString(value.tweetId) &&
+    typeof value.text === 'string' &&
+    isOptionalString(value.retweetedText) &&
+    isOptionalString(value.quotedText) &&
+    isOptionalString(value.lang) &&
+    isOptionalString(value.inReplyToTweetId) &&
+    isOptionalString(value.focalTweetId) &&
+    isStringArray(value.urls) &&
+    (value.quotedUrls === undefined || isStringArray(value.quotedUrls)) &&
+    (value.retweetedUrls === undefined || isStringArray(value.retweetedUrls)) &&
+    isOptionalNumber(value.hashtagCount) &&
+    isOptionalNumber(value.cashtagCount) &&
+    isValidAuthor(value.author) &&
+    (value.retweetedAuthor === undefined ||
+      isValidAuthor(value.retweetedAuthor)) &&
+    (value.quotedAuthor === undefined || isValidAuthor(value.quotedAuthor)) &&
+    (value.focalAuthor === undefined || isValidFocalAuthor(value.focalAuthor))
+  );
 }
 
 function resolveQuickAnchor(article: HTMLElement):
@@ -71,6 +200,11 @@ interface ArticleRecord {
   collapse?: InlineItem;
   expanded: boolean;
 }
+const MAX_CACHED_TWEETS = 3000;
+const MAX_CACHED_AUTHORS = 3000;
+const MAX_TRACKED_REPLY_THREADS = 200;
+const MAX_REPLY_HISTORY = 3000;
+
 export class DomController {
   private tweets = new Map<string, ExtractedTweet>();
   private authors = new Map<string, ExtractedAuthor>();
@@ -78,6 +212,10 @@ export class DomController {
   private items: InlineItem[] = [];
   private listeners = new Set<() => void>();
   private tracker = new SlidingWindowTracker();
+  private earlyWindowTweets: ExtractedTweet[] = [];
+  private duplicateTracker = new ThreadDuplicateTracker();
+  private replyThreads = new Map<string, Map<string, ExtractedTweet>>();
+  private replyHistoryCount = 0;
   private observer?: MutationObserver;
   private frame = 0;
   private dirty = new Set<HTMLElement>();
@@ -184,44 +322,135 @@ export class DomController {
     this.remove(record.collapse);
     record.collapse = undefined;
   }
+  private recordReply(id: string, tweet: ExtractedTweet): boolean {
+    const threadKey = tweet.focalTweetId || tweet.inReplyToTweetId;
+    const replyId =
+      typeof tweet.tweetId === 'string' && /^\d+$/.test(tweet.tweetId)
+        ? tweet.tweetId
+        : id;
+    if (!threadKey || !replyId) return false;
+
+    let threadMap = this.replyThreads.get(threadKey);
+    if (threadMap) {
+      // Touch thread for LRU recency (mirrors ThreadDuplicateTracker)
+      this.replyThreads.delete(threadKey);
+      this.replyThreads.set(threadKey, threadMap);
+    } else {
+      threadMap = new Map<string, ExtractedTweet>();
+      this.replyThreads.set(threadKey, threadMap);
+    }
+
+    if (threadMap.has(replyId)) {
+      // Update in place — preserves first-seen arrival order within the thread
+      threadMap.set(replyId, tweet);
+      return true;
+    }
+
+    if (threadMap.size < MAX_REPLY_HISTORY) {
+      threadMap.set(replyId, tweet);
+      this.replyHistoryCount++;
+    }
+
+    while (
+      this.replyThreads.size > MAX_TRACKED_REPLY_THREADS ||
+      (this.replyHistoryCount > MAX_REPLY_HISTORY &&
+        this.replyThreads.size > 1)
+    ) {
+      const oldest = this.replyThreads.entries().next().value;
+      if (!oldest) break;
+      this.replyThreads.delete(oldest[0]);
+      this.replyHistoryCount -= oldest[1].size;
+    }
+
+    return true;
+  }
   ingest(
     decisions: Record<string, { tweet: ExtractedTweet }>,
     authors: Record<string, { author: ExtractedAuthor }>
   ) {
-    for (const [id, info] of Object.entries(decisions)) {
-      const tweet = info?.tweet;
-      if (
-        !/^\d+$/.test(id) ||
-        !tweet?.author ||
-        !Array.isArray(tweet.urls) ||
-        typeof tweet.text !== 'string'
-      )
-        continue;
-      if (
-        !this.tweets.has(id) &&
-        (tweet.scene === 'timeline' || tweet.scene === 'search')
-      )
-        this.tracker.recordAndCount(
-          tweet.author.restId,
-          id,
-          this.config?.rules.highFrequency.slidingWindowHours || 2
-        );
-      this.tweets.set(id, tweet);
-      this.authors.set(tweet.author.screenName.toLowerCase(), tweet.author);
-    }
-    for (const [handle, info] of Object.entries(authors))
-      if (info?.author?.restId && typeof info.author.screenName === 'string') {
-        const prior = this.authors.get(handle.toLowerCase());
-        this.authors.set(
-          handle.toLowerCase(),
-          prior ? mergeAuthors(prior, info.author) : info.author
-        );
+    if (decisions && typeof decisions === 'object' && !Array.isArray(decisions)) {
+      for (const id of safeObjectKeys(decisions)) {
+        try {
+          if (!/^\d+$/.test(id)) continue;
+          const infoProp = readOwnData(decisions, id);
+          if (!infoProp.ok || !isPlainObject(infoProp.value)) continue;
+          const tweetProp = readOwnData(infoProp.value, 'tweet');
+          if (!tweetProp.ok || !isValidTweet(tweetProp.value)) continue;
+          const tweet = tweetProp.value;
+          const prior = this.tweets.get(id);
+          if (tweet.scene === 'timeline' || tweet.scene === 'search') {
+            if (this.config) {
+              evaluateTweet(
+                tweet,
+                this.config,
+                this.snapshot,
+                this.tracker,
+                true,
+                undefined
+              );
+            } else {
+              if (this.earlyWindowTweets.length >= MAX_CACHED_TWEETS) {
+                this.earlyWindowTweets.shift();
+              }
+              this.earlyWindowTweets.push(tweet);
+            }
+          } else if (tweet.scene === 'reply') {
+            if (this.recordReply(id, tweet) && this.config) {
+              evaluateTweet(
+                tweet,
+                this.config,
+                this.snapshot,
+                undefined,
+                true,
+                this.duplicateTracker
+              );
+            }
+          }
+          if (prior) this.tweets.delete(id);
+          this.tweets.set(id, tweet);
+          this.authors.set(tweet.author.screenName.toLowerCase(), tweet.author);
+        } catch {
+          continue;
+        }
       }
-    while (this.tweets.size > 3000)
+    }
+    if (authors && typeof authors === 'object' && !Array.isArray(authors)) {
+      for (const handle of safeObjectKeys(authors)) {
+        try {
+          const infoProp = readOwnData(authors, handle);
+          if (!infoProp.ok || !isPlainObject(infoProp.value)) continue;
+          const authorProp = readOwnData(infoProp.value, 'author');
+          if (!authorProp.ok || !isValidAuthor(authorProp.value)) continue;
+          const author = authorProp.value;
+          const key = handle.toLowerCase();
+          const prior = this.authors.get(key);
+          this.authors.set(key, prior ? mergeAuthors(prior, author) : author);
+        } catch {
+          continue;
+        }
+      }
+    }
+    while (this.tweets.size > MAX_CACHED_TWEETS)
       this.tweets.delete(this.tweets.keys().next().value!);
-    while (this.authors.size > 3000)
+    while (this.authors.size > MAX_CACHED_AUTHORS)
       this.authors.delete(this.authors.keys().next().value!);
     this.scan();
+  }
+  private rebuildDuplicateTracker() {
+    this.duplicateTracker.clear();
+    if (!this.config) return;
+    for (const threadMap of this.replyThreads.values()) {
+      for (const tweet of threadMap.values()) {
+        evaluateTweet(
+          tweet,
+          this.config,
+          this.snapshot,
+          undefined,
+          true,
+          this.duplicateTracker
+        );
+      }
+    }
   }
   findAuthor(uid: string) {
     return [...this.authors.values()].find((a) => a.restId === uid);
@@ -229,7 +458,22 @@ export class DomController {
   update(config: FilterConfig, snapshot: CrowdBlockSnapshot) {
     this.config = config;
     this.snapshot = snapshot;
+    if (this.earlyWindowTweets.length > 0) {
+      const buffered = this.earlyWindowTweets;
+      this.earlyWindowTweets = [];
+      for (const tweet of buffered) {
+        evaluateTweet(
+          tweet,
+          this.config,
+          this.snapshot,
+          this.tracker,
+          true,
+          undefined
+        );
+      }
+    }
     for (const record of this.articles.values()) record.expanded = false;
+    this.rebuildDuplicateTracker();
     this.scan();
   }
   private process(article: HTMLElement) {
@@ -271,7 +515,14 @@ export class DomController {
     const tweet = this.tweets.get(id),
       author = tweet?.author || this.authors.get(handle.toLowerCase());
     const decision = tweet
-      ? evaluateTweet(tweet, this.config, this.snapshot, this.tracker, false)
+      ? evaluateTweet(
+          tweet,
+          this.config,
+          this.snapshot,
+          this.tracker,
+          false,
+          this.duplicateTracker
+        )
       : undefined;
     if (!this.config.enabled || !decision?.blocked) this.restore(record);
     else if (decision.action === 'strip') {
@@ -318,6 +569,7 @@ export class DomController {
         !decision?.blocked &&
         quickAnchor &&
         author &&
+        typeof author.restId === 'string' &&
         /^\d{1,25}$/.test(author.restId) &&
         author.restId !== this.viewerUid &&
         !this.config.whitelistUids[author.restId] &&
@@ -612,6 +864,10 @@ export class DomController {
     this.remove(this.profile);
     this.style.remove();
     document.documentElement.removeAttribute('data-kxc-x-dark');
+    this.earlyWindowTweets = [];
+    this.duplicateTracker.clear();
+    this.replyThreads.clear();
+    this.replyHistoryCount = 0;
     this.articles.clear();
     this.listeners.clear();
     this.themeListeners.clear();

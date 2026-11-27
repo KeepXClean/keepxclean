@@ -89,6 +89,28 @@ export const en: ExtensionMessages = {
     expandParams: (open, title) =>
       `${open ? 'Collapse' : 'Expand'} ${title} settings`,
     manageKeywordsLink: 'Manage custom & public keywords →',
+    manageDomainsLink: 'Manage external domains →',
+    sceneModes: {
+      title: 'Per-Scene Display Overrides',
+      desc: 'Customize how For You, Following, Replies, or Search handle filtered posts.',
+      allInherit: 'All inherit default',
+      overrideCount: (count) => `${count} custom`,
+      resetAllBtn: 'Reset all to default',
+      bypassNote:
+        'Bypass skips automated heuristic rules in that scene while still honoring your manual local blocklist and promoted-ad rule.',
+      scenes: {
+        for_you: 'For You timeline',
+        following: 'Following timeline',
+        reply: 'Replies',
+        search: 'Search',
+      },
+      modes: {
+        inherit: 'Inherit',
+        collapse: 'Collapse',
+        strip: 'Hide',
+        bypass: 'Bypass',
+      },
+    },
     exemptionsTitle: 'Scene Exemptions',
     exemptionsDesc: 'Respect your explicit choices while browsing.',
     exemptFollowingTitle: 'Exempt accounts you follow',
@@ -109,8 +131,13 @@ export const en: ExtensionMessages = {
     defs: {
       replySpam: {
         title: 'Reply Spam & Impersonators',
-        desc: 'Filter emoji/ultra-short water replies, OP lookalikes, and bio-link funnels',
+        desc: 'Filter emoji/ultra-short water replies, OP lookalikes, duplicate reply spam, and bio-link funnels',
         note: 'Evaluates behavior instead of penalizing low-follower Blue checks: self-replies by the original thread author are always exempt; CJK/Kana/Hangul characters count as weight 2 (weight 6 ≈ 3 CJK chars or 6 Latin letters); GitHub and personal blogs are never treated as funnel links.',
+      },
+      grokFilter: {
+        title: 'Grok Interaction Control',
+        desc: 'Protect official @grok replies from false positives and filter short @grok reply summons',
+        note: 'Official @grok protection exempts @grok from high-frequency and reply-spam heuristics so useful explanations stay visible. Short-mention filtering only runs in replies and always exempts the original poster and accounts you follow.',
       },
       engagementBait: {
         title: 'Engagement Bait & Giveaways',
@@ -131,6 +158,11 @@ export const en: ExtensionMessages = {
         title: 'Custom Keywords',
         desc: 'Match across post text, bio, display name/handle, and expanded URLs',
         note: 'Controls the master switch for your custom keywords. Public keyword packs are toggled independently on the Keywords page.',
+      },
+      domainFilter: {
+        title: 'External Domain Filter',
+        desc: 'Filter posts and profiles linking to specific root domains and their subdomains',
+        note: 'Entering a root domain (e.g. example.com) automatically matches both example.com and all subdomains across post URLs, quoted URLs, and author bio URLs. Changing presets preserves your domain list.',
       },
       tagSpam: {
         title: 'Hashtag & Ticker Spam',
@@ -174,6 +206,10 @@ export const en: ExtensionMessages = {
         title: 'Min following to check ratio',
         unit: 'following',
       },
+      maxMentionWeightedLength: {
+        title: 'Max @grok summon length (1 CJK = 2)',
+        unit: 'wt',
+      },
       detectImpersonation:
         'Block reply accounts impersonating the original author’s name or handle',
       blockShortOrEmoji:
@@ -182,6 +218,13 @@ export const en: ExtensionMessages = {
         'Block low-follower replies with Telegram / WhatsApp / Linktree funnel links in bio',
       blockPureMediaReplies:
         'Block textless image/meme-only replies in threads (strict)',
+      blockDuplicateReplies:
+        'Block copy-paste duplicate replies from different accounts in the same thread',
+      protectOfficialGrok:
+        'Protect official @grok replies from high-frequency & reply-spam rules',
+      blockShortMentions:
+        'Filter short "@grok explain/is this true" summons in replies',
+      hideGrokReplies: 'Hide replies posted by official @grok',
       blockCommentGiveaway:
         'Block "Comment keyword for DM" and RT+Follow giveaway bait',
       blockFollowBack: 'Block follow-for-follow and mutual boost pods',
@@ -197,6 +240,15 @@ export const en: ExtensionMessages = {
         `Min reply weight ${weight} (~${cjkApprox} CJK chars)`,
       bioLink: (followers) => `< ${followers} followers bio-link funnel`,
       pureMedia: 'No-text media replies',
+      duplicateReplies: 'Duplicate replies',
+      grokProtectOfficial: 'Protect official @grok',
+      grokShortMentions: (weight, cjkApprox) =>
+        `Short @grok summons ≤ ${weight} wt (~${cjkApprox} CJK chars)`,
+      grokHideReplies: 'Hide @grok replies',
+      domainEmpty: 'On · No external domains added yet',
+      domainActive: (active) => `${active} external domains active`,
+      domainPartial: (active, total) =>
+        `${active} / ${total} external domains active`,
       giveaway: 'Comment-DM / Giveaways',
       followBack: 'Follow-for-follow',
       engagementPrefix: (parts) => `Blocks: ${parts}`,
@@ -271,13 +323,35 @@ export const en: ExtensionMessages = {
     tabLocal: (count) => `Custom · ${count}`,
     tabCloudAll: (count) => `Public Packs · ${count}`,
     tabCloudPartial: (active, total) => `Public Packs · ${active}/${total}`,
+    tabDomains: (count) => `External Domains · ${count}`,
+    tabPacks: (count) => `Rule Packs · ${count}`,
     enableLocalTitle: 'Enable custom keywords',
     enableLocalDesc:
       'Matches using each keyword’s configured scopes and follower exemptions.',
     enableCloudTitle: 'Enable public keyword packs',
     enableCloudDesc:
-      'Updated with community snapshots; toggle any pack individually or click "Customize" to edit your own copy.',
+      'Updated with community snapshots; toggle any language pack or individual rule, or click "Customize" to edit your own copy.',
     enableAllBtn: 'Enable all',
+    resetLangGroupsBtn: 'Restore default language packs',
+    langGroupsHeading: 'Language Packs',
+    langGroupsHint:
+      'Defaults to Universal, English, and your interface language. Toggle any pack in one click.',
+    langGroups: {
+      universal: 'Universal Hard Spam',
+      zh: 'Chinese (中文)',
+      en: 'English',
+      ja: 'Japanese (日本語)',
+      ko: 'Korean (한국어)',
+      es: 'Spanish (Español)',
+      pt: 'Portuguese (Português)',
+      fr: 'French (Français)',
+      de: 'German (Deutsch)',
+      ru: 'Russian (Русский)',
+    },
+    langGroupToggleAria: (label) => `Toggle ${label} pack`,
+    langGroupCount: (active, total) => `${active} / ${total} active`,
+    langGroupExpandAria: (open, label) =>
+      `${open ? 'Collapse' : 'Expand'} ${label} rules`,
     categoryAria: 'Filter public packs by category',
     categories: {
       all: 'All',
@@ -358,6 +432,137 @@ export const en: ExtensionMessages = {
       discardTitle: 'Discard unsaved changes?',
       discardBtn: 'Discard',
       discardBody: 'Your edits have not been saved.',
+    },
+    domains: {
+      addBtn: 'Add Domain',
+      enableTitle: 'Enable external domain filter',
+      enableDesc:
+        'Filters posts, quoted posts, and author bios linking to matched root domains and their subdomains.',
+      searchPlaceholder: 'Search domain or note',
+      count: (count) => `${count} external domains`,
+      colDomain: 'Root Domain',
+      colCondition: 'Scope',
+      colExempt: 'Follower Exempt',
+      colActions: 'Status / Actions',
+      allScenesPill: 'All scenes',
+      urlAndBioPill: 'Post URL & Bio',
+      subdomainCoveragePill: (domain) => `*.${domain}`,
+      enableItemAria: (domain) => `Toggle domain ${domain}`,
+      editItemAria: (domain) => `Edit domain ${domain}`,
+      deleteItemAria: (domain) => `Delete domain ${domain}`,
+      emptySearchTitle: 'No matching domains',
+      emptySearchDesc: 'Try another search term or clear the filter.',
+      emptyInitTitle: 'No external domains yet',
+      emptyInitDesc:
+        'Add a root domain (e.g. example.com) to automatically cover the domain and all of its subdomains.',
+      deleteConfirmTitle: 'Delete this domain rule?',
+      deleteConfirmBtn: 'Delete domain',
+      editor: {
+        addTitle: 'Add External Domain',
+        editTitle: 'Edit External Domain',
+        desc: 'Filter links matching this root domain across post URLs, quoted URLs, and author bios.',
+        saveAddBtn: 'Add domain',
+        saveEditBtn: 'Save changes',
+        domainLabel: 'Root domain',
+        domainHelp:
+          'Paste a domain or full URL—protocol, path, and www. are normalized automatically.',
+        domainPlaceholder: 'e.g. example.com or https://sub.example.com/path',
+        subdomainNote:
+          'Automatically matches the exact root domain and all subdomains across post URLs, quoted URLs, and author bio URLs.',
+        normalizedPreview: (domain) => `Will match ${domain} & *.${domain}`,
+        duplicateError: 'This normalized root domain already exists.',
+        invalidDomainError: 'Enter a valid root domain such as example.com.',
+        enableItemTitle: 'Enable this domain rule',
+      },
+    },
+    packs: {
+      offlineBanner:
+        'Rule packs are shared strictly offline via .kxc-pack.json files or copied text—never fetched from remote URLs. Installed packs stay isolated from your personal rules and uninstall cleanly.',
+      importBtn: 'Import Pack',
+      exportBtn: 'Export / Share Pack',
+      emptyTitle: 'No topic rule packs installed',
+      emptyDesc:
+        'Import an offline .kxc-pack.json file or shareable text, or package your own keywords and domains to share.',
+      packCounts: (keywordsCount, domainsCount, accountsCount) =>
+        `${keywordsCount} keywords · ${domainsCount} domains · ${accountsCount} accounts`,
+      disabledItemsPill: (count) => `${count} item(s) disabled`,
+      enablePackAria: (name) => `Toggle rule pack ${name}`,
+      expandPackAria: (open, name) =>
+        `${open ? 'Hide' : 'Show'} items in ${name}`,
+      viewItemsBtn: 'Items',
+      hideItemsBtn: 'Hide items',
+      reshareBtn: 'Share',
+      reshareAria: (name) => `Export rule pack ${name}`,
+      uninstallBtn: 'Uninstall',
+      uninstallAria: (name) => `Uninstall rule pack ${name}`,
+      uninstallConfirmTitle: 'Uninstall this rule pack?',
+      uninstallConfirmBtn: 'Uninstall pack',
+      uninstallConfirmBody: (name) =>
+        `Removes "${name}" cleanly without modifying your personal custom keywords, domains, or lists.`,
+      sectionKeywords: 'Keywords',
+      sectionDomains: 'External Domains',
+      sectionBlockedAccounts: 'Blocked Accounts',
+      itemDisabledPill: 'Disabled',
+      disableItemBtn: 'Disable',
+      disableItemAria: (label) => `Disable pack item ${label}`,
+      installedNotice: (name) => `Installed rule pack "${name}".`,
+      uninstalledNotice: (name) => `Uninstalled rule pack "${name}".`,
+      itemDisabledNotice: 'Disabled pack item locally.',
+      exportedNotice: (name) => `Exported rule pack "${name}".`,
+      importModal: {
+        title: 'Import Offline Rule Pack',
+        desc: 'Upload a .kxc-pack.json file (max 2 MiB) or paste share text to validate and preview before installing.',
+        uploadBtn: 'Select .kxc-pack.json',
+        selectFileAria: 'Select rule pack JSON file',
+        pasteLabel: 'Or paste rule pack JSON',
+        pastePlaceholder: 'Paste kxc-pack-v1 JSON text here…',
+        previewBtn: 'Validate & Preview',
+        fileTooLargeError: 'Rule pack exceeds the 2 MiB size limit.',
+        invalidJsonError: 'Invalid JSON format. Check the pasted text or file.',
+        previewHeading: 'Pack Preview',
+        metaVersion: (version) => `v${version}`,
+        metaAuthor: (author) => `By ${author}`,
+        overwriteWarning: (oldVersion, newVersion) =>
+          `This pack ID is already installed (v${oldVersion}). Installing will update it to v${newVersion} while preserving your toggle state.`,
+        whitelistConflictWarning: (count) =>
+          `${count} account(s) in this pack are on your local allowlist. Your allowlist always takes precedence.`,
+        safetyNote:
+          'Verified kxc-pack-v1 format: contains only rules/UIDs—no preferences, allowlists, or remote URLs.',
+        confirmInstallBtn: 'Install Pack',
+      },
+      exportModal: {
+        title: 'Export Shareable Rule Pack',
+        desc: 'Package selected rules into a clean offline kxc-pack-v1 file or shareable text.',
+        nameLabel: 'Pack name',
+        namePlaceholder: 'e.g. Crypto Scam Defense',
+        idLabel: 'Pack ID (ASCII)',
+        idHelp:
+          'Letters, numbers, dots, underscores, or hyphens (auto-generated if left blank).',
+        versionLabel: 'Version',
+        authorLabel: 'Author (optional)',
+        authorPlaceholder: 'Your name or handle',
+        descLabel: 'Description',
+        descPlaceholder: 'Describe what noise this rule pack filters',
+        localeLabel: 'Target language',
+        localeUniversal: 'Universal (all languages)',
+        selectKeywordsHeading: (count) => `Custom keywords (${count})`,
+        selectDomainsHeading: (count) => `External domains (${count})`,
+        selectAccountsHeading: (count) =>
+          `Local blocklist accounts (${count}, optional)`,
+        accountsOptInHint: 'Unchecked by default to protect your privacy.',
+        selectAllBtn: 'Select all',
+        selectNoneBtn: 'Clear',
+        privacyNote:
+          'Allowlist, preferences, sync toggles, and custom API URLs are never exported.',
+        nameRequiredError: 'Enter a pack name.',
+        selectAtLeastOneError:
+          'Select at least one keyword, domain, or account to include.',
+        downloadBtn: 'Download .kxc-pack.json',
+        copyBtn: 'Copy share text',
+        copiedBtn: 'Copied text',
+        copyFallbackNote:
+          'Clipboard access unavailable—use Download .kxc-pack.json instead.',
+      },
     },
   },
   accounts: {
@@ -501,6 +706,7 @@ export const en: ExtensionMessages = {
     pageDesc:
       'Inspect why rules matched, allowlist false positives, or block repeat offenders.',
     clearBtn: 'Clear Log',
+    reportBtn: 'Battle Report',
     ruleLabels: {
       local_blocklist: 'Local Blocklist',
       crowd_block: 'Community Block',
@@ -515,6 +721,9 @@ export const en: ExtensionMessages = {
       account_quality: 'Account Quality',
       language_filter: 'Language Filter',
       promoted_ad: 'Promoted Ad',
+      grok_filter: 'Grok Filter',
+      domain_filter: 'External Domain',
+      rule_pack: 'Rule Pack',
     },
     sceneLabels: {
       timeline: 'Timeline',
@@ -575,6 +784,40 @@ export const en: ExtensionMessages = {
     clearConfirmBtn: 'Clear log',
     clearConfirmBody: (count) =>
       `Clears ${count} retained log entries while keeping daily/total statistics, rules, and lists.`,
+    distributionTitle: 'Filtered by Rule',
+    distributionHint: 'Click any logged rule bar to filter the table below.',
+    distributionEmpty: 'No rule matches recorded yet.',
+    clearRuleFilterBtn: 'Show all rules',
+    adsNotLoggedHint: 'Not in log',
+    trendTitle: '7-Day Trend',
+    trendDesc: 'Daily cleaned posts and silently hidden promoted ads.',
+    trendTotal: (count) => `7-day total: ${count}`,
+    trendBlockedLegend: 'Posts filtered',
+    trendAdsLegend: 'Ads hidden',
+    report: {
+      modalTitle: 'Local Cleanup Battle Report',
+      modalDesc:
+        'Rendered locally in your browser as a light-theme PNG card ready to share.',
+      privacyNote:
+        'Strictly aggregate counts only—no handles, UIDs, post snippets, or custom keywords are ever included.',
+      copyImageBtn: 'Copy Image',
+      copiedImageBtn: 'Image Copied',
+      copyFallbackNotice:
+        'Clipboard image copy is unavailable in this browser context. Use Download PNG instead.',
+      downloadPngBtn: 'Download PNG',
+      downloadedNotice: 'Battle report PNG downloaded.',
+      renderError: 'Unable to render battle report image.',
+      generating: 'Generating battle report…',
+      cardTitle: 'KeepXClean',
+      cardSubtitle: 'Local Timeline Cleanup Report',
+      totalCleanedLabel: 'Total Filtered',
+      sevenDayCleanedLabel: 'Last 7 Days',
+      adsHiddenLabel: 'Ads Hidden',
+      trendHeading: '7-Day Activity',
+      topReasonsHeading: 'Top Filter Reasons',
+      noReasonsYet: 'Timeline is calm—no rule hits yet',
+      footerNote: '100% local · Zero personal data',
+    },
   },
   operations: {
     stages: {
@@ -682,6 +925,8 @@ export const en: ExtensionMessages = {
       diffSummary: (added, changed, removed) =>
         `+${added} added · ${changed} modified · -${removed} removed`,
       rowCustomKeywords: 'Custom keywords',
+      rowDomains: 'External domains',
+      rowRulePacks: 'Installed rule packs',
       rowLocalBlack: 'Local blocklist',
       rowWhite: 'Allowlist',
       rowDisabledCloud: 'Disabled public rules',
@@ -702,6 +947,58 @@ export const en: ExtensionMessages = {
       noPrefChanges: 'Display, sync, and service preferences are unchanged.',
       concurrentChangeWarning: 'Configuration changed in another window.',
       refreshPreviewBtn: 'Refresh preview',
+    },
+    cloudSync: {
+      panelTitle: 'Cross-Device Sync (Optional)',
+      panelDesc:
+        'Sync filter rules, scene modes, custom keywords, external domains, rule packs, language, and theme via your browser account.',
+      enableTitle: 'Enable cross-device sync',
+      enableDesc:
+        'Off by default. Uses browser sync storage with zero extra permissions.',
+      statuses: {
+        idle: 'Idle',
+        syncing: 'Syncing…',
+        synced: 'Synced',
+        conflict: 'Conflict detected',
+        quota_exceeded: 'Quota exceeded',
+        error: 'Sync error',
+      },
+      lastSync: (time) => `Last sync: ${time}`,
+      usageMeta: (sizeText, chunks) => `${sizeText} / 90 KB · ${chunks} chunk(s)`,
+      syncNowBtn: 'Sync Now',
+      resolveBtn: 'Resolve Conflict',
+      quotaBanner:
+        'Your rules exceed browser sync storage capacity (90 KB). Local settings remain intact; reduce large keywords or rule packs to resume syncing.',
+      conflictBanner:
+        'Both this device and your browser sync storage have settings. Choose how to resolve before syncing continues.',
+      localOnlyNotice:
+        'Local-only for privacy & capacity: local blocklist, allowlist, activity logs, stats, native X block / community toggles, and custom API URL never leave this device.',
+      resolvedNotice: 'Cross-device sync conflict resolved.',
+      syncedNowNotice: 'Settings pushed to browser sync storage.',
+      conflictModal: {
+        title: 'Resolve Cross-Device Sync Conflict',
+        desc: 'Existing KeepXClean settings were found in your browser sync storage.',
+        remoteUpdatedAt: (time) => `Cloud backup updated: ${time}`,
+        colField: 'Setting',
+        colLocal: 'This Device',
+        colRemote: 'Cloud',
+        rowPreset: 'Strength preset',
+        rowDisplayMode: 'Display mode',
+        rowCustomKeywords: 'Custom keywords',
+        rowDomains: 'External domains',
+        rowRulePacks: 'Installed rule packs',
+        rowLangPacks: 'Public language packs',
+        rowRuleDiffs: 'Differing rule groups',
+        localSafeNote:
+          'All choices keep your local blocklist, allowlist, activity logs, and stats untouched.',
+        mergeBtn: 'Smart Merge (Recommended)',
+        mergeDesc:
+          'Combine keywords, domains, rule packs, and non-default overrides from both sides.',
+        keepLocalBtn: 'Keep This Device',
+        keepLocalDesc: 'Overwrite cloud storage with this device’s settings.',
+        useRemoteBtn: 'Use Cloud',
+        useRemoteDesc: 'Apply cloud settings onto this device.',
+      },
     },
   },
   content: {
@@ -744,6 +1041,33 @@ export const en: ExtensionMessages = {
     importXBlocklistBtn: 'Import X Blocklist',
     enableCleanTitle: 'Enable KeepXClean',
     enableCleanDesc: 'Synced across popup and full settings.',
+    adjustRuleBtn: 'Adjust rule',
+    adjustRuleTitle: 'Open matching rule in settings',
+    disableItemBtn: 'Disable this item',
+    disableItemTitle: 'Disable this matched item and restore matching posts',
+    itemDisabledToast: 'Item disabled — matching posts restored.',
+    itemDisableFailedToast: 'Could not disable this item. Please try again.',
+  },
+  onboarding: {
+    title: 'Quick Setup',
+    desc: 'Tune KeepXClean in 3 quick steps—no new tabs required.',
+    stepStrength: '1. Choose filter strength',
+    stepDisplay: '2. Filtered post display',
+    stepImport: '3. Already blocked accounts on X?',
+    importBtn: 'Import X Blocklist',
+    privacyNote:
+      'Native X block sync and community sharing remain off unless you opt in.',
+    doneBtn: 'Got it',
+    dismissBtn: 'Dismiss quick setup',
+  },
+  health: {
+    degradedTitle: 'X timeline parsing looks degraded',
+    degradedDesc:
+      'Recent X responses returned no parsed posts. X may have updated its page structure. Copy a redacted diagnostic (no posts or account data) to report an issue.',
+    copyDiagnosticBtn: 'Copy diagnostic',
+    copiedBtn: 'Copied',
+    copyFailedMsg: 'Could not copy diagnostic to clipboard.',
+    reportIssueBtn: 'Report issue',
   },
   errors: ERROR_LOCALES.en,
 };

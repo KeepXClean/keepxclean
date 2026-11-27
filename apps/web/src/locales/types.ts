@@ -114,6 +114,11 @@ export interface BentoCard1Translations {
   clearSearch: string;
   inspectRegex: string;
   closeInspector: string;
+  langPacksAriaLabel: string;
+  langPackAll: string;
+  langPackUniversal: string;
+  enablePack: string;
+  disablePack: string;
 }
 
 export interface BentoCard2Translations {
@@ -178,6 +183,21 @@ export interface BentoCard4Translations {
   toggleMediaLabel: string;
 }
 
+export interface BentoHighlightItem {
+  tag: string;
+  title: string;
+  desc: string;
+}
+
+export interface BentoV020HighlightsTranslations {
+  badge: string;
+  title: string;
+  langPacks: BentoHighlightItem;
+  rulePacks: BentoHighlightItem;
+  battleReport: BentoHighlightItem;
+  cloudSync: BentoHighlightItem;
+}
+
 export interface BentoTranslations {
   badge: string;
   title: string;
@@ -188,6 +208,7 @@ export interface BentoTranslations {
   card2: BentoCard2Translations;
   card3: BentoCard3Translations;
   card4: BentoCard4Translations;
+  v020Highlights: BentoV020HighlightsTranslations;
 }
 
 export interface ArchitectureTranslations {

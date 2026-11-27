@@ -6,7 +6,27 @@ import {
 import type { ExtensionMessages } from './types';
 import { getActiveLocaleSetting } from './state';
 
-export type ErrorMessages = ExtensionMessages['errors'];
+export interface V2ErrorMessages {
+  invalidDomain: string;
+  duplicateDomainId: string;
+  invalidCloudLangGroup: string;
+  invalidSceneMode: string;
+  invalidRulePack: (detail: string) => string;
+  duplicatePackId: string;
+  domainModifiedReopen: string;
+  domainChangedRefresh: string;
+  packNotFound: string;
+  invalidDisableTarget: string;
+  targetNotFound: string;
+  cloudSyncQuotaExceeded: string;
+  cloudSyncCorruptRemote: string;
+  cloudSyncNoPendingConflict: string;
+  cloudSyncInvalidStrategy: string;
+  cloudSyncUnavailable: string;
+  cloudSyncFailed: (detail: string) => string;
+}
+
+export type ErrorMessages = ExtensionMessages['errors'] & V2ErrorMessages;
 
 export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
   en: {
@@ -125,6 +145,28 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     cannotResolveHandle: (handle) => `Could not resolve @${handle} from X`,
     pageUnresponsive: 'X page did not respond; outcome unconfirmed',
     pageClosed: 'Page closed; outcome unconfirmed',
+    invalidDomain:
+      'Invalid domain; enter a root domain such as example.com without protocol or path',
+    duplicateDomainId: 'Duplicate domain rule ID',
+    invalidCloudLangGroup: 'Invalid public keyword language group',
+    invalidSceneMode: 'Invalid per-scene display mode',
+    invalidRulePack: (detail) => `Invalid rule pack: ${detail}`,
+    duplicatePackId: 'Duplicate rule pack ID',
+    domainModifiedReopen:
+      'This domain rule was modified elsewhere; please reopen the editor',
+    domainChangedRefresh: 'Domain rule changed; please refresh and retry',
+    packNotFound: 'Rule pack not found',
+    invalidDisableTarget: 'This filter target cannot be disabled individually',
+    targetNotFound: 'Matched filter rule item not found',
+    cloudSyncQuotaExceeded:
+      'Cross-device sync storage quota exceeded; local settings were kept intact',
+    cloudSyncCorruptRemote:
+      'Synced cloud data is corrupted or invalid; local settings were kept intact',
+    cloudSyncNoPendingConflict: 'No pending sync conflict to resolve',
+    cloudSyncInvalidStrategy: 'Invalid sync conflict resolution strategy',
+    cloudSyncUnavailable:
+      'Browser cross-device sync storage is unavailable in this environment',
+    cloudSyncFailed: (detail) => `Cross-device sync failed: ${detail}`,
   },
   'zh-CN': {
     contextInvalidated: '扩展刚刚已更新，请刷新当前 X 页面后继续使用',
@@ -212,6 +254,23 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     cannotResolveHandle: (handle) => `无法从 X 页面解析 @${handle}`,
     pageUnresponsive: 'X 页面未响应，结果未确认',
     pageClosed: '页面已关闭，结果未确认',
+    invalidDomain: '域名格式无效，请输入如 example.com 的根域名',
+    duplicateDomainId: '外链域名规则 ID 重复',
+    invalidCloudLangGroup: '无效的公共词库语种分组',
+    invalidSceneMode: '无效的分场景呈现策略',
+    invalidRulePack: (detail) => `规则包无效：${detail}`,
+    duplicatePackId: '规则包 ID 重复',
+    domainModifiedReopen: '这条外链域名规则已在别处修改，请重新打开编辑器',
+    domainChangedRefresh: '外链域名规则已变化，请刷新后重试',
+    packNotFound: '找不到对应的规则包',
+    invalidDisableTarget: '此命中目标不支持单独停用',
+    targetNotFound: '找不到对应的命中规则词条',
+    cloudSyncQuotaExceeded: '跨设备同步空间已超限，本机配置已完整保留',
+    cloudSyncCorruptRemote: '云端同步数据损坏或无效，本机配置已完整保留',
+    cloudSyncNoPendingConflict: '当前没有待处理的同步冲突',
+    cloudSyncInvalidStrategy: '无效的同步冲突处理方式',
+    cloudSyncUnavailable: '当前浏览器环境不支持跨设备同步存储',
+    cloudSyncFailed: (detail) => `跨设备同步失败：${detail}`,
   },
   'zh-TW': {
     contextInvalidated: '擴充功能剛剛已更新，請重新整理目前 X 頁面後繼續使用',
@@ -299,6 +358,23 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     cannotResolveHandle: (handle) => `無法從 X 頁面解析 @${handle}`,
     pageUnresponsive: 'X 頁面未回應，結果未確認',
     pageClosed: '頁面已關閉，結果未確認',
+    invalidDomain: '網域格式無效，請輸入如 example.com 的根網域',
+    duplicateDomainId: '外連網域規則 ID 重複',
+    invalidCloudLangGroup: '無效的公共詞庫語種分組',
+    invalidSceneMode: '無效的分場景呈現策略',
+    invalidRulePack: (detail) => `規則包無效：${detail}`,
+    duplicatePackId: '規則包 ID 重複',
+    domainModifiedReopen: '這條外連網域規則已在別處修改，請重新開啟編輯器',
+    domainChangedRefresh: '外連網域規則已變化，請重新整理後重試',
+    packNotFound: '找不到對應的規則包',
+    invalidDisableTarget: '此命中目標不支援單獨停用',
+    targetNotFound: '找不到對應的命中規則詞條',
+    cloudSyncQuotaExceeded: '跨裝置同步空間已超限，本機設定已完整保留',
+    cloudSyncCorruptRemote: '雲端同步資料損毀或無效，本機設定已完整保留',
+    cloudSyncNoPendingConflict: '目前沒有待處理的同步衝突',
+    cloudSyncInvalidStrategy: '無效的同步衝突處理方式',
+    cloudSyncUnavailable: '目前瀏覽器環境不支援跨裝置同步儲存',
+    cloudSyncFailed: (detail) => `跨裝置同步失敗：${detail}`,
   },
   ja: {
     contextInvalidated:
@@ -412,6 +488,29 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     cannotResolveHandle: (handle) => `X で @${handle} を解決できませんでした`,
     pageUnresponsive: 'X ページが応答しなかったため、結果を確認できませんでした',
     pageClosed: 'ページが閉じられたため、結果を確認できませんでした',
+    invalidDomain:
+      'ドメインの形式が無効です（例：example.com のようなルートドメインを入力してください）',
+    duplicateDomainId: 'ドメインルール ID が重複しています',
+    invalidCloudLangGroup: '無効な公開キーワード言語グループです',
+    invalidSceneMode: '無効なシーン別表示モードです',
+    invalidRulePack: (detail) => `ルールパックが無効です：${detail}`,
+    duplicatePackId: 'ルールパック ID が重複しています',
+    domainModifiedReopen:
+      'このドメインルールは別の場所で変更されました。編集画面を開き直してください',
+    domainChangedRefresh:
+      'ドメインルールが更新されました。画面を更新して再試行してください',
+    packNotFound: '対象のルールパックが見つかりません',
+    invalidDisableTarget: 'この一致対象は個別に無効化できません',
+    targetNotFound: '一致したルール項目が見つかりません',
+    cloudSyncQuotaExceeded:
+      'デバイス間同期の容量上限を超えました。ローカル設定はそのまま保持されています',
+    cloudSyncCorruptRemote:
+      'クラウド上の同期データが破損しているか無効です。ローカル設定を保持しました',
+    cloudSyncNoPendingConflict: '解決待ちの同期競合はありません',
+    cloudSyncInvalidStrategy: '無効な同期競合の解決方法です',
+    cloudSyncUnavailable:
+      'このブラウザ環境ではデバイス間同期ストレージを利用できません',
+    cloudSyncFailed: (detail) => `デバイス間同期に失敗しました：${detail}`,
   },
   ko: {
     contextInvalidated:
@@ -525,6 +624,29 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     cannotResolveHandle: (handle) => `X에서 @${handle} 계정을 찾을 수 없습니다`,
     pageUnresponsive: 'X 페이지가 응답하지 않아 결과를 확인할 수 없습니다',
     pageClosed: '페이지가 닫혀 결과를 확인할 수 없습니다',
+    invalidDomain:
+      '도메인 형식이 올바르지 않습니다 (예: example.com 형태의 루트 도메인을 입력하세요)',
+    duplicateDomainId: '중복된 도메인 규칙 ID가 있습니다',
+    invalidCloudLangGroup: '유효하지 않은 공용 키워드 언어 그룹입니다',
+    invalidSceneMode: '유효하지 않은 장면별 표시 방식입니다',
+    invalidRulePack: (detail) => `규칙 팩이 올바르지 않습니다: ${detail}`,
+    duplicatePackId: '중복된 규칙 팩 ID가 있습니다',
+    domainModifiedReopen:
+      '이 도메인 규칙이 다른 곳에서 수정되었습니다. 편집 창을 다시 열어주세요',
+    domainChangedRefresh:
+      '도메인 규칙이 변경되었습니다. 새로고침 후 다시 시도하세요',
+    packNotFound: '규칙 팩을 찾을 수 없습니다',
+    invalidDisableTarget: '이 일치 대상은 개별적으로 비활성화할 수 없습니다',
+    targetNotFound: '일치하는 규칙 항목을 찾을 수 없습니다',
+    cloudSyncQuotaExceeded:
+      '기기 간 동기화 저장 용량을 초과했습니다. 로컬 설정은 안전하게 유지되었습니다',
+    cloudSyncCorruptRemote:
+      '클라우드 동기화 데이터가 손상되었거나 올바르지 않습니다. 로컬 설정을 유지했습니다',
+    cloudSyncNoPendingConflict: '해결할 동기화 충돌이 없습니다',
+    cloudSyncInvalidStrategy: '유효하지 않은 동기화 충돌 해결 방식입니다',
+    cloudSyncUnavailable:
+      '현재 브라우저 환경에서는 기기 간 동기화 저장소를 사용할 수 없습니다',
+    cloudSyncFailed: (detail) => `기기 간 동기화 실패: ${detail}`,
   },
   es: {
     contextInvalidated:
@@ -639,6 +761,33 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     cannotResolveHandle: (handle) => `No se pudo resolver @${handle} en X`,
     pageUnresponsive: 'La página de X no respondió; resultado sin confirmar',
     pageClosed: 'La página se cerró; resultado sin confirmar',
+    invalidDomain:
+      'Dominio no válido; introduce un dominio raíz como example.com sin protocolo ni ruta',
+    duplicateDomainId: 'ID de regla de dominio duplicado',
+    invalidCloudLangGroup: 'Grupo de idioma de palabras públicas no válido',
+    invalidSceneMode: 'Modo de visualización por escena no válido',
+    invalidRulePack: (detail) => `Paquete de reglas no válido: ${detail}`,
+    duplicatePackId: 'ID de paquete de reglas duplicado',
+    domainModifiedReopen:
+      'Esta regla de dominio se modificó en otro lugar; vuelve a abrir el editor',
+    domainChangedRefresh:
+      'La regla de dominio cambió; actualiza e inténtalo de nuevo',
+    packNotFound: 'Paquete de reglas no encontrado',
+    invalidDisableTarget:
+      'Este objetivo de filtro no se puede desactivar individualmente',
+    targetNotFound: 'No se encontró el elemento de regla coincidente',
+    cloudSyncQuotaExceeded:
+      'Se superó la cuota de sincronización entre dispositivos; se conservaron los ajustes locales',
+    cloudSyncCorruptRemote:
+      'Los datos sincronizados en la nube están dañados o no son válidos; se conservaron los ajustes locales',
+    cloudSyncNoPendingConflict:
+      'No hay ningún conflicto de sincronización pendiente',
+    cloudSyncInvalidStrategy:
+      'Estrategia de resolución de conflictos de sincronización no válida',
+    cloudSyncUnavailable:
+      'El almacenamiento de sincronización del navegador no está disponible en este entorno',
+    cloudSyncFailed: (detail) =>
+      `Error en la sincronización entre dispositivos: ${detail}`,
   },
   pt: {
     contextInvalidated:
@@ -753,6 +902,33 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     cannotResolveHandle: (handle) => `Não foi possível resolver @${handle} no X`,
     pageUnresponsive: 'A página do X não respondeu; resultado não confirmado',
     pageClosed: 'Página fechada; resultado não confirmado',
+    invalidDomain:
+      'Domínio inválido; digite um domínio raiz como example.com sem protocolo ou caminho',
+    duplicateDomainId: 'ID de regra de domínio duplicado',
+    invalidCloudLangGroup: 'Grupo de idioma de palavras públicas inválido',
+    invalidSceneMode: 'Modo de exibição por cena inválido',
+    invalidRulePack: (detail) => `Pacote de regras inválido: ${detail}`,
+    duplicatePackId: 'ID de pacote de regras duplicado',
+    domainModifiedReopen:
+      'Esta regra de domínio foi alterada em outro local; reabra o editor',
+    domainChangedRefresh:
+      'A regra de domínio mudou; atualize e tente novamente',
+    packNotFound: 'Pacote de regras não encontrado',
+    invalidDisableTarget:
+      'Este item de filtro não pode ser desativado individualmente',
+    targetNotFound: 'Item de regra correspondente não encontrado',
+    cloudSyncQuotaExceeded:
+      'Cota de armazenamento da sincronização excedida; configurações locais preservadas',
+    cloudSyncCorruptRemote:
+      'Dados sincronizados na nuvem corrompidos ou inválidos; configurações locais preservadas',
+    cloudSyncNoPendingConflict:
+      'Nenhum conflito de sincronização pendente para resolver',
+    cloudSyncInvalidStrategy:
+      'Estratégia inválida para resolução de conflito de sincronização',
+    cloudSyncUnavailable:
+      'O armazenamento de sincronização do navegador não está disponível neste ambiente',
+    cloudSyncFailed: (detail) =>
+      `Falha na sincronização entre dispositivos: ${detail}`,
   },
   fr: {
     contextInvalidated:
@@ -867,6 +1043,32 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     cannotResolveHandle: (handle) => `Impossible de résoudre @${handle} sur X`,
     pageUnresponsive: 'La page X n’a pas répondu ; résultat non confirmé',
     pageClosed: 'Page fermée ; résultat non confirmé',
+    invalidDomain:
+      'Domaine invalide ; saisissez un domaine racine comme example.com sans protocole ni chemin',
+    duplicateDomainId: 'Identifiant de règle de domaine en double',
+    invalidCloudLangGroup: 'Groupe linguistique de mots-clés publics invalide',
+    invalidSceneMode: 'Mode d’affichage par scène invalide',
+    invalidRulePack: (detail) => `Pack de règles invalide : ${detail}`,
+    duplicatePackId: 'Identifiant de pack de règles en double',
+    domainModifiedReopen:
+      'Cette règle de domaine a été modifiée ailleurs ; rouvrez l’éditeur',
+    domainChangedRefresh:
+      'La règle de domaine a changé ; actualisez et réessayez',
+    packNotFound: 'Pack de règles introuvable',
+    invalidDisableTarget:
+      'Cette cible de filtre ne peut pas être désactivée individuellement',
+    targetNotFound: 'Élément de règle correspondant introuvable',
+    cloudSyncQuotaExceeded:
+      'Quota de synchronisation entre appareils dépassé ; les réglages locaux sont conservés',
+    cloudSyncCorruptRemote:
+      'Les données synchronisées dans le cloud sont corrompues ou invalides ; les réglages locaux sont conservés',
+    cloudSyncNoPendingConflict: 'Aucun conflit de synchronisation en attente',
+    cloudSyncInvalidStrategy:
+      'Stratégie de résolution de conflit de synchronisation invalide',
+    cloudSyncUnavailable:
+      'Le stockage de synchronisation du navigateur est indisponible dans cet environnement',
+    cloudSyncFailed: (detail) =>
+      `Échec de la synchronisation entre appareils : ${detail}`,
   },
   de: {
     contextInvalidated:
@@ -981,6 +1183,32 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     cannotResolveHandle: (handle) => `@${handle} konnte auf X nicht aufgelöst werden`,
     pageUnresponsive: 'X-Seite antwortete nicht; Ergebnis unbestätigt',
     pageClosed: 'Seite geschlossen; Ergebnis unbestätigt',
+    invalidDomain:
+      'Ungültige Domain; gib eine Stammdomain wie example.com ohne Protokoll oder Pfad ein',
+    duplicateDomainId: 'Doppelte Domainregel-ID',
+    invalidCloudLangGroup: 'Ungültige Sprachgruppe für öffentliche Wortpakete',
+    invalidSceneMode: 'Ungültiger Darstellungsmodus pro Ansicht',
+    invalidRulePack: (detail) => `Ungültiges Regelpaket: ${detail}`,
+    duplicatePackId: 'Doppelte Regelpaket-ID',
+    domainModifiedReopen:
+      'Diese Domainregel wurde anderweitig geändert; Editor bitte neu öffnen',
+    domainChangedRefresh:
+      'Domainregel geändert; bitte aktualisieren und wiederholen',
+    packNotFound: 'Regelpaket nicht gefunden',
+    invalidDisableTarget:
+      'Dieses Filterziel kann nicht einzeln deaktiviert werden',
+    targetNotFound: 'Passender Regeleintrag nicht gefunden',
+    cloudSyncQuotaExceeded:
+      'Speicherlimit für Geräte-Synchronisierung überschritten; lokale Einstellungen blieben unverändert',
+    cloudSyncCorruptRemote:
+      'Synchronisierte Cloud-Daten sind beschädigt oder ungültig; lokale Einstellungen blieben unverändert',
+    cloudSyncNoPendingConflict: 'Kein ausstehender Synchronisierungskonflikt',
+    cloudSyncInvalidStrategy:
+      'Ungültige Strategie zur Konfliktlösung der Synchronisierung',
+    cloudSyncUnavailable:
+      'Browser-Synchronisierungsspeicher ist in dieser Umgebung nicht verfügbar',
+    cloudSyncFailed: (detail) =>
+      `Geräte-Synchronisierung fehlgeschlagen: ${detail}`,
   },
   ru: {
     contextInvalidated:
@@ -1095,6 +1323,30 @@ export const ERROR_LOCALES: Record<SupportedLocale, ErrorMessages> = {
     cannotResolveHandle: (handle) => `Не удалось найти @${handle} в X`,
     pageUnresponsive: 'Страница X не ответила; результат не подтверждён',
     pageClosed: 'Страница закрыта; результат не подтверждён',
+    invalidDomain:
+      'Некорректный домен; введите корневой домен вида example.com без протокола и пути',
+    duplicateDomainId: 'Дублирующийся ID правила домена',
+    invalidCloudLangGroup: 'Недопустимая языковая группа общих правил',
+    invalidSceneMode: 'Недопустимый режим отображения для раздела',
+    invalidRulePack: (detail) => `Некорректный пакет правил: ${detail}`,
+    duplicatePackId: 'Дублирующийся ID пакета правил',
+    domainModifiedReopen:
+      'Правило домена было изменено в другом месте; откройте редактор заново',
+    domainChangedRefresh: 'Правило домена изменилось; обновите и повторите',
+    packNotFound: 'Пакет правил не найден',
+    invalidDisableTarget: 'Эту цель фильтра нельзя отключить отдельно',
+    targetNotFound: 'Сработавший элемент правила не найден',
+    cloudSyncQuotaExceeded:
+      'Превышена квота синхронизации между устройствами; локальные настройки сохранены',
+    cloudSyncCorruptRemote:
+      'Облачные данные синхронизации повреждены или некорректны; локальные настройки сохранены',
+    cloudSyncNoPendingConflict: 'Нет ожидающего конфликта синхронизации',
+    cloudSyncInvalidStrategy:
+      'Недопустимая стратегия разрешения конфликта синхронизации',
+    cloudSyncUnavailable:
+      'Синхронизируемое хранилище браузера недоступно в этой среде',
+    cloudSyncFailed: (detail) =>
+      `Ошибка синхронизации между устройствами: ${detail}`,
   },
 };
 

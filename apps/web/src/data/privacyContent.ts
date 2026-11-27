@@ -37,7 +37,7 @@ export interface PrivacyLocaleContent {
 export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
   en: {
     title: 'Privacy Policy',
-    effectiveDate: 'Effective Date: November 16, 2026',
+    effectiveDate: 'Effective Date: November 25, 2026',
     appliesTo:
       'Applies to the KeepXClean Browser Extension & keepxclean.com Cloud Snapshot Service',
     sec1Title: '1. Core Privacy Principles',
@@ -46,19 +46,20 @@ export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
     sec1Bullets: [
       'All timeline, search, and reply filtering runs locally in your browser against X (x.com / twitter.com) page responses.',
       'KeepXClean does not request your passwords or direct messages (DMs), and does not collect browsing history outside X. Filtering processes posts delivered to your X page locally. For account identification it reads the X twid cookie; user-triggered X account operations also use the ct0 CSRF cookie and X web-client authorization header in the open X tab. These cookies and authorization values are not sent to KeepXClean servers.',
-      'KeepXClean uses zero third-party analytics SDKs, zero advertising trackers, and zero remote code execution.',
+      'KeepXClean uses zero third-party analytics SDKs, zero advertising trackers, zero remote code execution, and zero telemetry — including local-only X GraphQL parse health self-checks.',
     ],
     sec2Title: '2. Data Stored Locally on Your Device',
     sec2Intro:
       'KeepXClean uses your browser’s local extension storage (chrome.storage.local) and an on-origin fast-boot cache on x.com solely to store:',
     sec2Bullets: [
-      'Your filter rules, preset selection, interface language, and display preferences;',
-      'Your custom keywords/regular expressions, local allowlist UIDs, local blocklist UIDs, and detected X account identifiers and derived reporter hashes used to bind account actions;',
-      'Up to the 200 most recent interception log entries and daily/cumulative counter summaries so you can review or undo filter hits;',
-      'The cached public community snapshot (snapshot.json) downloaded from keepxclean.com (or your self-hosted endpoint).',
+      'Your filter rules, preset selection, per-scene presentation overrides (sceneModes), enabled public keyword language packs (enabledCloudLangGroups), interface language, and display preferences;',
+      'Your custom keywords/regular expressions, structured external-link domain rules (domainFilter), offline installed .kxc-pack.json rule packs (installedPacks), local allowlist UIDs, local blocklist UIDs, and detected X account identifiers and derived reporter hashes used to bind account actions;',
+      'Up to the 200 most recent interception log entries, cumulative rule counts, and rolling 7-day daily summary counts (dailyHistory) used for local per-rule analytics and pure-local Canvas 2D Battle Report PNG export (zero PII);',
+      'The cached public community snapshot (snapshot.json) downloaded from keepxclean.com (or your self-hosted endpoint);',
+      'Local-only X GraphQL parse health state (kxc_health_v1) that detects repeated empty GraphQL extractions on your device with zero automatic telemetry — if you click "Copy diagnostic summary", it copies only the extension version, GraphQL operation names, and top-level JSON key paths (never tweets, handles, UIDs, URLs, cookies, or headers).',
     ],
     sec2Outro:
-      'Local filter settings and logs remain on your device unless you export a backup. Optional community reports send only the fields described below. Uninstalling the extension removes its chrome.storage.local data; the on-origin fast-boot cache can be removed by clearing X site data.',
+      'Local filter settings and logs remain on your device unless you export a backup or explicitly enable Optional Cross-Device Sync (chrome.storage.sync, disabled by default with zero new browser permissions). When enabled, chrome.storage.sync stores only compact allowlisted settings (rules, presets, scene modes, custom keywords/domains, public language pack toggles, installed offline rule packs, and UI language/theme in <=6 KB chunks) within your signed-in browser profile, while large local blocklists (localBlocklistUids), allowlists (whitelistUids), interception logs, stats, and parse health diagnostics always remain strictly on device. Optional community reports send only the fields described below. Uninstalling the extension removes its chrome.storage.local data; the on-origin fast-boot cache can be removed by clearing X site data.',
     sec3Title: '3. Network Requests & Optional Community Sharing',
     sec3Intro:
       'KeepXClean communicates over HTTPS only in the following strictly scoped scenarios:',
@@ -67,7 +68,7 @@ export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
       "Periodically fetches the compiled public snapshot (/v1/snapshot.json) from cdn.keepxclean.com / api.keepxclean.com without sending user identifiers or cookies (credentials: 'omit').",
     sec3ReportTitle: 'Optional Community Block Reporting (Opt-Out Anytime):',
     sec3ReportIntro:
-      'Only when Community Sharing (enableCrowdReport) is enabled and you explicitly block an account or choose to share imported X blocks, the extension submits:',
+      'Disabled by default on fresh installs. Only when Community Sharing (enableCrowdReport) is explicitly enabled and you block an account or choose to share imported X blocks, the extension submits:',
     sec3ReportBullets: [
       'Target account’s public numeric X targetUid, public @handle / display name, public follower count, and your chosen block reason tag (spam, nsfw, scam, ad, bot, or other);',
       'A SHA-256-derived pseudonymous identifier (reporterUidHash) derived locally from your X numeric ID solely to deduplicate votes (1 account = 1 vote), plus your account’s approximate age in days (used only to enforce the ≥30-day anti-abuse threshold). Your raw X UID, handle, and credentials are never sent to KeepXClean servers.',
@@ -76,14 +77,14 @@ export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
       'Standard transient IP-based sliding-window rate-limiting is applied on the server solely to prevent automated abuse.',
     sec3NativeTitle: 'Optional Native X Block Sync:',
     sec3NativeDesc:
-      'When you request account lookup, import your X blocklist, or enable Sync Native X Block (syncNativeXBlock), the requested operations run directly between your open X tab and x.com using the existing X session, including its CSRF cookie and web-client authorization header. KeepXClean servers never receive or proxy these cookies or authorization values.',
+      'Sync Native X Block (syncNativeXBlock) is disabled by default on fresh installs. When you explicitly request account lookup, import your X blocklist, or opt in to syncNativeXBlock, the requested operations run directly between your open X tab and x.com using the existing X session, including its CSRF cookie and web-client authorization header. KeepXClean servers never receive or proxy these cookies or authorization values.',
     sec4Title: '4. Browser Permissions Justification',
     sec4Headers: ['Permission', 'Single-Purpose Reason'],
     sec4Rows: [
       {
         permission: ['storage'],
         reason:
-          'Saves filter settings, custom keywords, local allow/block lists, cached snapshots, and recent interception logs locally on the device.',
+          'Saves filter settings, custom keywords/domains, offline rule packs, local allow/block lists, cached snapshots, 7-day stats, recent interception logs, and local parse health state in chrome.storage.local; also powers optional cross-device settings sync via chrome.storage.sync (default OFF, zero new permissions; local blocklists, allowlists, and logs stay on device).',
       },
       {
         permission: ['alarms'],
@@ -118,7 +119,7 @@ export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
       },
       {
         label: 'Retraction & Opt-Out:',
-        text: 'You can disable Community Sharing at any time in Preferences, undo any Quick Block within the 4.5-second window, or clear local logs and lists with one click.',
+        text: 'You can disable Optional Cross-Device Sync (chrome.storage.sync), Community Sharing, or Native X Block Sync at any time in Preferences, undo any Quick Block within the 4.5-second window, or clear local logs and lists with one click.',
       },
       {
         label: 'Aggregated Public Output:',
@@ -132,7 +133,7 @@ export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
   },
   'zh-CN': {
     title: '隐私政策（Privacy Policy）',
-    effectiveDate: '生效日期：2026 年 11 月 16 日',
+    effectiveDate: '生效日期：2026 年 11 月 25 日',
     appliesTo:
       '适用于 KeepXClean 浏览器扩展及 keepxclean.com 公共快照服务',
     sec1Title: '1. 核心隐私原则',
@@ -141,19 +142,20 @@ export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
     sec1Bullets: [
       '所有推荐流、搜索页、评论区的规则匹配均在浏览器本地对 X（x.com / twitter.com）页面自身返回的数据完成。',
       'KeepXClean 不索取账号密码或私信（DM），不收集 X 以外的浏览历史；过滤在本地处理 X 页面已收到的帖子。扩展会读取 X 的 twid Cookie 识别当前账号，并在用户触发 X 账号操作时于 X 标签页内使用 ct0 CSRF Cookie 与 X 网页客户端的授权请求头。这些 Cookie 与授权值不会发送至 KeepXClean 服务器。',
-      '扩展内不包含任何第三方统计分析 SDK、广告追踪器或远程动态执行代码（Remote Code）。',
+      '扩展内不包含任何第三方统计分析 SDK、广告追踪器、远程动态执行代码（Remote Code）或自动遥测；X 接口解析自检也完全在本地完成。',
     ],
     sec2Title: '2. 保存在您设备本地的数据',
     sec2Intro:
       '扩展仅使用浏览器本地存储（chrome.storage.local）及 x.com 同源启动缓存保存以下必要数据：',
     sec2Bullets: [
-      '您的过滤规则开关、预设档位、界面语言及展示偏好；',
-      '您的自定义关键词/正则表达式、本地白名单 UID、本地黑名单 UID，以及用于绑定账号操作的当前 X 账号标识与派生举报哈希；',
-      '最近最多 200 条本地拦截记录及今日/累计拦截计数，便于您核查命中原因或误拦加白；',
-      '从 keepxclean.com（或您自建服务地址）拉取的公共社区快照缓存。',
+      '您的过滤规则开关、预设档位、分场景呈现策略（sceneModes）、已启用的公共词库语言包（enabledCloudLangGroups）、界面语言及展示偏好；',
+      '您的自定义关键词/正则表达式、结构化外链域名规则（domainFilter）、已安装的离线 .kxc-pack.json 规则包（installedPacks）、本地白名单 UID、本地黑名单 UID，以及用于绑定账号操作的当前 X 账号标识与派生举报哈希；',
+      '最近最多 200 条本地拦截记录、按规则维度计数与近 7 日滚动摘要（dailyHistory），仅用于本地趋势统计与零隐私信息的纯本地 Canvas 2D 战报 PNG 导出；',
+      '从 keepxclean.com（或您自建服务地址）拉取的公共社区快照缓存；',
+      '纯本地 X GraphQL 解析健康自检状态（kxc_health_v1）：仅在本机检测连续空响应并在界面提醒，绝不自动回传遥测；若您主动点击“复制诊断摘要”，仅复制扩展版本号、接口操作名与顶层 JSON 字段路径（绝不含推文、用户名、UID、URL、Cookie 或请求头）。',
     ],
     sec2Outro:
-      '本地过滤配置与日志留在您的设备上，可由您主动导出备份；可选社区举报仅发送下文列出的字段。卸载扩展会移除 chrome.storage.local 数据；X 同源启动缓存可通过清除 X 网站数据移除。',
+      '本地过滤配置与日志默认留在您的本机设备上，可由您主动导出备份。若您在偏好设置中手动开启可选的跨设备同步（chrome.storage.sync，默认关闭且零新增权限），扩展仅在您登录的浏览器同步空间中分片（≤6 KB/片）同步紧凑规则参数、预设、分场景策略、自定义词条/域名、公共词库语言包开关、离线规则包与界面偏好；大体积本地黑名单（localBlocklistUids）、白名单（whitelistUids）、拦截日志、统计与解析自检状态始终严格留存本机。可选社区举报仅发送下文列出的字段。卸载扩展会移除 chrome.storage.local 数据；X 同源启动缓存可通过清除 X 网站数据移除。',
     sec3Title: '3. 网络通信与可选社区共享',
     sec3Intro: 'KeepXClean 仅在以下明确场景发起 HTTPS 请求：',
     sec3SyncTitle: '拉取公共快照（只读 GET）：',
@@ -161,7 +163,7 @@ export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
       "定期从 cdn.keepxclean.com / api.keepxclean.com 下载聚合后的公共快照（/v1/snapshot.json），请求不携带任何 Cookie 或个人身份标识（credentials: 'omit'）。",
     sec3ReportTitle: '可选的社区黑名单共建上报（随时可关闭）：',
     sec3ReportIntro:
-      '仅当您开启「社区共享」（enableCrowdReport）并主动点击快捷净空，或在导入 X 黑名单时勾选共享社区时，扩展才会提交：',
+      '全新安装默认关闭。仅当您主动开启「社区共享」（enableCrowdReport）并点击快捷净空，或在导入 X 黑名单时勾选共享社区时，扩展才会提交：',
     sec3ReportBullets: [
       '被拉黑目标账号的公开数字 targetUid、公开 @handle / 昵称、公开粉丝数及原因分类标签；',
       '在本地根据您当前 X 数字 ID 计算的 SHA-256 派生标识（reporterUidHash，仅用于“一账号一票”去重）以及账号大致注册天数（仅用于校验 ≥30 天防刷门槛）。您的原始 X UID、用户名及登录凭据绝不会发送至 KeepXClean 服务器。',
@@ -170,14 +172,14 @@ export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
       '服务端仅使用请求 IP 进行短期滑动窗口限流，以防止恶意刷票；不请求设备定位。',
     sec3NativeTitle: '可选的同步 X 原生拉黑：',
     sec3NativeDesc:
-      '当您查询账号、导入 X 黑名单或开启 syncNativeXBlock 同步原生拉黑时，对应请求在您的 X 标签页内使用现有 X 会话（包括 CSRF Cookie 与网页客户端授权请求头）直接发往 x.com。KeepXClean 服务器不会接收或中转这些 Cookie 或授权值。',
+      '同步 X 原生拉黑（syncNativeXBlock）全新安装默认关闭。当您主动查询账号、导入 X 黑名单或显式开启 syncNativeXBlock 时，对应请求在您的 X 标签页内使用现有 X 会话（包括 CSRF Cookie 与网页客户端授权请求头）直接发往 x.com。KeepXClean 服务器不会接收或中转这些 Cookie 或授权值。',
     sec4Title: '4. 浏览器权限用途说明',
     sec4Headers: ['权限名称', '单一用途说明'],
     sec4Rows: [
       {
         permission: ['storage'],
         reason:
-          '在本地设备保存过滤规则、自定义词条、本地黑白名单、快照缓存及最近 200 条拦截记录。',
+          '在本地设备（chrome.storage.local）保存过滤规则、自定义词条/外链域名、离线规则包、本地黑白名单、快照缓存、7 日统计、最近 200 条拦截记录及本地解析自检状态；同时支持默认关闭的可选跨设备配置同步（chrome.storage.sync，零新增权限，本地黑白名单与日志始终留存本机）。',
       },
       {
         permission: ['alarms'],
@@ -211,7 +213,7 @@ export const PRIVACY_CONTENT: Record<'en' | 'zh-CN', PrivacyLocaleContent> = {
       },
       {
         label: '随时关闭与撤销：',
-        text: '您可随时在「偏好设置」关闭社区共享，在快捷净空 4.5 秒窗口内一键撤销，或随时一键清空本地拦截记录与名单。',
+        text: '您可随时在「偏好设置」关闭可选跨设备同步（chrome.storage.sync）、社区共享或同步原生拉黑，在快捷净空 4.5 秒窗口内一键撤销，或随时一键清空本地拦截记录与名单。',
       },
       {
         label: '公开聚合快照不含提交者信息：',

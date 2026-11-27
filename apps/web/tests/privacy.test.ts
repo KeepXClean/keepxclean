@@ -69,4 +69,18 @@ describe('Privacy Policy Content Specification', () => {
     expect(PRIVACY_CONTENT['zh-CN'].sec3ReportBullets[1]).toContain('reporterUidHash');
     expect(PRIVACY_CONTENT['zh-CN'].sec3ReportBullets[1]).toContain('≥30 天');
   });
+
+  it('discloses optional chrome.storage.sync (default OFF, local lists stay on device) and local-only parse health diagnostics in both en and zh-CN', () => {
+    for (const locale of ['en', 'zh-CN'] as const) {
+      const doc = PRIVACY_CONTENT[locale];
+      const serialized = JSON.stringify(doc);
+
+      expect(doc.sec4Rows).toHaveLength(5);
+      expect(doc.sec4Rows[0].reason).toMatch(/chrome\.storage\.sync/i);
+      expect(doc.sec2Outro).toMatch(/chrome\.storage\.sync/i);
+      expect(serialized).toMatch(/(local|device|本机|本地)/i);
+      expect(serialized).toMatch(/(parse\s*health|diagnostic|自检|诊断)/i);
+      expect(doc.effectiveDate).toContain('25');
+    }
+  });
 });

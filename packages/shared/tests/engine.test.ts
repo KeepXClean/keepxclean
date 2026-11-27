@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   applyPresetToConfig,
+  CLOUD_KEYWORD_LANG_GROUPS,
   createDefaultConfig,
   createDefaultCrowdSnapshot,
   DEFAULT_CLOUD_KEYWORDS,
@@ -10,7 +11,9 @@ import {
   evaluateAuthorProfile,
   getBlockReasonLabels,
   getCloudKeywordNote,
+  getEngineMessages,
   getTweetLanguageLabel,
+  hasLocalizedCloudKeywordNote,
   mergeCloudKeywords,
   processGraphqlResponsePayload,
   resolveLocale,
@@ -185,11 +188,15 @@ describe('KeepXClean Rule Engine', () => {
       { text: '最新官方哈希竞猜，注册送彩金秒提现' },
       { followersCount: 300 }
     );
+    // Chinese gambling rule belongs to the 'zh' pack (inactive under default 'en', active once locale is 'zh-CN')
+    expect(evaluateTweet(gamblingTweet, config).blocked).toBe(false);
+    config.locale = 'zh-CN';
     expect(evaluateTweet(gamblingTweet, config).ruleId).toBe('cloud_keyword');
   });
 
   it('covers cliché, ragebait, clickbait, AI-slop, and scam public keyword packs without false positives', () => {
     const config = createDefaultConfig('standard');
+    config.enabledCloudLangGroups = [...CLOUD_KEYWORD_LANG_GROUPS];
 
     // Every built-in cloud keyword must have a unique ID, compile cleanly, and default to no follower exemption
     const ids = DEFAULT_CLOUD_KEYWORDS.map((k) => k.id);
@@ -518,6 +525,7 @@ describe('KeepXClean Rule Engine', () => {
     );
 
     // Only the impersonator is stripped; all 10 focal author thread items survive intact
+    expect(res.extractedTweetCount).toBe(12);
     expect(res.interceptedLogs).toHaveLength(1);
     expect(res.interceptedLogs[0].ruleId).toBe('impersonation');
     expect(res.interceptedLogs[0].authorScreenName).toBe('VitalikButer1n');
@@ -742,6 +750,10 @@ describe('KeepXClean Rule Engine', () => {
     );
 
     expect(processed.modified).toBe(true);
+    expect(processed.extractedTweetCount).toBe(2);
+    expect(processed.decisionsByTweetId['111'].tweet.timelineFeed).toBe(
+      'for_you'
+    );
     expect(processed.interceptedLogs).toHaveLength(1);
     expect(processed.interceptedLogs[0].authorScreenName).toBe('bot_999');
     expect(
@@ -933,12 +945,39 @@ describe('KeepXClean Rule Engine', () => {
       expect(getTweetLanguageLabel('zh', loc).trim().length).toBeGreaterThan(0);
 
       for (const kw of DEFAULT_CLOUD_KEYWORDS) {
+        expect(
+          hasLocalizedCloudKeywordNote(kw.id, loc),
+          `Missing direct localized note for ${kw.id} in ${loc}`
+        ).toBe(true);
         const note = getCloudKeywordNote(kw, loc);
         expect(
           note.trim().length,
-          `Missing note for ${kw.id} in ${loc}`
+          `Empty note for ${kw.id} in ${loc}`
         ).toBeGreaterThan(0);
       }
+
+      const engineMsg = getEngineMessages(loc);
+      expect(engineMsg.grokShortMentionReason.trim().length).toBeGreaterThan(0);
+      expect(engineMsg.grokHiddenReplyReason.trim().length).toBeGreaterThan(0);
+      expect(engineMsg.replyDuplicateReason.trim().length).toBeGreaterThan(0);
+      expect(
+        engineMsg.domainFilterReason('URL', 'evil.example').trim().length
+      ).toBeGreaterThan(0);
+      expect(
+        engineMsg.rulePackKeywordReason('Pack', 'Post', 'spam').trim().length
+      ).toBeGreaterThan(0);
+      expect(
+        engineMsg.rulePackDomainReason('Pack', 'URL', 'evil.example').trim()
+          .length
+      ).toBeGreaterThan(0);
+      expect(
+        engineMsg.rulePackAccountReason('Pack').trim().length
+      ).toBeGreaterThan(0);
+      expect(engineMsg.evidence.maxThreshold.trim().length).toBeGreaterThan(0);
+      expect(engineMsg.evidence.duplicateCount.trim().length).toBeGreaterThan(0);
+      expect(engineMsg.evidence.matchedDomain.trim().length).toBeGreaterThan(0);
+      expect(engineMsg.evidence.matchedHost.trim().length).toBeGreaterThan(0);
+      expect(engineMsg.evidence.rulePack.trim().length).toBeGreaterThan(0);
 
       const crowdTweet = makeMockTweet(
         {},

@@ -1,16 +1,28 @@
 import { useEffect, useRef, useState } from 'react';
-import { Download, RefreshCw, Upload } from 'lucide-react';
+import { Cloud, Download, RefreshCw, Upload } from 'lucide-react';
 import {
   UI_LOCALE_OPTIONS,
   detectRuntimeLanguage,
+  resolveEnabledCloudLangGroups,
   resolveLocale,
   type FilterConfig,
   type UILocaleSetting,
   type UIThemeSetting,
 } from '@keepxclean/shared';
 import { formatCount, formatDateTime, useI18n } from '../../i18n';
-import { authorizeService } from '../../services/client';
-import { digest } from '../../services/model';
+import {
+  authorizeService,
+  disableCloudSync,
+  enableCloudSync,
+  pushCloudSyncNow,
+  resolveCloudSync,
+} from '../../services/client';
+import {
+  digest,
+  type CloudSyncMeta,
+  type CloudSyncStrategy,
+  type SyncedConfigPayload,
+} from '../../services/model';
 import { validateConfig } from '../../services/validation';
 import { mutate, useApp } from '../../state/store';
 import {
@@ -119,6 +131,22 @@ export function SyncStatus({ compact = false }: { compact?: boolean }) {
   );
 }
 
+export function computeRecordDiff(
+  before: Record<string, unknown>,
+  after: Record<string, unknown>
+): { added: number; changed: number; removed: number } {
+  const hasBefore = (key: string) =>
+    Object.prototype.hasOwnProperty.call(before, key);
+  const hasAfter = (key: string) =>
+    Object.prototype.hasOwnProperty.call(after, key);
+  const added = Object.keys(after).filter((key) => !hasBefore(key)).length;
+  const removed = Object.keys(before).filter((key) => !hasAfter(key)).length;
+  const changed = Object.keys(after).filter(
+    (key) => hasBefore(key) && digest(before[key]) !== digest(after[key])
+  ).length;
+  return { added, changed, removed };
+}
+
 function ImportConfigDialog({
   config: candidate,
   onClose,
@@ -136,11 +164,7 @@ function ImportConfigDialog({
     before: Record<string, unknown>,
     after: Record<string, unknown>
   ) => {
-    const added = Object.keys(after).filter((key) => !(key in before)).length;
-    const removed = Object.keys(before).filter((key) => !(key in after)).length;
-    const changed = Object.keys(after).filter(
-      (key) => key in before && digest(before[key]) !== digest(after[key])
-    ).length;
+    const { added, changed, removed } = computeRecordDiff(before, after);
     return m.preferences.importDialog.diffSummary(added, changed, removed);
   };
   const rows = [
@@ -154,6 +178,32 @@ function ImportConfigDialog({
         ),
         Object.fromEntries(
           candidate.rules.keywords.items.map((item) => [item.id, item])
+        )
+      ),
+    },
+    {
+      label: m.preferences.importDialog.rowDomains,
+      before: base.rules.domainFilter.items.length,
+      after: candidate.rules.domainFilter.items.length,
+      detail: differences(
+        Object.fromEntries(
+          base.rules.domainFilter.items.map((item) => [item.id, item])
+        ),
+        Object.fromEntries(
+          candidate.rules.domainFilter.items.map((item) => [item.id, item])
+        )
+      ),
+    },
+    {
+      label: m.preferences.importDialog.rowRulePacks,
+      before: (base.installedPacks ?? []).length,
+      after: (candidate.installedPacks ?? []).length,
+      detail: differences(
+        Object.fromEntries(
+          (base.installedPacks ?? []).map((pack) => [pack.id, pack])
+        ),
+        Object.fromEntries(
+          (candidate.installedPacks ?? []).map((pack) => [pack.id, pack])
         )
       ),
     },
@@ -318,10 +368,410 @@ function ImportConfigDialog({
   );
 }
 
+function formatSyncKb(bytes: number): string {
+  const kb = bytes / 1024;
+  return `${kb >= 10 ? kb.toFixed(0) : kb.toFixed(1)} KB`;
+}
+
+function CloudSyncConflictModal({
+  localConfig,
+  remote,
+  remoteUpdatedAt,
+  onResolved,
+  onClose,
+}: {
+  localConfig: FilterConfig;
+  remote: SyncedConfigPayload;
+  remoteUpdatedAt?: number;
+  onResolved: () => void;
+  onClose: () => void;
+}) {
+  const { m, locale } = useI18n();
+  const [busyStrategy, setBusyStrategy] = useState<CloudSyncStrategy | null>(
+    null
+  );
+  const [error, setError] = useState('');
+  const cm = m.preferences.cloudSync.conflictModal;
+
+  const presetName = (preset: FilterConfig['preset']) =>
+    preset === 'light'
+      ? m.presets.lightTitle
+      : preset === 'strict'
+        ? m.presets.strictTitle
+        : preset === 'custom'
+          ? m.presets.customParams
+          : m.presets.standardTitle;
+  const modeName = (mode: FilterConfig['interceptionMode']) =>
+    mode === 'strip' ? m.presets.modeStrip : m.presets.modeCollapse;
+
+  const localLangCount = resolveEnabledCloudLangGroups(localConfig).length;
+  const remoteLangCount = resolveEnabledCloudLangGroups({
+    locale: remote.locale,
+    enabledCloudLangGroups: remote.enabledCloudLangGroups,
+  }).length;
+  const diffRuleGroups = Object.keys(localConfig.rules).filter(
+    (key) =>
+      digest(localConfig.rules[key as keyof FilterConfig['rules']]) !==
+      digest(remote.rules[key as keyof FilterConfig['rules']])
+  ).length;
+
+  async function choose(strategy: CloudSyncStrategy) {
+    setBusyStrategy(strategy);
+    setError('');
+    try {
+      const meta = await resolveCloudSync(strategy);
+      if (meta?.status === 'synced') {
+        onResolved();
+      }
+      onClose();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusyStrategy(null);
+    }
+  }
+
+  return (
+    <Modal
+      title={cm.title}
+      description={cm.desc}
+      onClose={() => {
+        if (!busyStrategy) onClose();
+      }}
+      footer={
+        <Button disabled={Boolean(busyStrategy)} onClick={onClose}>
+          {m.common.cancel}
+        </Button>
+      }
+    >
+      <div className="stack">
+        {typeof remoteUpdatedAt === 'number' &&
+          Number.isFinite(remoteUpdatedAt) &&
+          remoteUpdatedAt > 0 && (
+            <p className="small muted">
+              {cm.remoteUpdatedAt(
+                formatDateTime(remoteUpdatedAt, locale, m.common.neverSynced)
+              )}
+            </p>
+          )}
+        <table className="sync-compare-table">
+          <thead>
+            <tr>
+              <th>{cm.colField}</th>
+              <th>{cm.colLocal}</th>
+              <th>{cm.colRemote}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{cm.rowPreset}</td>
+              <td>{presetName(localConfig.preset)}</td>
+              <td>{presetName(remote.preset)}</td>
+            </tr>
+            <tr>
+              <td>{cm.rowDisplayMode}</td>
+              <td>{modeName(localConfig.interceptionMode)}</td>
+              <td>{modeName(remote.interceptionMode)}</td>
+            </tr>
+            <tr>
+              <td>{cm.rowCustomKeywords}</td>
+              <td>{localConfig.rules.keywords.items.length}</td>
+              <td>{remote.rules.keywords.items.length}</td>
+            </tr>
+            <tr>
+              <td>{cm.rowDomains}</td>
+              <td>{localConfig.rules.domainFilter.items.length}</td>
+              <td>{remote.rules.domainFilter.items.length}</td>
+            </tr>
+            <tr>
+              <td>{cm.rowRulePacks}</td>
+              <td>{(localConfig.installedPacks ?? []).length}</td>
+              <td>{(remote.installedPacks ?? []).length}</td>
+            </tr>
+            <tr>
+              <td>{cm.rowLangPacks}</td>
+              <td>{localLangCount}</td>
+              <td>{remoteLangCount}</td>
+            </tr>
+            <tr>
+              <td>{cm.rowRuleDiffs}</td>
+              <td colSpan={2}>{diffRuleGroups}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <Banner>{cm.localSafeNote}</Banner>
+
+        <div className="stack-sm">
+          <div className="sync-choice-card">
+            <div className="grow">
+              <strong className="small">{cm.mergeBtn}</strong>
+              <p className="small muted">{cm.mergeDesc}</p>
+            </div>
+            <Button
+              variant="primary sm"
+              loading={busyStrategy === 'merge'}
+              disabled={Boolean(busyStrategy) && busyStrategy !== 'merge'}
+              onClick={() => void choose('merge')}
+            >
+              {cm.mergeBtn}
+            </Button>
+          </div>
+          <div className="sync-choice-card">
+            <div className="grow">
+              <strong className="small">{cm.keepLocalBtn}</strong>
+              <p className="small muted">{cm.keepLocalDesc}</p>
+            </div>
+            <Button
+              variant="sm"
+              loading={busyStrategy === 'local'}
+              disabled={Boolean(busyStrategy) && busyStrategy !== 'local'}
+              onClick={() => void choose('local')}
+            >
+              {cm.keepLocalBtn}
+            </Button>
+          </div>
+          <div className="sync-choice-card">
+            <div className="grow">
+              <strong className="small">{cm.useRemoteBtn}</strong>
+              <p className="small muted">{cm.useRemoteDesc}</p>
+            </div>
+            <Button
+              variant="sm"
+              loading={busyStrategy === 'remote'}
+              disabled={Boolean(busyStrategy) && busyStrategy !== 'remote'}
+              onClick={() => void choose('remote')}
+            >
+              {cm.useRemoteBtn}
+            </Button>
+          </div>
+        </div>
+
+        {error && <Banner kind="error">{error}</Banner>}
+      </div>
+    </Modal>
+  );
+}
+
+function CloudSyncPanel({
+  config,
+  cloudSync,
+  onSuccess,
+}: {
+  config: FilterConfig;
+  cloudSync: CloudSyncMeta;
+  onSuccess: (msg: string) => void;
+}) {
+  const { m, locale } = useI18n();
+  const cs = m.preferences.cloudSync;
+  const [busy, setBusy] = useState(false);
+  const [syncingNow, setSyncingNow] = useState(false);
+  const [error, setError] = useState('');
+  const [conflictOpen, setConflictOpen] = useState(false);
+  const [pendingConflict, setPendingConflict] = useState<{
+    remote: SyncedConfigPayload;
+    remoteUpdatedAt?: number;
+  } | null>(null);
+  const prevStatusRef = useRef(cloudSync.status);
+
+  const activeRemote = cloudSync.pendingRemote ?? pendingConflict?.remote;
+  const activeRemoteUpdatedAt =
+    cloudSync.pendingRemote !== undefined
+      ? cloudSync.remoteUpdatedAt
+      : pendingConflict?.remoteUpdatedAt;
+
+  useEffect(() => {
+    const prevStatus = prevStatusRef.current;
+    prevStatusRef.current = cloudSync.status;
+
+    if (cloudSync.status === 'conflict' && cloudSync.pendingRemote) {
+      if (pendingConflict !== null) {
+        setPendingConflict(null);
+      }
+      return;
+    }
+
+    if (
+      (prevStatus !== cloudSync.status && cloudSync.status !== 'conflict') ||
+      (!activeRemote && conflictOpen)
+    ) {
+      if (conflictOpen) setConflictOpen(false);
+      if (pendingConflict !== null) setPendingConflict(null);
+    }
+  }, [
+    cloudSync.status,
+    cloudSync.pendingRemote,
+    pendingConflict,
+    conflictOpen,
+    activeRemote,
+  ]);
+
+  const lastPushAt =
+    typeof cloudSync.lastPushAt === 'number' &&
+    Number.isFinite(cloudSync.lastPushAt)
+      ? cloudSync.lastPushAt
+      : 0;
+  const lastPullAt =
+    typeof cloudSync.lastPullAt === 'number' &&
+    Number.isFinite(cloudSync.lastPullAt)
+      ? cloudSync.lastPullAt
+      : 0;
+  const lastSyncTs = Math.max(lastPushAt, lastPullAt);
+  const statusPillKind =
+    cloudSync.status === 'synced'
+      ? ''
+      : cloudSync.status === 'conflict' || cloudSync.status === 'quota_exceeded'
+        ? 'warning'
+        : cloudSync.status === 'error'
+          ? 'danger'
+          : 'neutral';
+
+  async function toggleSync(nextEnabled: boolean) {
+    setBusy(true);
+    setError('');
+    try {
+      const meta = nextEnabled
+        ? await enableCloudSync()
+        : await disableCloudSync();
+      if (nextEnabled && meta.status === 'conflict' && meta.pendingRemote) {
+        setPendingConflict({
+          remote: meta.pendingRemote,
+          remoteUpdatedAt: meta.remoteUpdatedAt,
+        });
+        setConflictOpen(true);
+      } else {
+        setConflictOpen(false);
+        setPendingConflict(null);
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handlePushNow() {
+    setSyncingNow(true);
+    setError('');
+    try {
+      const meta = await pushCloudSyncNow();
+      if (meta.status === 'synced') {
+        onSuccess(cs.syncedNowNotice);
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSyncingNow(false);
+    }
+  }
+
+  return (
+    <>
+      <Panel title={cs.panelTitle} description={cs.panelDesc}>
+        <div className="stack" data-kxc-cloud-sync="true">
+          <Setting title={cs.enableTitle} description={cs.enableDesc}>
+            <Switch
+              label={cs.enableTitle}
+              checked={cloudSync.enabled}
+              disabled={busy}
+              onChange={(next) => void toggleSync(next)}
+            />
+          </Setting>
+
+          <div className="row between wrap" style={{ gap: 10 }}>
+            <div className="row wrap" style={{ gap: 8 }}>
+              <Pill kind={statusPillKind}>{cs.statuses[cloudSync.status]}</Pill>
+              {lastSyncTs > 0 && (
+                <span className="small muted">
+                  {cs.lastSync(
+                    formatDateTime(lastSyncTs, locale, m.common.neverSynced)
+                  )}
+                </span>
+              )}
+              {typeof cloudSync.bytesUsed === 'number' &&
+                Number.isFinite(cloudSync.bytesUsed) &&
+                cloudSync.bytesUsed > 0 && (
+                  <span className="small muted">
+                    {cs.usageMeta(
+                      formatSyncKb(cloudSync.bytesUsed),
+                      typeof cloudSync.chunkCount === 'number' &&
+                        Number.isFinite(cloudSync.chunkCount) &&
+                        cloudSync.chunkCount > 0
+                        ? cloudSync.chunkCount
+                        : 1
+                    )}
+                  </span>
+                )}
+            </div>
+            <div className="row wrap" style={{ gap: 8 }}>
+              {cloudSync.status === 'conflict' && cloudSync.pendingRemote && (
+                <Button
+                  variant="primary sm"
+                  onClick={() => setConflictOpen(true)}
+                >
+                  {cs.resolveBtn}
+                </Button>
+              )}
+              {cloudSync.enabled && cloudSync.status !== 'conflict' && (
+                <Button
+                  variant="sm"
+                  loading={syncingNow || cloudSync.status === 'syncing'}
+                  onClick={() => void handlePushNow()}
+                >
+                  <Cloud size={14} />
+                  {cs.syncNowBtn}
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {cloudSync.status === 'conflict' && (
+            <Banner
+              kind="warning"
+              action={
+                cloudSync.pendingRemote ? (
+                  <Button variant="sm" onClick={() => setConflictOpen(true)}>
+                    {cs.resolveBtn}
+                  </Button>
+                ) : undefined
+              }
+            >
+              {cs.conflictBanner}
+            </Banner>
+          )}
+
+          {cloudSync.status === 'quota_exceeded' && (
+            <Banner kind="warning">{cs.quotaBanner}</Banner>
+          )}
+
+          {(error || (cloudSync.status === 'error' && cloudSync.error)) && (
+            <Banner kind="error">{error || cloudSync.error}</Banner>
+          )}
+
+          <Banner>{cs.localOnlyNotice}</Banner>
+        </div>
+      </Panel>
+
+      {conflictOpen && activeRemote && (
+        <CloudSyncConflictModal
+          localConfig={config}
+          remote={activeRemote}
+          remoteUpdatedAt={activeRemoteUpdatedAt}
+          onResolved={() => onSuccess(cs.resolvedNotice)}
+          onClose={() => {
+            setConflictOpen(false);
+            setPendingConflict(null);
+          }}
+        />
+      )}
+    </>
+  );
+}
+
 export function PreferencesPage() {
   const { data } = useApp();
   const { m } = useI18n();
-  const config = data!.config;
+  const { config, cloudSync } = data!;
   const input = useRef<HTMLInputElement>(null);
   const [service, setService] = useState(config.customApiBaseUrl || ''),
     [serviceError, setServiceError] = useState(''),
@@ -429,6 +879,11 @@ export function PreferencesPage() {
       <Panel>
         <SyncStatus />
       </Panel>
+      <CloudSyncPanel
+        config={config}
+        cloudSync={cloudSync}
+        onSuccess={setSuccess}
+      />
       <Panel
         title={m.preferences.servicePanelTitle}
         description={m.preferences.servicePanelDesc}

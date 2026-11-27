@@ -14,11 +14,22 @@ import { App as Options } from '../../entrypoints/options/App';
 import { App as Popup } from '../../entrypoints/popup/App';
 import { ContentApp } from '../../src/content/ContentApp';
 import { DomController } from '../../src/content/dom-controller';
-import { applyConfigCommand } from '../../src/background/config';
 import {
+  applyConfigCommand,
+  buildOptionsUrl,
+} from '../../src/background/config';
+import {
+  disableCloudSync,
+  enableCloudSync,
+  pushCloudSyncNow,
+  resolveCloudSync,
+} from '../../src/background/cloud-sync';
+import {
+  dismissParseHealth,
   enqueue,
   readConfig,
   readState,
+  updateParseHealth,
   writeConfig,
 } from '../../src/background/repository';
 import {
@@ -34,8 +45,11 @@ import {
 } from '../../src/background/jobs';
 import { refreshSnapshot } from '../../src/background/remote';
 import {
+  defaultCloudSyncMeta,
+  defaultParseHealth,
   defaultStats,
   errorText,
+  trailingLocalDates,
   UI_KEYS,
   type Command,
 } from '../../src/services/model';
@@ -48,17 +62,32 @@ const params = new URLSearchParams(location.search),
   langParam = params.get('lang'),
   themeParam = params.get('theme');
 const config = createDefaultConfig();
+config.onboardingDismissed = scenario !== 'onboarding';
 if (langParam && isUILocaleSetting(langParam)) {
   config.locale = langParam;
 }
 if (surface !== 'x' && themeParam && isUIThemeSetting(themeParam)) {
   config.theme = themeParam;
-} else if (surface === 'x' && params.get('uiTheme') && isUIThemeSetting(params.get('uiTheme'))) {
+} else if (
+  surface === 'x' &&
+  params.get('uiTheme') &&
+  isUIThemeSetting(params.get('uiTheme'))
+) {
   config.theme = params.get('uiTheme') as typeof config.theme;
 }
 config.syncNativeXBlock = false;
 config.enableCrowdReport = false;
 if (scenario === 'paused') config.enabled = false;
+if (scenario === 'keyword-hit') {
+  config.rules.keywords.items.push({
+    id: 'kw-demo-1',
+    pattern: '普通示例',
+    isRegex: false,
+    enabled: true,
+    scopes: ['text'],
+    note: 'Demo keyword rule',
+  });
+}
 const snapshot = createDefaultCrowdSnapshot();
 snapshot.counts = {
   '2001001': { c: 8, t: 'spam' },
@@ -103,6 +132,55 @@ const logs: InterceptionLogEntry[] =
         timestamp: Date.now() - i * 600000,
         evidence: [{ label: '数据类型', value: '脱敏测试样本' }],
       }));
+const recentDates = trailingLocalDates(7);
+const seededDailyHistory =
+  scenario === 'empty'
+    ? recentDates.map((date) => ({ date, blocked: 0, ads: 0 }))
+    : recentDates.map((date, idx) => ({
+        date,
+        blocked: [14, 22, 19, 31, 28, 36, 42][idx] ?? 18,
+        ads: [5, 7, 4, 9, 6, 8, 12][idx] ?? 5,
+      }));
+const cloudSyncSeed =
+  scenario === 'sync-conflict'
+    ? {
+        enabled: true,
+        status: 'conflict' as const,
+        remoteUpdatedAt: Date.now() - 600_000,
+        pendingRemote: {
+          version: 1 as const,
+          enabled: true,
+          preset: 'strict' as const,
+          interceptionMode: 'strip' as const,
+          sceneModes: {
+            for_you: 'strip' as const,
+            following: 'inherit' as const,
+            reply: 'collapse' as const,
+            search: 'inherit' as const,
+          },
+          exemptFollowing: true,
+          profileSceneBadgeOnly: true,
+          locale: 'en' as const,
+          theme: 'light' as const,
+          enableCloudKeywords: true,
+          enabledCloudLangGroups: ['universal' as const, 'en' as const],
+          disabledCloudKeywordIds: [],
+          rules: createDefaultConfig('strict').rules,
+          installedPacks: [],
+        },
+      }
+    : defaultCloudSyncMeta();
+const healthSeed =
+  scenario === 'degraded'
+    ? {
+        status: 'degraded' as const,
+        consecutiveZeroCount: 5,
+        firstFailureAt: Date.now() - 120_000,
+        lastFailureAt: Date.now() - 5_000,
+        endpoints: ['HomeTimeline'],
+        topKeys: ['data.home'],
+      }
+    : defaultParseHealth();
 const values: Record<string, unknown> = {
   [STORAGE_KEYS.CONFIG]: config,
   [STORAGE_KEYS.CROWD_SNAPSHOT]: snapshot,
@@ -113,6 +191,18 @@ const values: Record<string, unknown> = {
     totalBlocked: scenario === 'empty' ? 0 : 2846,
     todayAdsHidden: scenario === 'empty' ? 0 : 34,
     totalAdsHidden: scenario === 'empty' ? 0 : 612,
+    byRule:
+      scenario === 'empty'
+        ? {}
+        : {
+            high_frequency_daily: 48,
+            reply_spam: 34,
+            impersonation: 18,
+            engagement_bait: 16,
+            keyword: 12,
+            promoted_ad: 612,
+          },
+    dailyHistory: seededDailyHistory,
   },
   [UI_KEYS.sync]: {
     status: scenario === 'offline' ? 'error' : 'success',
@@ -120,6 +210,8 @@ const values: Record<string, unknown> = {
     lastSuccess: Date.now() - 120000,
     error: scenario === 'offline' ? '测试网络离线' : undefined,
   },
+  [UI_KEYS.cloudSync]: cloudSyncSeed,
+  [UI_KEYS.health]: healthSeed,
   [UI_KEYS.operations]: [],
   [UI_KEYS.imports]: [],
   [UI_KEYS.viewers]: {
@@ -147,6 +239,7 @@ if (scenario !== 'empty') {
     addedAt: Date.now(),
   };
 }
+const syncValues: Record<string, unknown> = {};
 const storageListeners = new Set<
   (changes: Record<string, unknown>, area: string) => void
 >();
@@ -180,6 +273,42 @@ Object.defineProperty(window, 'chrome', {
           storageListeners.forEach((fn) => fn(changes, 'local'));
         },
       },
+      sync: {
+        QUOTA_BYTES: 102_400,
+        QUOTA_BYTES_PER_ITEM: 8192,
+        MAX_ITEMS: 512,
+        async get(keys?: string | string[] | null) {
+          return Object.fromEntries(
+            (keys === null || keys === undefined
+              ? Object.keys(syncValues)
+              : typeof keys === 'string'
+                ? [keys]
+                : keys
+            )
+              .filter((k) => k in syncValues)
+              .map((k) => [k, structuredClone(syncValues[k])])
+          );
+        },
+        async set(patch: Record<string, unknown>) {
+          const changes: Record<string, unknown> = {};
+          for (const [key, value] of Object.entries(patch)) {
+            changes[key] = {
+              oldValue: syncValues[key],
+              newValue: structuredClone(value),
+            };
+            syncValues[key] = structuredClone(value);
+          }
+          storageListeners.forEach((fn) => fn(changes, 'sync'));
+        },
+        async remove(keys: string | string[]) {
+          const list = typeof keys === 'string' ? [keys] : keys;
+          for (const key of list) delete syncValues[key];
+        },
+        async getBytesInUse() {
+          return new TextEncoder().encode(JSON.stringify(syncValues))
+            .byteLength;
+        },
+      },
       onChanged: {
         addListener: (
           fn: (changes: Record<string, unknown>, area: string) => void
@@ -192,6 +321,7 @@ Object.defineProperty(window, 'chrome', {
     runtime: {
       id: 'kxc-ui-test',
       getURL: (path: string) => `/${path}`,
+      getManifest: () => ({ version: '0.2.0' }),
       async sendMessage(message: { action: Command }) {
         try {
           const data = await dispatch(message.action);
@@ -278,13 +408,32 @@ async function dispatch(action: Command): Promise<unknown> {
     case 'config.reset':
     case 'keyword.save':
     case 'keyword.delete':
+    case 'domain.save':
+    case 'domain.delete':
     case 'cloudKeyword.toggle':
     case 'cloudKeyword.customize':
+    case 'cloudLangGroup.toggle':
+    case 'target.disable':
+    case 'pack.install':
+    case 'pack.toggle':
+    case 'pack.uninstall':
     case 'account.save':
     case 'account.delete':
       return enqueue(async () =>
         writeConfig(applyConfigCommand(await readConfig(), action))
       );
+    case 'cloudSync.enable':
+      return enableCloudSync();
+    case 'cloudSync.resolve':
+      return resolveCloudSync(action.strategy);
+    case 'cloudSync.disable':
+      return disableCloudSync();
+    case 'cloudSync.pushNow':
+      return pushCloudSyncNow();
+    case 'health.update':
+      return updateParseHealth(action.report);
+    case 'health.dismiss':
+      return dismissParseHealth();
     case 'logs.clear':
       return chrome.storage.local.set({ [STORAGE_KEYS.INTERCEPTION_LOGS]: [] });
     case 'snapshot.refresh':
@@ -294,9 +443,13 @@ async function dispatch(action: Command): Promise<unknown> {
     case 'tabs.list':
       return [{ id: 7, title: 'X · 测试标签页' }];
     case 'tabs.reloadX':
-      return 1;
+      return { reloaded: 1 };
     case 'options.open':
-      location.href = `/?surface=options#/${action.page || 'rules'}`;
+      location.href = buildOptionsUrl(
+        '/?surface=options',
+        action.page,
+        action.query
+      );
       return;
     case 'import.read':
       return startImport(action.tabId);
@@ -318,7 +471,7 @@ async function dispatch(action: Command): Promise<unknown> {
       throw Error('未配置此测试操作');
   }
 }
-Object.assign(window, { __kxcTest: { values, nativeCalls } });
+Object.assign(window, { __kxcTest: { values, syncValues, nativeCalls } });
 if (surface === 'x') {
   const isDark = params.get('theme') === 'dark';
   const isProfile = params.get('view') === 'profile';

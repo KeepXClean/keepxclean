@@ -1,17 +1,53 @@
 import {
   createDefaultConfig,
+  isCloudKeywordLangGroup,
   isUILocaleSetting,
   isUIThemeSetting,
+  isValidDomainRule,
   mergeCloudKeywords,
+  normalizeDomainRule,
   RESERVED_X_PATHS,
   TWEET_LANGUAGE_CODES,
+  validateRulePack,
   type AccountListEntry,
+  type CloudKeywordLangGroup,
   type CrowdBlockSnapshot,
+  type DomainRuleItem,
   type FilterConfig,
+  type InstalledRulePack,
   type KeywordRuleItem,
   type LanguageFilterMode,
+  type SceneModeKey,
+  type SceneModeOverride,
 } from '@keepxclean/shared';
 import type { ErrorMessages } from '../i18n/errors';
+
+export const PROTO_POLLUTION_KEYS = new Set([
+  '__proto__',
+  'constructor',
+  'prototype',
+]);
+
+export const SCENE_MODE_KEYS: readonly SceneModeKey[] = [
+  'for_you',
+  'following',
+  'reply',
+  'search',
+];
+
+export const SCENE_MODE_OVERRIDES: readonly SceneModeOverride[] = [
+  'inherit',
+  'collapse',
+  'strip',
+  'bypass',
+];
+
+const SCENE_MODE_KEY_SET = new Set<string>(SCENE_MODE_KEYS);
+const SCENE_MODE_OVERRIDE_SET = new Set<string>(SCENE_MODE_OVERRIDES);
+
+function hasOwn(obj: object, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(obj, key);
+}
 
 export type ValidationErrors = Pick<
   ErrorMessages,
@@ -39,6 +75,12 @@ export type ValidationErrors = Pick<
   | 'invalidLanguageMode'
   | 'unsupportedLanguageCode'
   | 'duplicateKeywordId'
+  | 'invalidDomain'
+  | 'duplicateDomainId'
+  | 'invalidCloudLangGroup'
+  | 'invalidSceneMode'
+  | 'invalidRulePack'
+  | 'duplicatePackId'
   | 'uidKeyMismatch'
   | 'disjointListsRequired'
   | 'unsupportedSnapshotVersion'
@@ -73,6 +115,12 @@ export const SILENT_VALIDATION_ERRORS: ValidationErrors = {
   invalidLanguageMode: 'Invalid language mode',
   unsupportedLanguageCode: 'Unsupported language code',
   duplicateKeywordId: 'Duplicate keyword ID',
+  invalidDomain: 'Invalid domain',
+  duplicateDomainId: 'Duplicate domain ID',
+  invalidCloudLangGroup: 'Invalid cloud keyword language group',
+  invalidSceneMode: 'Invalid scene mode',
+  invalidRulePack: (detail) => `Invalid rule pack: ${detail}`,
+  duplicatePackId: 'Duplicate rule pack ID',
   uidKeyMismatch: (key) => `${key}: UID mismatch`,
   disjointListsRequired: 'Disjoint lists required',
   unsupportedSnapshotVersion: 'Unsupported snapshot version',
@@ -102,7 +150,57 @@ export function recordWithErrors(
     value !== null && typeof value === 'object' && !Array.isArray(value),
     e.expectObject(path)
   );
-  return value as Record<string, unknown>;
+  const proto = Object.getPrototypeOf(value);
+  assert(proto === Object.prototype || proto === null, e.expectObject(path));
+  assert(
+    Object.getOwnPropertySymbols(value).length === 0,
+    e.expectObject(path)
+  );
+  assert(
+    Object.prototype.toString.call(value) === '[object Object]',
+    e.expectObject(path)
+  );
+  const obj = value as Record<string, unknown>;
+  for (const key of Object.getOwnPropertyNames(obj)) {
+    assert(!PROTO_POLLUTION_KEYS.has(key), e.expectObject(path));
+    const desc = Object.getOwnPropertyDescriptor(obj, key);
+    assert(
+      desc !== undefined &&
+        'value' in desc &&
+        typeof desc.get !== 'function' &&
+        typeof desc.set !== 'function',
+      e.expectObject(path)
+    );
+  }
+  return obj;
+}
+
+function assertDenseArrayWithErrors(
+  value: unknown,
+  path: string,
+  e: ValidationErrors,
+  errorMessage = e.expectObject(path)
+): unknown[] {
+  assert(
+    Array.isArray(value) && Object.getPrototypeOf(value) === Array.prototype,
+    errorMessage
+  );
+  assert(Object.getOwnPropertySymbols(value).length === 0, errorMessage);
+  for (let i = 0; i < value.length; i++) {
+    const desc = Object.getOwnPropertyDescriptor(value, i);
+    assert(
+      desc !== undefined &&
+        'value' in desc &&
+        typeof desc.get !== 'function' &&
+        typeof desc.set !== 'function',
+      errorMessage
+    );
+  }
+  assert(
+    Object.getOwnPropertyNames(value).length === value.length + 1,
+    errorMessage
+  );
+  return value;
 }
 
 function stringWithErrors(
@@ -151,6 +249,7 @@ export function parseAccountQueryWithErrors(
   raw: string,
   e: ValidationErrors
 ): { kind: 'uid'; uid: string } | { kind: 'handle'; handle: string } {
+  assert(typeof raw === 'string', e.enterAccountQuery);
   const trimmed = raw.trim();
   assert(trimmed.length > 0, e.enterAccountQuery);
   if (UID.test(trimmed)) {
@@ -202,20 +301,51 @@ export function validateKeywordWithErrors(
       throw new Error(e.invalidRegex);
     }
   }
-  assert(
-    Array.isArray(x.scopes) &&
-      x.scopes.length > 0 &&
-      x.scopes.every((s) => scopes.includes(s)),
+  const rawScopes = assertDenseArrayWithErrors(
+    x.scopes,
+    'keyword.scopes',
+    e,
     e.selectAtLeastOneScope
   );
+  assert(rawScopes.length > 0, e.selectAtLeastOneScope);
+  const seenScopes = new Set<KeywordRuleItem['scopes'][number]>();
+  const cleanScopes: KeywordRuleItem['scopes'] = [];
+  for (let i = 0; i < rawScopes.length; i++) {
+    const s = rawScopes[i];
+    assert(
+      typeof s === 'string' && scopes.includes(s),
+      e.selectAtLeastOneScope
+    );
+    const typed = s as KeywordRuleItem['scopes'][number];
+    if (!seenScopes.has(typed)) {
+      seenScopes.add(typed);
+      cleanScopes.push(typed);
+    }
+  }
   if (x.onlyInReplies !== undefined) {
     boolWithErrors(x.onlyInReplies, 'keyword.onlyInReplies', e);
+  }
+  let langGroup: CloudKeywordLangGroup | undefined;
+  if (x.langGroup !== undefined) {
+    assert(isCloudKeywordLangGroup(x.langGroup), e.invalidCloudLangGroup);
+    langGroup = x.langGroup;
+  }
+  let packCategory: string | undefined;
+  if (x.packCategory !== undefined) {
+    const cat = stringWithErrors(
+      x.packCategory,
+      'keyword.packCategory',
+      e,
+      64,
+      true
+    ).trim();
+    if (cat) packCategory = cat;
   }
   return {
     id: stringWithErrors(x.id, 'keyword.id', e, 200, false),
     pattern,
     isRegex,
-    scopes: [...new Set(x.scopes)] as KeywordRuleItem['scopes'],
+    scopes: cleanScopes,
     enabled: boolWithErrors(x.enabled, 'keyword.enabled', e),
     ...(x.onlyInReplies === true ? { onlyInReplies: true } : {}),
     ...(x.note !== undefined
@@ -233,6 +363,126 @@ export function validateKeywordWithErrors(
           return val > 0 ? { maxFollowersExempt: val } : {};
         })()
       : {}),
+    ...(langGroup !== undefined ? { langGroup } : {}),
+    ...(packCategory !== undefined ? { packCategory } : {}),
+  };
+}
+
+export function validateDomainRuleWithErrors(
+  input: unknown,
+  e: ValidationErrors
+): DomainRuleItem {
+  const x = recordWithErrors(input, 'domain', e);
+  const id = stringWithErrors(x.id, 'domain.id', e, 200, false).trim();
+  const rawDomain = stringWithErrors(x.domain, 'domain.domain', e, 2048, false);
+  const domain = normalizeDomainRule(rawDomain);
+  assert(isValidDomainRule(domain), e.invalidDomain);
+  if (x.onlyInReplies !== undefined) {
+    boolWithErrors(x.onlyInReplies, 'domain.onlyInReplies', e);
+  }
+  return {
+    id,
+    domain,
+    enabled: boolWithErrors(x.enabled, 'domain.enabled', e),
+    ...(x.onlyInReplies === true ? { onlyInReplies: true } : {}),
+    ...(x.note !== undefined
+      ? { note: stringWithErrors(x.note, 'domain.note', e, 2000) }
+      : {}),
+    ...(x.maxFollowersExempt !== undefined
+      ? (() => {
+          const val = numberWithErrors(
+            x.maxFollowersExempt,
+            'domain.maxFollowersExempt',
+            e,
+            0,
+            true
+          );
+          return val > 0 ? { maxFollowersExempt: val } : {};
+        })()
+      : {}),
+  };
+}
+
+export function validateInstalledPackWithErrors(
+  input: unknown,
+  e: ValidationErrors
+): InstalledRulePack {
+  const x = recordWithErrors(input, 'installedPack', e);
+  assert(
+    Object.getOwnPropertySymbols(x).length === 0,
+    e.invalidRulePack('invalid symbols')
+  );
+  // Strip ONLY local install metadata so any forbidden config keys (e.g. whitelistUids, customApiBaseUrl)
+  // are preserved in `candidate` and rejected by `validateRulePack`.
+  const candidate: Record<string, unknown> = {};
+  for (const key of Object.getOwnPropertyNames(x)) {
+    const desc = Object.getOwnPropertyDescriptor(x, key);
+    if (
+      !desc ||
+      typeof desc.get === 'function' ||
+      typeof desc.set === 'function'
+    ) {
+      throw new Error(e.invalidRulePack(`invalid property "${key}"`));
+    }
+    if (
+      key === 'enabled' ||
+      key === 'installedAt' ||
+      key === 'disabledItemIds'
+    ) {
+      continue;
+    }
+    candidate[key] = desc.value;
+  }
+  let payload;
+  try {
+    payload = validateRulePack(candidate);
+  } catch (err) {
+    throw new Error(
+      e.invalidRulePack(err instanceof Error ? err.message : String(err)),
+      { cause: err }
+    );
+  }
+  const enabled = boolWithErrors(
+    hasOwn(x, 'enabled') ? x.enabled : undefined,
+    'installedPack.enabled',
+    e
+  );
+  const installedAt = numberWithErrors(
+    hasOwn(x, 'installedAt') ? x.installedAt : undefined,
+    'installedPack.installedAt',
+    e,
+    0,
+    false
+  );
+  let disabledItemIds: string[] | undefined;
+  if (hasOwn(x, 'disabledItemIds') && x.disabledItemIds !== undefined) {
+    const rawDisabled = assertDenseArrayWithErrors(
+      x.disabledItemIds,
+      'installedPack.disabledItemIds',
+      e
+    );
+    const seenDisabled = new Set<string>();
+    const normalizedDisabled: string[] = [];
+    for (let i = 0; i < rawDisabled.length; i++) {
+      const cleanId = stringWithErrors(
+        rawDisabled[i],
+        'installedPack.disabledItemIds',
+        e,
+        200,
+        false
+      ).trim();
+      if (!seenDisabled.has(cleanId)) {
+        seenDisabled.add(cleanId);
+        normalizedDisabled.push(cleanId);
+      }
+    }
+    disabledItemIds = normalizedDisabled;
+  }
+  return {
+    ...payload,
+    enabled,
+    installedAt,
+    ...(disabledItemIds !== undefined ? { disabledItemIds } : {}),
   };
 }
 
@@ -250,7 +500,10 @@ export function validateAccountWithErrors(
   for (const key of ['name', 'avatarUrl', 'reason'] as const)
     if (x[key] !== undefined) out[key] = stringWithErrors(x[key], key, e, 2000);
   if (x.tag !== undefined) {
-    assert(tags.includes(String(x.tag)), e.invalidReasonTag);
+    assert(
+      typeof x.tag === 'string' && tags.includes(x.tag),
+      e.invalidReasonTag
+    );
     out.tag = x.tag as AccountListEntry['tag'];
   }
   if (out.avatarUrl && !/^https:\/\//.test(out.avatarUrl)) delete out.avatarUrl;
@@ -287,8 +540,22 @@ export function validateConfigWithErrors(
 ): FilterConfig {
   const x = recordWithErrors(input, 'config', e);
   assert(x.version === 1, e.unsupportedConfigVersion);
-  const defaults = createDefaultConfig();
+  let preset: FilterConfig['preset'] = 'standard';
+  if (x.preset !== undefined) {
+    assert(
+      typeof x.preset === 'string' &&
+        ['light', 'standard', 'strict', 'custom'].includes(x.preset),
+      e.invalidPreset
+    );
+    preset = x.preset as FilterConfig['preset'];
+  }
+  const presetForDefaults =
+    preset === 'light' || preset === 'standard' || preset === 'strict'
+      ? preset
+      : 'standard';
+  const defaults = createDefaultConfig(presetForDefaults);
   const out = structuredClone(defaults);
+  out.preset = preset;
   if (x.locale !== undefined) {
     assert(isUILocaleSetting(x.locale), e.invalidLocale);
     out.locale = x.locale;
@@ -304,31 +571,65 @@ export function validateConfigWithErrors(
     'syncNativeXBlock',
     'enableCrowdReport',
     'enableCloudKeywords',
+    'onboardingDismissed',
   ] as const)
     if (x[key] !== undefined) out[key] = boolWithErrors(x[key], key, e);
-  if (x.preset !== undefined) {
-    assert(
-      ['light', 'standard', 'strict', 'custom'].includes(String(x.preset)),
-      e.invalidPreset
-    );
-    out.preset = x.preset as FilterConfig['preset'];
-  }
   if (x.interceptionMode !== undefined) {
     assert(
-      ['strip', 'collapse'].includes(String(x.interceptionMode)),
+      typeof x.interceptionMode === 'string' &&
+        ['strip', 'collapse'].includes(x.interceptionMode),
       e.invalidInterceptionMode
     );
     out.interceptionMode =
       x.interceptionMode as FilterConfig['interceptionMode'];
   }
+  if (x.sceneModes !== undefined) {
+    const rawModes = recordWithErrors(x.sceneModes, 'sceneModes', e);
+    const mergedModes: Record<SceneModeKey, SceneModeOverride> = {
+      for_you: 'inherit',
+      following: 'inherit',
+      reply: 'inherit',
+      search: 'inherit',
+    };
+    for (const sceneKey of Object.keys(rawModes)) {
+      assert(SCENE_MODE_KEY_SET.has(sceneKey), e.invalidSceneMode);
+      const val = rawModes[sceneKey];
+      if (val === undefined) continue;
+      assert(
+        typeof val === 'string' && SCENE_MODE_OVERRIDE_SET.has(val),
+        e.invalidSceneMode
+      );
+      mergedModes[sceneKey as SceneModeKey] = val as SceneModeOverride;
+    }
+    out.sceneModes = mergedModes;
+  }
+  if (x.enabledCloudLangGroups !== undefined) {
+    const rawLangGroups = assertDenseArrayWithErrors(
+      x.enabledCloudLangGroups,
+      'enabledCloudLangGroups',
+      e
+    );
+    const groups: CloudKeywordLangGroup[] = [];
+    const seen = new Set<CloudKeywordLangGroup>();
+    for (let i = 0; i < rawLangGroups.length; i++) {
+      const rawGroup = rawLangGroups[i];
+      assert(isCloudKeywordLangGroup(rawGroup), e.invalidCloudLangGroup);
+      if (!seen.has(rawGroup)) {
+        seen.add(rawGroup);
+        groups.push(rawGroup);
+      }
+    }
+    out.enabledCloudLangGroups = groups;
+  }
   if (x.disabledCloudKeywordIds !== undefined) {
-    assert(
-      Array.isArray(x.disabledCloudKeywordIds),
-      e.expectObject('disabledCloudKeywordIds')
+    const rawDisabledCloud = assertDenseArrayWithErrors(
+      x.disabledCloudKeywordIds,
+      'disabledCloudKeywordIds',
+      e
     );
     out.disabledCloudKeywordIds = [
       ...new Set(
-        x.disabledCloudKeywordIds.map((id) =>
+        rawDisabledCloud.map((id) =>
           stringWithErrors(id, 'disabledCloudKeywordIds', e, 200, false).trim()
         )
       ),
@@ -343,7 +644,7 @@ export function validateConfigWithErrors(
   for (const key of Object.keys(
     defaults.rules
   ) as (keyof FilterConfig['rules'])[]) {
-    if (rules[key] === undefined) continue;
+    if (!hasOwn(rules, key) || rules[key] === undefined) continue;
     const rule = recordWithErrors(rules[key], `rules.${key}`, e);
     const target = out.rules[key] as unknown as Record<string, unknown>;
     for (const [field, defaultValue] of Object.entries(defaults.rules[key])) {
@@ -351,6 +652,7 @@ export function validateConfigWithErrors(
         field === 'items' ||
         field === 'mode' ||
         field === 'languages' ||
+        !hasOwn(rule, field) ||
         rule[field] === undefined
       )
         continue;
@@ -364,7 +666,9 @@ export function validateConfigWithErrors(
               e,
               field === 'slidingWindowHours'
                 ? 0.1
-                : field === 'minWeightedLength' || field === 'minBlockCount'
+                : field === 'minWeightedLength' ||
+                    field === 'minBlockCount' ||
+                    field === 'maxMentionWeightedLength'
                   ? 1
                   : 0,
               ![
@@ -375,7 +679,7 @@ export function validateConfigWithErrors(
             );
     }
   }
-  if (rules.languageFilter !== undefined) {
+  if (hasOwn(rules, 'languageFilter') && rules.languageFilter !== undefined) {
     const lf = recordWithErrors(rules.languageFilter, 'rules.languageFilter', e);
     if (lf.mode !== undefined) {
       assert(
@@ -385,10 +689,14 @@ export function validateConfigWithErrors(
       out.rules.languageFilter.mode = lf.mode as LanguageFilterMode;
     }
     if (lf.languages !== undefined) {
-      assert(Array.isArray(lf.languages), e.expectObject('languages'));
+      const rawLangs = assertDenseArrayWithErrors(
+        lf.languages,
+        'languages',
+        e
+      );
       const langs = [
         ...new Set(
-          lf.languages.map((code) =>
+          rawLangs.map((code) =>
             stringWithErrors(code, 'language', e, 16, false).toLowerCase().trim()
           )
         ),
@@ -400,17 +708,51 @@ export function validateConfigWithErrors(
       out.rules.languageFilter.languages = langs;
     }
   }
-  if (rules.keywords !== undefined) {
+  if (hasOwn(rules, 'keywords') && rules.keywords !== undefined) {
     const k = recordWithErrors(rules.keywords, 'rules.keywords', e);
     if (k.items !== undefined) {
-      assert(Array.isArray(k.items), e.expectObject('keywords.items'));
-      out.rules.keywords.items = k.items.map((item) =>
+      const rawKeywordItems = assertDenseArrayWithErrors(
+        k.items,
+        'keywords.items',
+        e
+      );
+      out.rules.keywords.items = rawKeywordItems.map((item) =>
         validateKeywordWithErrors(item, e)
       );
     }
   }
   const ids = out.rules.keywords.items.map((k) => k.id);
   assert(new Set(ids).size === ids.length, e.duplicateKeywordId);
+
+  if (hasOwn(rules, 'domainFilter') && rules.domainFilter !== undefined) {
+    const df = recordWithErrors(rules.domainFilter, 'rules.domainFilter', e);
+    if (df.items !== undefined) {
+      const rawDomainItems = assertDenseArrayWithErrors(
+        df.items,
+        'domainFilter.items',
+        e
+      );
+      out.rules.domainFilter.items = rawDomainItems.map((item) =>
+        validateDomainRuleWithErrors(item, e)
+      );
+    }
+  }
+  const domainIds = out.rules.domainFilter.items.map((d) => d.id);
+  assert(new Set(domainIds).size === domainIds.length, e.duplicateDomainId);
+
+  if (x.installedPacks !== undefined) {
+    const rawPacks = assertDenseArrayWithErrors(
+      x.installedPacks,
+      'installedPacks',
+      e
+    );
+    out.installedPacks = rawPacks.map((pack) =>
+      validateInstalledPackWithErrors(pack, e)
+    );
+    const packIds = out.installedPacks.map((p) => p.id);
+    assert(new Set(packIds).size === packIds.length, e.duplicatePackId);
+  }
+
   for (const key of ['whitelistUids', 'localBlocklistUids'] as const) {
     out[key] = {};
     if (x[key] === undefined) continue;
@@ -421,7 +763,9 @@ export function validateConfigWithErrors(
     }
   }
   assert(
-    !Object.keys(out.whitelistUids).some((uid) => out.localBlocklistUids[uid]),
+    !Object.keys(out.whitelistUids).some((uid) =>
+      hasOwn(out.localBlocklistUids, uid)
+    ),
     e.disjointListsRequired
   );
   return out;
@@ -445,13 +789,21 @@ export function validateSnapshotWithErrors(
     const entry = recordWithErrors(raw, 'snapshot.entry', e);
     counts[uid] = { c: numberWithErrors(entry.c, 'snapshot.c', e, 0, true) };
     if (entry.t !== undefined) {
-      assert(tags.includes(String(entry.t)), e.invalidSnapshotTag);
+      assert(
+        typeof entry.t === 'string' && tags.includes(entry.t),
+        e.invalidSnapshotTag
+      );
       counts[uid].t = entry.t as AccountListEntry['tag'];
     }
     if (entry.p !== undefined)
       counts[uid].p = boolWithErrors(entry.p, 'snapshot.p', e);
   }
-  assert(Array.isArray(x.cloudKeywords), e.invalidCloudKeywords);
+  const rawCloudKeywords = assertDenseArrayWithErrors(
+    x.cloudKeywords,
+    'snapshot.cloudKeywords',
+    e,
+    e.invalidCloudKeywords
+  );
   return {
     version: 1,
     updatedAt: x.updatedAt,
@@ -472,7 +824,7 @@ export function validateSnapshotWithErrors(
     ),
     counts,
     cloudKeywords: mergeCloudKeywords(
-      x.cloudKeywords.map((item) => validateKeywordWithErrors(item, e)),
+      rawCloudKeywords.map((item) => validateKeywordWithErrors(item, e)),
       true
     ),
   };

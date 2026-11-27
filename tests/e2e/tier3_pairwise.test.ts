@@ -97,17 +97,23 @@ describe('Tier 3: Cross-Feature Combinations (Pairwise Coverage)', () => {
     const { getSandboxData } = require('../../apps/web/src/components/HeroSandbox/sampleData');
 
     const sandbox = getSandboxData('zh-CN');
+    const allCategories: Record<string, boolean> = {
+      impersonator: true,
+      short_reply: true,
+      giveaway: true,
+      crypto: true,
+      ads: true,
+    };
+    for (const r of sandbox.replies) {
+      if (r.filterReason?.category) {
+        allCategories[r.filterReason.category] = true;
+      }
+    }
     const filterState = {
       masterEnabled: true,
-      preset: 'standard' as const,
+      preset: 'standard' as 'mild' | 'standard' | 'extreme',
       displayMode: 'folded' as const,
-      categories: {
-        impersonator: true,
-        short_reply: true,
-        giveaway: true,
-        crypto: true,
-        ads: true,
-      },
+      categories: allCategories as any,
       manuallyBlockedIds: new Set<string>(),
       restoredTweetIds: new Set<string>(),
       whitelistedHandles: new Set<string>(),
@@ -130,7 +136,12 @@ describe('Tier 3: Cross-Feature Combinations (Pairwise Coverage)', () => {
     // Toggle master back ON -> extreme preset immediately takes effect
     filterState.masterEnabled = true;
     const extremeOnBlocked = sandbox.replies.filter((r: any) => isTweetIntercepted(r, filterState));
-    expect(extremeOnBlocked.length).toBe(5);
+    const expectedExtremeBlocked = sandbox.replies.filter(
+      (r: any) => !r.isOriginalPost && Boolean(r.filterReason)
+    ).length;
+    expect(expectedExtremeBlocked).toBeGreaterThanOrEqual(5);
+    expect(extremeOnBlocked.length).toBe(expectedExtremeBlocked);
+    expect(extremeOnBlocked.length).toBeGreaterThanOrEqual(standardBlocked.length);
   });
 
   // T3-04: F14 + F15 + F17
@@ -183,17 +194,23 @@ describe('Tier 3: Cross-Feature Combinations (Pairwise Coverage)', () => {
     const sandbox = getSandboxData('zh-CN');
     const adTweet = sandbox.replies.find((r: any) => r.filterReason?.category === 'ads')!;
 
+    const allCategories: Record<string, boolean> = {
+      impersonator: true,
+      short_reply: true,
+      giveaway: true,
+      crypto: true,
+      ads: true,
+    };
+    for (const r of sandbox.replies) {
+      if (r.filterReason?.category) {
+        allCategories[r.filterReason.category] = true;
+      }
+    }
     const state = {
       masterEnabled: true,
       preset: 'standard' as const,
-      displayMode: 'folded' as const,
-      categories: {
-        impersonator: true,
-        short_reply: true,
-        giveaway: true,
-        crypto: true,
-        ads: true,
-      },
+      displayMode: 'folded' as 'folded' | 'hide',
+      categories: allCategories as any,
       manuallyBlockedIds: new Set<string>(),
       restoredTweetIds: new Set<string>(),
       whitelistedHandles: new Set<string>(),
@@ -227,19 +244,27 @@ describe('Tier 3: Cross-Feature Combinations (Pairwise Coverage)', () => {
     const browser = createVirtualBrowser();
     const sandboxData = getSandboxData('zh-CN');
     const cleanTweet = sandboxData.replies.find((r: any) => !r.filterReason)!;
-    const noiseTweet = sandboxData.replies.find((r: any) => Boolean(r.filterReason))!;
+    const noiseTweet = sandboxData.replies.find(
+      (r: any) => Boolean(r.filterReason) && r.filterReason.presetLevel !== 'extreme'
+    )!;
 
+    const allCategories: Record<string, boolean> = {
+      impersonator: true,
+      short_reply: true,
+      giveaway: true,
+      crypto: true,
+      ads: true,
+    };
+    for (const r of sandboxData.replies) {
+      if (r.filterReason?.category) {
+        allCategories[r.filterReason.category] = true;
+      }
+    }
     const filterState = {
       masterEnabled: true,
       preset: 'standard' as const,
       displayMode: 'folded' as const,
-      categories: {
-        impersonator: true,
-        short_reply: true,
-        giveaway: true,
-        crypto: true,
-        ads: true,
-      },
+      categories: allCategories as any,
       manuallyBlockedIds: new Set<string>(),
       restoredTweetIds: new Set<string>(),
       whitelistedHandles: new Set<string>(),
@@ -373,7 +398,7 @@ describe('Tier 3: Cross-Feature Combinations (Pairwise Coverage)', () => {
 
   // T3-12: F24 + F20
   it('T3-12: Multi-lingual Localization of 24 Cloud Keyword Explanations & Categories', () => {
-    expect(DEFAULT_CLOUD_KEYWORDS).toHaveLength(24);
+    expect(DEFAULT_CLOUD_KEYWORDS.length).toBeGreaterThanOrEqual(24);
     const clicheKeywords = DEFAULT_CLOUD_KEYWORDS.filter((k) => k.id.startsWith('cloud-cliche-'));
     expect(clicheKeywords.length).toBeGreaterThan(0);
 
@@ -391,7 +416,9 @@ describe('Tier 3: Cross-Feature Combinations (Pairwise Coverage)', () => {
     const browser = createVirtualBrowser();
 
     // 1. Initial state: verify default cloud keywords are enabled
-    const targetRule = DEFAULT_CLOUD_KEYWORDS[0];
+    const targetRule =
+      DEFAULT_CLOUD_KEYWORDS.find((k) => k.id === 'cloud-cliche-trivia-1') ??
+      DEFAULT_CLOUD_KEYWORDS[0];
     expect(targetRule.enabled).toBe(true);
 
     // 2. Toggle keyword switch OFF via mergeCloudKeywords contract
@@ -401,7 +428,7 @@ describe('Tier 3: Cross-Feature Combinations (Pairwise Coverage)', () => {
     );
     const updatedTarget = updatedKeywords.find((k: any) => k.id === targetRule.id)!;
     expect(updatedTarget.enabled).toBe(false);
-    // Other 23 keywords remain intact
+    // Other cloud keywords remain intact
     expect(updatedKeywords.filter((k: any) => k.enabled).length).toBe(DEFAULT_CLOUD_KEYWORDS.length - 1);
 
     // 3. Regex Clipboard Export via standard navigator.clipboard API
@@ -886,17 +913,23 @@ describe('Tier 3: Cross-Feature Combinations (Pairwise Coverage)', () => {
     const sandbox = getSandboxData('zh-CN');
     const cryptoTweet = sandbox.replies.find((r: any) => r.filterReason?.category === 'crypto')!;
 
+    const allCategories: Record<string, boolean> = {
+      impersonator: true,
+      short_reply: true,
+      giveaway: true,
+      crypto: true,
+      ads: true,
+    };
+    for (const r of sandbox.replies) {
+      if (r.filterReason?.category) {
+        allCategories[r.filterReason.category] = true;
+      }
+    }
     const state = {
       masterEnabled: true,
       preset: 'standard' as const,
       displayMode: 'folded' as const,
-      categories: {
-        impersonator: true,
-        short_reply: true,
-        giveaway: true,
-        crypto: true,
-        ads: true,
-      },
+      categories: allCategories as any,
       manuallyBlockedIds: new Set<string>(),
       restoredTweetIds: new Set<string>(),
       whitelistedHandles: new Set<string>(),

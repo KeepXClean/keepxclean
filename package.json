@@ -1,6 +1,6 @@
 {
   "name": "keepxclean",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "private": true,
   "license": "MIT",
   "description": "KeepXClean - High signal-to-noise ratio filter extension for X (Twitter) powered by Cloudflare crowd-sourced blocklist (keepxclean.com)",
@@ -21,6 +21,8 @@
     "typecheck": "pnpm -r typecheck",
     "db:migrate:local": "pnpm --filter @keepxclean/server db:migrate:local",
     "db:migrate:remote": "pnpm --filter @keepxclean/server db:migrate:remote",
+    "cloud-rules:push": "tsx apps/server/scripts/cloud-rules.ts push",
+    "cloud-rules:list": "tsx apps/server/scripts/cloud-rules.ts list",
     "deploy:server": "pnpm --filter @keepxclean/server run deploy",
     "deploy:web": "pnpm --filter @keepxclean/web build && pnpm --filter @keepxclean/web exec wrangler deploy"
   },

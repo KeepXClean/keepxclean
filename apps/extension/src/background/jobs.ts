@@ -394,7 +394,7 @@ async function readImport(id: string) {
       );
       let invalid = 0;
       for (const uid of result.ids) {
-        if (UID.test(uid)) unique.add(uid);
+        if (typeof uid === 'string' && UID.test(uid)) unique.add(uid);
         else invalid++;
       }
       cursor = result.nextCursor;
@@ -583,7 +583,11 @@ export async function resolveAccount(
 
   const targetLower = parsed.handle.toLowerCase();
   const localMatch = knownEntries.find(
-    (x) => UID.test(x.uid) && x.screenName.toLowerCase() === targetLower
+    (x) =>
+      typeof x.uid === 'string' &&
+      UID.test(x.uid) &&
+      typeof x.screenName === 'string' &&
+      x.screenName.toLowerCase() === targetLower
   );
   if (localMatch) {
     return localMatch;
@@ -609,7 +613,12 @@ export async function resolveAccount(
       const res = await native(tab.id, 'RESOLVE_USER_HANDLE', {
         screenName: parsed.handle,
       });
-      if (res.ok && res.user && UID.test(res.user.uid)) {
+      if (
+        res.ok &&
+        res.user &&
+        typeof res.user.uid === 'string' &&
+        UID.test(res.user.uid)
+      ) {
         return {
           uid: res.user.uid,
           screenName: res.user.screenName || parsed.handle,

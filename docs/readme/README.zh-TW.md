@@ -41,11 +41,11 @@
 
 ## 核心亮點
 
-- **本地優先與 `< 1ms` 確定性引擎**：直接複用瀏覽器已接收的 X GraphQL 回應，零額外 API 請求、零風控輪詢。
-- **多維度噪音防線**：涵蓋留言區防灌水、藍標水軍短評、高仿號辨識、互動乞討、高頻洗版、標籤堆砌、**24 條內建公共詞庫**（支援逐條開關與複製自訂正規表示式）、語種過濾及推廣廣告移除。
-- **折疊條與無痕隱藏 + 轉引穿透**：支援折疊為可展開檢視證據的單行提示條或無痕移除；已追隨帳號轉發/引用垃圾內容時，精準鎖定被轉引的垃圾來源帳號。
-- **誠實三階段回饋與 4.5 秒復原視窗**：點擊淨空立即本地生效並提供 **4.5 秒復原倒數**；結束後依偏好執行 X 原生封鎖與加鹽 `SHA-256` 匿名社群計票（`1 帳號 = 1 票`，≥5 萬粉帳號享 `5×` 門檻保護）。
-- **10 種原生介面語言**：完整支援繁中、簡中、英、日、韓、西、葡、法、德、俄 10 種語言。
+- **本地優先、`< 1ms` 引擎與解析健康自檢**：直接複用瀏覽器已接收的 X GraphQL 回應，零新增擴充權限（僅 `storage` + `alarms`）、零額外 API 請求、60/120 FPS 流暢捲動，並內建純本機解析健康自檢（異常時提供脫敏診斷摘要、自動恢復、零遙測）。
+- **多維度噪音防線**：涵蓋留言區防灌水、**同貼複讀水軍去重**（保留首條並攔截重複洗版）、**官方 `@grok` 保護與短召喚過濾**、高仿號辨識、互動乞討、高頻洗版、**結構化外連網域過濾**、**10 語種公共詞庫包（內建 45 條規則）**、**純離線 `.kxc-pack.json` 主題規則包**、語種過濾及推廣廣告移除。
+- **分場景策略、折疊條直達與轉引穿透**：區分 **For You** 與 **Following** 並支援分場景模式（`inherit` / `collapse` / `strip` / `bypass`），展開折疊條可直達調整命中規則或一鍵停用該詞條並即時恢復。
+- **快速上手卡、規則統計與可選同步**：全新安裝非侵入式快速上手卡（零自動開啟分頁）、依規則統計與近 7 日趨勢及**純本機 Canvas 2D 淨空戰報 PNG**（零隱私資訊）、**4.5 秒復原視窗**，以及預設關閉的**可選 `chrome.storage.sync` 跨裝置同步**（本機黑白名單與日誌始終留存本機）。
+- **10 種原生介面語言與 Chrome / Firefox MV3**：完整支援繁中、簡中、英、日、韓、西、葡、法、德、俄 10 種語言。
 
 ## 安裝方式
 
@@ -62,6 +62,7 @@
 ## 隱私與安全
 
 - KeepXClean 不索取密碼或私訊。擴充功能會在本機讀取 X 帳號 Cookie，用於帳號識別及使用者觸發的 X 操作；工作階段 Cookie 與網頁客戶端授權值僅用於與 X 通訊，不會傳送至 KeepXClean 伺服器。可選社群回報的資料範圍請見隱私權政策。
+- **預設關閉與本機留存**：全新安裝下 `syncNativeXBlock`、`enableCrowdReport` 與可選跨裝置同步（`chrome.storage.sync`）皆預設關閉；可選同步排除大體積本機黑白名單與歷史日誌，本機解析自檢不含 PII 且零遙測。
 - **零第三方追蹤**：不含任何統計 SDK、廣告追蹤器或遠端程式碼執行。
 - **匿名社群同步**：快照下載不帶憑證（`credentials: 'omit'`），社群回報僅傳送不可逆加鹽 `SHA-256` 雜湊值。
 - 詳見官方雙語 [**隱私權政策**](https://keepxclean.com/privacy/)。
@@ -69,11 +70,12 @@
 ## 專案結構與本地開發
 
 ```text
-packages/shared/   確定性規則引擎、X GraphQL 解析、24 條公共詞庫與多語言模組
-apps/extension/    WXT (Manifest V3) 瀏覽器擴充功能與背景任務
-apps/server/       Cloudflare Workers API、D1 計票聚合與 R2 快照快取
+packages/shared/   確定性規則引擎、X GraphQL 解析、10 語種公共詞庫包（45 條規則）、離線規則包校驗與多語言模組
+apps/extension/    WXT (Manifest V3 — Chrome 與 Firefox) 瀏覽器擴充功能、Shadow DOM 介面、Canvas 2D 戰報與背景任務
+apps/server/       Cloudflare Workers API、D1 計票聚合、快照快取與維護者 cloud-rules CLI
 apps/web/          官方網站與瀏覽器模擬互動沙盒 (keepxclean.com)
 tests/e2e/         5 層端對端與對抗性驗證測試套件
+tests/browser-e2e/ 真實 Chromium MV3 擴充功能 E2E 測試套件
 ```
 
 環境需求：**Node.js ≥ 20** 與 **pnpm**
@@ -81,13 +83,15 @@ tests/e2e/         5 層端對端與對抗性驗證測試套件
 ```bash
 pnpm install
 pnpm dev:ext      # 啟動擴充功能開發模式
+pnpm lint         # 全專案 ESLint 程式碼檢查
 pnpm typecheck    # 全專案型別檢查
 pnpm test         # 執行單元與整合測試
 pnpm test:e2e     # 執行 5 層 E2E 測試套件
 pnpm build        # 建置正式版產物
+pnpm test:browser # 執行真實 Chromium MV3 擴充功能 E2E
 ```
 
-自架部署與 CI/CD 設定請參閱 [docs/DEPLOYMENT.md](../DEPLOYMENT.md)。
+版本更新紀錄請見 [CHANGELOG.md](../../CHANGELOG.md)。自架部署與 CI/CD 設定請參閱 [docs/DEPLOYMENT.md](../DEPLOYMENT.md)。
 
 ## 作者與開源授權
 

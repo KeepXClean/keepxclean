@@ -14,6 +14,8 @@ import {
 } from '../../src/ui/components';
 import { useDocumentTheme } from '../../src/ui/theme';
 import { QuickControls } from '../../src/features/quick-controls/QuickControls';
+import { OnboardingCard } from '../../src/features/quick-controls/OnboardingCard';
+import { ParseHealthBanner } from '../../src/features/quick-controls/ParseHealthBanner';
 import { SyncStatus } from '../../src/features/preferences/PreferencesPage';
 
 export function App() {
@@ -64,6 +66,8 @@ export function App() {
           ) : (
             <>
               <SaveError />
+              <ParseHealthBanner />
+              <OnboardingCard />
               <QuickControls />
             </>
           )}

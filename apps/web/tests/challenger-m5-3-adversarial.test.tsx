@@ -4,7 +4,7 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React, { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { DEFAULT_CLOUD_KEYWORDS } from '@keepxclean/shared';
+import { CLOUD_KEYWORD_LANG_GROUPS, DEFAULT_CLOUD_KEYWORDS } from '@keepxclean/shared';
 import { I18nProvider } from '../src/locales';
 import { HonestStatusCard } from '../src/components/BentoGrid/HonestStatusCard';
 import { ProfileBadgeCard } from '../src/components/BentoGrid/ProfileBadgeCard';
@@ -386,7 +386,9 @@ describe('Adversarial Challenger Iteration 2: M5 Stress & Robustness Suite', () 
   // =========================================================================
 
   describe('Feature 24: CloudKeywordsCard High-Frequency Stress', () => {
-    it('survives toggling all 24 switches in rapid successive loops 5 times without mutating defaults', async () => {
+    it('survives toggling all 45 switches in rapid successive loops 5 times without mutating defaults', async () => {
+      const total = DEFAULT_CLOUD_KEYWORDS.length;
+      expect(total).toBe(45);
       const initialSnapshot = JSON.parse(JSON.stringify(DEFAULT_CLOUD_KEYWORDS));
 
       await act(async () => {
@@ -398,14 +400,14 @@ describe('Adversarial Challenger Iteration 2: M5 Stress & Robustness Suite', () 
       });
 
       const badge = container.querySelector('[data-testid="keywords-active-badge"]');
-      expect(badge?.textContent).toContain('24 / 24');
+      expect(badge?.textContent).toContain(`${total} / ${total}`);
 
       const checkboxes = Array.from(
         container.querySelectorAll<HTMLInputElement>('.keyword-item input[type="checkbox"]')
       );
-      expect(checkboxes.length).toBe(24);
+      expect(checkboxes.length).toBe(total);
 
-      // Perform 5 full passes over all 24 switches
+      // Perform 5 full passes over all switches
       await act(async () => {
         for (let pass = 0; pass < 5; pass++) {
           for (const cb of checkboxes) {
@@ -414,22 +416,23 @@ describe('Adversarial Challenger Iteration 2: M5 Stress & Robustness Suite', () 
         }
       });
 
-      // 5 toggles = odd number of toggles -> all should be disabled (0 / 24)
-      expect(badge?.textContent).toContain('0 / 24');
+      // 5 toggles = odd number of toggles -> all should be disabled (0 / 45)
+      expect(badge?.textContent).toContain(`0 / ${total}`);
 
-      // One more pass -> 6 toggles = all re-enabled (24 / 24)
+      // One more pass -> 6 toggles = all re-enabled (45 / 45)
       await act(async () => {
         for (const cb of checkboxes) {
           cb.click();
         }
       });
-      expect(badge?.textContent).toContain('24 / 24');
+      expect(badge?.textContent).toContain(`${total} / ${total}`);
 
       // Verify immutable global default
       expect(DEFAULT_CLOUD_KEYWORDS).toEqual(initialSnapshot);
     });
 
-    it('survives rapid category tab cycling interleaved with search inputs', async () => {
+    it('survives rapid category tab & 10-language pack cycling interleaved with search inputs', async () => {
+      const total = DEFAULT_CLOUD_KEYWORDS.length;
       await act(async () => {
         root!.render(
           <I18nProvider initialLocale="en">
@@ -439,31 +442,37 @@ describe('Adversarial Challenger Iteration 2: M5 Stress & Robustness Suite', () 
       });
 
       const tabs = Array.from(container.querySelectorAll<HTMLButtonElement>('.keywords-tab-btn'));
+      const packBtns = Array.from(
+        container.querySelectorAll<HTMLButtonElement>('.keywords-lang-pack-btn')
+      );
+      expect(packBtns.length).toBe(CLOUD_KEYWORD_LANG_GROUPS.length + 1);
+
       const searchInput = container.querySelector('.keywords-search-input') as HTMLInputElement;
       const nativeSetter = Object.getOwnPropertyDescriptor(
         window.HTMLInputElement.prototype,
         'value'
       )?.set;
 
-      const queries = ['crypto', 'bot', 'free', 'telegram', 'solana', '100%'];
+      const queries = ['crypto', 'bot', 'free', 'telegram', 'solana', 'ja'];
 
       await act(async () => {
         for (let i = 0; i < 30; i++) {
-          const tab = tabs[i % tabs.length];
-          tab.click();
+          packBtns[i % packBtns.length].click();
+          tabs[i % tabs.length].click();
 
           const query = queries[i % queries.length];
           nativeSetter?.call(searchInput, query);
           searchInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
 
-        // Reset search
+        // Reset search, pack & category
         nativeSetter?.call(searchInput, '');
         searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+        packBtns[0].click(); // All packs
         tabs[0].click(); // All tab
       });
 
-      expect(container.querySelectorAll('.keyword-item').length).toBe(24);
+      expect(container.querySelectorAll('.keyword-item').length).toBe(total);
     });
 
     it('handles clipboard copy with modern API, fallback execCommand, and rejection error', async () => {

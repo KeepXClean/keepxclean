@@ -4,7 +4,7 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React, { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { DEFAULT_CLOUD_KEYWORDS } from '@keepxclean/shared';
+import { CLOUD_KEYWORD_LANG_GROUPS, DEFAULT_CLOUD_KEYWORDS } from '@keepxclean/shared';
 import { I18nProvider } from '../src/locales';
 import { CloudKeywordsCard, getCategoryForRule } from '../src/components/BentoGrid/CloudKeywordsCard';
 import { HonestStatusCard } from '../src/components/BentoGrid/HonestStatusCard';
@@ -399,12 +399,13 @@ describe('Adversarial Challenger Suite: Milestone 5 (Features 24, 25, 26)', () =
   });
 
   // =========================================================================
-  // FEATURE 24: 24 Cloud Keywords Preview & Preset Immutability
+  // FEATURE 24: Cloud Keywords Preview (45 Rules / 10 Lang Packs) & Preset Immutability
   // =========================================================================
 
-  describe('Feature 24: 24 Cloud Keywords Preview, Filtering & Preset Immutability', () => {
-    it('verifies exact category counts across all 24 default rules: All [24], Cliche [9], Crypto [5], Follow [2], Nsfw [2], Scam [6]', () => {
-      expect(DEFAULT_CLOUD_KEYWORDS).toHaveLength(24);
+  describe('Feature 24: Cloud Keywords Preview, Filtering & Preset Immutability', () => {
+    it('verifies exact category & 10-language pack counts across all 45 default rules: All [45], Cliche [9], Crypto [5], Follow [9], Nsfw [9], Scam [13]', () => {
+      const total = DEFAULT_CLOUD_KEYWORDS.length;
+      expect(total).toBe(45);
 
       const categoryMap: Record<string, string[]> = {
         cliche: [],
@@ -413,28 +414,39 @@ describe('Adversarial Challenger Suite: Milestone 5 (Features 24, 25, 26)', () =
         nsfw: [],
         scam: [],
       };
+      const langMap: Record<string, string[]> = {};
 
       for (const rule of DEFAULT_CLOUD_KEYWORDS) {
-        const cat = getCategoryForRule(rule.id);
+        const cat = getCategoryForRule(rule);
+        expect(getCategoryForRule(rule.id)).toBe(cat);
         expect(categoryMap[cat]).toBeDefined();
         categoryMap[cat].push(rule.id);
+
+        const group = rule.langGroup ?? 'universal';
+        langMap[group] = langMap[group] ?? [];
+        langMap[group].push(rule.id);
       }
 
       expect(categoryMap.cliche.length).toBe(9);
       expect(categoryMap.crypto.length).toBe(5);
-      expect(categoryMap.follow.length).toBe(2);
-      expect(categoryMap.nsfw.length).toBe(2);
-      expect(categoryMap.scam.length).toBe(6);
+      expect(categoryMap.follow.length).toBe(9);
+      expect(categoryMap.nsfw.length).toBe(9);
+      expect(categoryMap.scam.length).toBe(13);
       expect(
         categoryMap.cliche.length +
         categoryMap.crypto.length +
         categoryMap.follow.length +
         categoryMap.nsfw.length +
         categoryMap.scam.length
-      ).toBe(24);
+      ).toBe(total);
+
+      for (const group of CLOUD_KEYWORD_LANG_GROUPS) {
+        expect(langMap[group]?.length ?? 0).toBeGreaterThanOrEqual(3);
+      }
     });
 
-    it('verifies UI category filtering renders exact matching rules for every category tab', async () => {
+    it('verifies UI category and 10-language pack filtering renders exact matching rules', async () => {
+      const total = DEFAULT_CLOUD_KEYWORDS.length;
       await act(async () => {
         root!.render(
           <I18nProvider initialLocale="en">
@@ -447,12 +459,12 @@ describe('Adversarial Challenger Suite: Milestone 5 (Features 24, 25, 26)', () =
       expect(tabs.length).toBe(6);
 
       const expectedCategories = [
-        { labelPattern: /\(24\)/, count: 24 },
-        { labelPattern: /\(9\)/, count: 9 },
+        { labelPattern: new RegExp(`All.*\\(${total}\\)`), count: total },
+        { labelPattern: /Marketing.*\(9\)/, count: 9 },
         { labelPattern: /Crypto.*\(5\)/, count: 5 },
-        { labelPattern: /Follow.*\(2\)/, count: 2 },
-        { labelPattern: /Adult.*\(2\)/, count: 2 },
-        { labelPattern: /Scam.*\(6\)/, count: 6 },
+        { labelPattern: /Follow.*\(9\)/, count: 9 },
+        { labelPattern: /Adult.*\(9\)/, count: 9 },
+        { labelPattern: /Scam.*\(13\)/, count: 13 },
       ];
 
       for (const spec of expectedCategories) {
@@ -466,9 +478,29 @@ describe('Adversarial Challenger Suite: Milestone 5 (Features 24, 25, 26)', () =
         const items = container.querySelectorAll('.keyword-item');
         expect(items.length).toBe(spec.count);
       }
+
+      // Reset to All category and verify each of the 10 language packs
+      await act(async () => {
+        tabs[0].click();
+      });
+
+      for (const group of CLOUD_KEYWORD_LANG_GROUPS) {
+        const expectedInGroup = DEFAULT_CLOUD_KEYWORDS.filter(
+          (r) => (r.langGroup ?? 'universal') === group
+        ).length;
+        const packBtn = container.querySelector(
+          `[data-testid="lang-pack-btn-${group}"]`
+        ) as HTMLButtonElement;
+        expect(packBtn).not.toBeNull();
+        await act(async () => {
+          packBtn.click();
+        });
+        expect(container.querySelectorAll('.keyword-item').length).toBe(expectedInGroup);
+      }
     });
 
     it('verifies toggling rules updates active counter badge WITHOUT mutating DEFAULT_CLOUD_KEYWORDS', async () => {
+      const total = DEFAULT_CLOUD_KEYWORDS.length;
       // Snapshot initial state of DEFAULT_CLOUD_KEYWORDS
       const initialSnapshot = JSON.parse(JSON.stringify(DEFAULT_CLOUD_KEYWORDS));
 
@@ -481,7 +513,7 @@ describe('Adversarial Challenger Suite: Milestone 5 (Features 24, 25, 26)', () =
       });
 
       const badge = container.querySelector('[data-testid="keywords-active-badge"]');
-      expect(badge?.textContent).toContain('24 / 24');
+      expect(badge?.textContent).toContain(`${total} / ${total}`);
 
       // Toggle rule 0
       const item0 = container.querySelector(`[data-testid="keyword-item-${DEFAULT_CLOUD_KEYWORDS[0].id}"]`);
@@ -492,7 +524,7 @@ describe('Adversarial Challenger Suite: Milestone 5 (Features 24, 25, 26)', () =
         checkbox0.click();
       });
       expect(checkbox0.checked).toBe(false);
-      expect(badge?.textContent).toContain('23 / 24');
+      expect(badge?.textContent).toContain(`${total - 1} / ${total}`);
 
       // Toggle rule 1
       const item1 = container.querySelector(`[data-testid="keyword-item-${DEFAULT_CLOUD_KEYWORDS[1].id}"]`);
@@ -503,7 +535,7 @@ describe('Adversarial Challenger Suite: Milestone 5 (Features 24, 25, 26)', () =
         checkbox1.click();
       });
       expect(checkbox1.checked).toBe(false);
-      expect(badge?.textContent).toContain('22 / 24');
+      expect(badge?.textContent).toContain(`${total - 2} / ${total}`);
 
       // Toggle rule 2
       const item2 = container.querySelector(`[data-testid="keyword-item-${DEFAULT_CLOUD_KEYWORDS[2].id}"]`);
@@ -512,13 +544,13 @@ describe('Adversarial Challenger Suite: Milestone 5 (Features 24, 25, 26)', () =
       await act(async () => {
         checkbox2.click();
       });
-      expect(badge?.textContent).toContain('21 / 24');
+      expect(badge?.textContent).toContain(`${total - 3} / ${total}`);
 
       // Toggle rule 0 back on
       await act(async () => {
         checkbox0.click();
       });
-      expect(badge?.textContent).toContain('22 / 24');
+      expect(badge?.textContent).toContain(`${total - 2} / ${total}`);
 
       // STRICT IMMUTABILITY CHECK:
       // Verify DEFAULT_CLOUD_KEYWORDS was never mutated in memory
@@ -528,7 +560,8 @@ describe('Adversarial Challenger Suite: Milestone 5 (Features 24, 25, 26)', () =
       }
     });
 
-    it('verifies toggling all 24 rules off sets active badge to 0 / 24 without crashing', async () => {
+    it('verifies toggling all 45 rules off sets active badge to 0 / 45 without crashing', async () => {
+      const total = DEFAULT_CLOUD_KEYWORDS.length;
       await act(async () => {
         root!.render(
           <I18nProvider initialLocale="en">
@@ -538,13 +571,13 @@ describe('Adversarial Challenger Suite: Milestone 5 (Features 24, 25, 26)', () =
       });
 
       const badge = container.querySelector('[data-testid="keywords-active-badge"]');
-      expect(badge?.textContent).toContain('24 / 24');
+      expect(badge?.textContent).toContain(`${total} / ${total}`);
 
       // Toggle every single rule off
       const checkboxes = Array.from(
         container.querySelectorAll<HTMLInputElement>('.keyword-item input[type="checkbox"]')
       );
-      expect(checkboxes.length).toBe(24);
+      expect(checkboxes.length).toBe(total);
 
       await act(async () => {
         for (const cb of checkboxes) {
@@ -552,16 +585,16 @@ describe('Adversarial Challenger Suite: Milestone 5 (Features 24, 25, 26)', () =
         }
       });
 
-      expect(badge?.textContent).toContain('0 / 24');
+      expect(badge?.textContent).toContain(`0 / ${total}`);
 
-      // Toggle all 24 back on
+      // Toggle all rules back on
       await act(async () => {
         for (const cb of checkboxes) {
           cb.click();
         }
       });
 
-      expect(badge?.textContent).toContain('24 / 24');
+      expect(badge?.textContent).toContain(`${total} / ${total}`);
     });
 
     it('verifies search filtering across note, pattern, and id, and handles zero matches gracefully', async () => {
@@ -673,8 +706,8 @@ describe('Adversarial Challenger Suite: Milestone 5 (Features 24, 25, 26)', () =
         searchInput.dispatchEvent(new Event('input', { bubbles: true }));
         searchInput.dispatchEvent(new Event('change', { bubbles: true }));
       });
-      expect(container.querySelectorAll('.keyword-item').length).toBe(24);
-    });
+      expect(container.querySelectorAll('.keyword-item').length).toBe(DEFAULT_CLOUD_KEYWORDS.length);
+    }, 15_000);
   });
 
   // =========================================================================
